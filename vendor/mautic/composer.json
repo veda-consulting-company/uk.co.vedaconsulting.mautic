@@ -1,0 +1,25 @@
+{
+  "name": "mautic/api-library",
+  "license": "MIT",
+  "type": "library",
+  "description": "Mautic API Connector Library",
+  "autoload": {
+    "psr-4": {
+      "Mautic\\": "lib/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Mautic\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": ">=5.3.7",
+    "ext-curl": "*",
+    "psr/log": "~1.0",
+    "phpunit/phpunit": "^5"
+  },
+  "require-dev": {
+    "raveren/kint": "~0.9"
+  }
+}
