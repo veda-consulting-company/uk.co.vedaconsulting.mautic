@@ -6,4 +6,16 @@
     <title>Settings</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/admin/mautic/connection</path>
+    <page_callback>CRM_Mautic_Page_Connection</page_callback>
+    <title>MauticConnection</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/mautic/webhook</path>
+    <page_callback>CRM_Mautic_Page_WebHook</page_callback>
+    <title>WebHook</title>
+    <access_callback>1</access_callback>
+  </item>
 </menu>

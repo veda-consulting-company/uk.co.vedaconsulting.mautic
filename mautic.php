@@ -10,7 +10,7 @@ use CRM_Mautic_ExtensionUtil as E;
  */
 function mautic_civicrm_config(&$config) {
   _mautic_civix_civicrm_config($config);
-   require_once  __DIR__ . '/vendor/mautic/lib/MauticApi.php'; 
+   require_once  __DIR__ . '/vendor/autoload.php'; 
 }
 
 /**
@@ -136,18 +136,112 @@ function mautic_civicrm_preProcess($formName, &$form) {
 } // */
 
 /**
+ * Implementation of hook_civicrm_buildForm.
+ *
+ * Add Mautic integration to group settings.
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_buildForm
+ */
+function mautic_civicrm_buildForm($formName, &$form) {
+  if ($formName == 'CRM_Group_Form_Edit' AND ($form->getAction() == CRM_Core_Action::ADD OR $form->getAction() == CRM_Core_Action::UPDATE)) {
+    // Get Mautic Segments
+    $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
+    if($segments){
+      // Add form elements
+      $form->add('select', 'mautic_segment', ts('Mailchimp Segment'), array('' => '- select -') + $segments);
+      
+      $options = array(
+        ts('No integration'),
+        ts('Sync to a Mautic segment: Contacts in this group will be added or removed from a segment.'),
+      );
+      $form->addRadio('mautic_integration_option', '', $options, NULL, '<br/>');
+      
+      $form->addElement('checkbox', 'mautic_fixup',
+          ts('Add Mautic webhook settings when this form is saved.'));
+      
+      // Prepopulate details if 'edit' action
+      $groupId = $form->getVar('_id');
+      if ($form->getAction() == CRM_Core_Action::UPDATE AND !empty($groupId)) {
+        $mauticDetails  = CRM_Mautic_Utils::getGroupsToSync(array($groupId));
+        $groupDetails = CRM_Utils_Array::value($groupId, $mauticDetails, []);
+        $defaults['mautic_fixup'] = 1;
+        if (!empty($groupDetails)) {
+          $defaults['mautic_segment'] = $groupDetails['segment_id'];
+          $defaults['mautic_integration_option'] = !empty($groupDetails['segment_id']);
+          $form->setDefaults($defaults);
+        }
+        else {
+          // defaults for a new group
+          $defaults['mautic_integration_option'] = 0;
+          $defaults['is_mautic_update_grouping'] = 0;
+          
+          $form->setDefaults($defaults);
+        }
+        $form->assign('mautic_segment_id' ,  CRM_Utils_Array::value('segment_id', $groupDetails, 0));
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors )
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_validateForm
+ *
+ */
+function mautic_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+  if ($formName != 'CRM_Group_Form_Edit') {
+    return;
+  }
+  if ($fields['mautic_integration_option'] == 1) {
+    if (empty($fields['mautic_segment'])) {
+      $errors['mautic_segment'] = ts('Please specify a Segment');
+    }
+    else {
+      // We need to make sure that this is the only group for this segment.
+      $otherGroups = CRM_Mautic_Utils::getGroupsToSync(array(), $fields['mautic_segment'], TRUE);
+      $thisGroup = $form->getVar('_group');
+      if ($thisGroup) {
+        unset($otherGroups[$thisGroup->id]);
+      }
+      if (!empty($otherGroups)) {
+        $otherGroup = reset($otherGroups);
+        $errors['mailchimp_list'] = ts('There is already a CiviCRM group associated with this Segment, called "'
+            . $otherGroup['civigroup_title'].'"');
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
- *
+ */
 function mautic_civicrm_navigationMenu(&$menu) {
-  _mautic_civix_insert_navigation_menu($menu, NULL, array(
-    'label' => E::ts('The Page'),
-    'name' => 'the_page',
-    'url' => 'civicrm/the-page',
-    'permission' => 'access CiviReport,access CiviContribute',
-    'operator' => 'OR',
+  _mautic_civix_insert_navigation_menu($menu, 'Administer', [
+    'label' => 'Mautic',
+    'name' => 'Mautic',
+    'url' => NULL,
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
+    'separator' => NULL,
+  ]);
+  _mautic_civix_insert_navigation_menu($menu, 'Administer/Mautic', [
+    'label' => 'Mautic Settings',
+    'name' => 'Mautic Settings',
+    'url' => 'civicrm/admin/mautic/settings',
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
     'separator' => 0,
-  ));
+  ]);
+  _mautic_civix_insert_navigation_menu($menu, 'Administer/Mautic', [
+    'label' => 'Connection',
+    'name' => 'Connection',
+    'url' => 'civicrm/admin/mautic/connection',
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
+    'separator' => 0,
+  ]);
   _mautic_civix_navigationMenu($menu);
 } // */

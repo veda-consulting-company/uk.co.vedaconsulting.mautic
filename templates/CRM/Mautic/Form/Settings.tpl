@@ -4,24 +4,50 @@
 {include file="CRM/common/formButtons.tpl" location="top"}
 </div>
 
-{* FIELD EXAMPLE: OPTION 1 (AUTOMATIC LAYOUT) *}
-
-{foreach from=$elementNames item=elementName}
-  <div class="crm-section">
-    <div class="label">{$form.$elementName.label}</div>
-    <div class="content">{$form.$elementName.html}</div>
-    <div class="clear"></div>
-  </div>
+<div class="crm-container">
+{foreach from=$sections item=section key=sectionName}
+   <div class="crm-form-block wrapper-{$sectionName}">
+    <h3>{$sectionTitles.$sectionName.title}</h3>
+    {if $sectionTitles.$sectionName.help}
+    <div class="help">{$sectionTitles.$sectionName.help} </div>
+    {/if}
+  {foreach from=$section item=element key=k}
+    <div class="crm-section wrapper-{$element}">
+      <div class="label">
+         {$form.$element.label}
+         {if $settings_fields.$element.is_required}
+         <span class="crm-marker">*</span>
+         {/if}
+      </div>
+      <div class="content">
+          {$form.$element.html}
+      <div class="description">{$settings_fields.$element.description}</div>
+      </div>
+      <div class="clear"></div>
+    </div>
+  {/foreach}
+  </fieldset>
+   </div>
 {/foreach}
-
-{* FIELD EXAMPLE: OPTION 2 (MANUAL LAYOUT)
-
-  <div>
-    <span>{$form.favorite_color.label}</span>
-    <span>{$form.favorite_color.html}</span>
-  </div>
-
-{* FOOTER *}
+</div>
 <div class="crm-submit-buttons">
 {include file="CRM/common/formButtons.tpl" location="bottom"}
 </div>
+<script>
+{literal}
+(function($) {
+  $('[name=mautic_connection_authentication_method]').change(function() {
+    var methods = ['basic', 'oauth1', 'oauth2'];
+    for (var i=0; i < methods.length; i++) {
+      var method = methods[i];
+      var methodSelected = method == $(this).val();
+      $('.wrapper-mautic_' +  method ).toggle(methodSelected)
+      .find('input,select').each(function() { 
+         $(this).attr('required', methodSelected)
+      });
+    }
+  }).trigger('change');
+
+}(CRM.$));
+{/literal}
+</script>
