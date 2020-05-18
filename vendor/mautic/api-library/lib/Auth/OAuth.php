@@ -467,7 +467,6 @@ class OAuth extends AbstractAuth
     protected function authorize(array $scope = array(), $scope_separator = ',', $attach = null)
     {
         $authUrl = $this->_authorize_url;
-
         //Build authorization URL
         if ($this->isOauth1()) {
             //OAuth 1.0

@@ -259,7 +259,6 @@ class Api implements LoggerAwareInterface
                         $settings['temporaryFilePath'] = $this->getTemporaryFilePath();
                     }
                     $response = $this->auth->makeRequest($url, $parameters, $method, $settings);
-
                     $this->getLogger()->debug('API Response', array('response' => $response));
 
                     if (!is_array($response)) {
@@ -484,7 +483,6 @@ class Api implements LoggerAwareInterface
     public function create(array $parameters)
     {
         $supported = $this->isSupported('create');
-
         return (true === $supported) ? $this->makeRequest($this->endpoint.'/new', $parameters, 'POST') : $supported;
     }
 

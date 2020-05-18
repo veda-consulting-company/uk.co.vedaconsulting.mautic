@@ -148,7 +148,8 @@ abstract class AbstractAuth implements AuthInterface
                 $parameters['file']          = $this->createCurlFile($parameters['file']);
                 $headers[]                   = "Content-Type: multipart/form-data";
             } else {
-                $parameters = http_build_query($parameters, '', '&');
+                $parameters = json_encode($parameters);
+                $headers[]  = "Content-Type: application/json";
             }
 
             $options[CURLOPT_POST]       = true;
@@ -189,7 +190,6 @@ abstract class AbstractAuth implements AuthInterface
             $_SESSION['oauth']['debug']['returnedHeaders'] = $response->getHeaders();
             $_SESSION['oauth']['debug']['returnedBody']    = $response->getBody();
         }
-
         // Handle zip file response
         if ($response->isZip()) {
             $temporaryFilePath = isset($settings['temporaryFilePath']) ? $settings['temporaryFilePath'] : sys_get_temp_dir();
