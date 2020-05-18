@@ -1,0 +1,9 @@
+{
+   "name": "uk.co.vedaconsulting.mautic",
+   "require": {
+        "mautic/api-library": "^2.16"
+    },
+    "replace": {
+      "psr/log": "*"
+    }
+}
