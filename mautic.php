@@ -243,5 +243,23 @@ function mautic_civicrm_navigationMenu(&$menu) {
     'operator' => NULL,
     'separator' => 0,
   ]);
+  _mautic_civix_insert_navigation_menu($menu, 'Administer/Mautic', [
+    'label' => 'Push to Mautic',
+    'name' => 'Push',
+    'url' => 'civicrm/admin/mautic/pushsync?reset=1',
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
+    'separator' => 0,
+  ]);
+  /**
+  _mautic_civix_insert_navigation_menu($menu, 'Administer/Mautic', [
+    'label' => 'Pull from Mautic',
+    'name' => 'Pull',
+    'url' => 'civicrm/admin/mautic/pullsync',
+    'permission' => 'administer CiviCRM',
+    'operator' => NULL,
+    'separator' => 0,
+  ]);
+  **/
   _mautic_civix_navigationMenu($menu);
 } // */

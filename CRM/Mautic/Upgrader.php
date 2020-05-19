@@ -86,12 +86,33 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
    *
    * @return TRUE on success
    * @throws Exception
-   *
+   */
   public function upgrade_4200() {
-    $this->ctx->log->info('Applying update 4200');
-    CRM_Core_DAO::executeQuery('UPDATE foo SET bar = "whiz"');
-    CRM_Core_DAO::executeQuery('DELETE FROM bang WHERE willy = wonka(2)');
-    return TRUE;
+    // Create a cron job to do sync data between CiviCRM and Mautic.
+    $params = array(
+      'sequential' => 1,
+      'name'          => 'Mautic Push Sync',
+      'description'   => 'Sync contacts between CiviCRM and Mautic, assuming CiviCRM to be correct. Please understand the implications before using this.',
+      'run_frequency' => 'Daily',
+      'api_entity'    => 'Mautic',
+      'api_action'    => 'pushsync',
+      'is_active'     => 0,
+    );
+    $result = civicrm_api3('job', 'create', $params);
+    
+    
+    // Create Pull Sync job.
+    $params = array(
+      'sequential' => 1,
+      'name'          => 'Mautic Pull Sync',
+      'description'   => 'Sync contacts between CiviCRM and Mautic, assuming Mautic to be correct. Please understand the implications before using this.',
+      'run_frequency' => 'Daily',
+      'api_entity'    => 'Mautic',
+      'api_action'    => 'pullsync',
+      'is_active'     => 0,
+    );
+    $result = civicrm_api3('job', 'create', $params);
+    return !empty($result['values']); 
   } // */
 
 

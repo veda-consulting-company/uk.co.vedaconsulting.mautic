@@ -210,5 +210,33 @@ return [
     'help_text' => '',
     // No form element
   ],
+  // This could be stored directly in the cache rather than as a setting.
+  'mautic_push_stats' => [
+    'group_name' => 'Mautic Settings',
+    'group' => 'mautic',
+    'name' => 'mautic_push_stats',
+    'type' => 'String',
+    'add' => '4.4',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'Information about the last push operation.',
+    'title' => 'Push Stats',
+    'help_text' => '',
+    // No form element
+  ],
+  // This could be stored directly in the cache rather than as a setting.
+  'mautic_pull_stats' => [
+    'group_name' => 'Mautic Settings',
+    'group' => 'mautic',
+    'name' => 'mautic_pull_stats',
+    'type' => 'String',
+    'add' => '4.4',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'Information about the last pull operation.',
+    'title' => 'Pull Stats',
+    'help_text' => '',
+    // No form element
+  ],
 
 ];

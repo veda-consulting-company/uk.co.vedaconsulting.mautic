@@ -4,13 +4,25 @@
     <path>civicrm/admin/mautic/settings</path>
     <page_callback>CRM_Mautic_Form_Settings</page_callback>
     <title>Settings</title>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
     <path>civicrm/admin/mautic/connection</path>
     <page_callback>CRM_Mautic_Page_Connection</page_callback>
     <title>MauticConnection</title>
-    <access_arguments>access CiviCRM</access_arguments>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/admin/mautic/pushsync</path>
+    <page_callback>CRM_Mautic_Form_PushSync</page_callback>
+    <title>Push Contacts to Mautic</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/admin/mautic/pullsync</path>
+    <page_callback>CRM_Mautic_Form_PullSync</page_callback>
+    <title>Pull Contacts from Mautic</title>
+    <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
     <path>civicrm/mautic/webhook</path>

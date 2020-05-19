@@ -54,21 +54,25 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
     // Setting names should be prefixed by the section name. 
     $sections = [
       'mautic_connection' => [
-        'title' => ts('Connection'),
+        'title' => E::ts('Connection'),
         'help' => $this->getSectionHelp(),
         ],
        'mautic_basic' => [
-         'title' => ts('Basic Authentication'),
+         'title' => E::ts('Basic Authentication'),
          'help' => '',
        ],
       'mautic_oauth1' => [
-        'title' => ts('OAuth 1a'),
+        'title' => E::ts('OAuth 1a'),
         'help' => '',
         ],
       'mautic_oauth2' => [
-        'title' => ts('OAuth 2'),
+        'title' => E::ts('OAuth 2'),
         'help' => '',
-      ]
+      ],
+      'mautic_enable_debugging' => [
+        'title' => 'Logging',
+        'help' => '',
+      ], 
     ];
     $this->assign('sectionTitles', $sections);
     $elementNames = array_keys($this->_settings);

@@ -5,9 +5,10 @@ use CRM_Mautic_Connection as MC;
 class CRM_Mautic_Utils {
   
   protected static $segmentData = [];
+  
  
   /**
-   * Gets Mautic Segments as a set of options.
+   * Gets Mautic Segments in [id] => label format.
    * @return string[]
    */
   public static function getMauticSegmentOptions() {
@@ -22,11 +23,11 @@ class CRM_Mautic_Utils {
    * Fetches segment data from the api.
    */
   public static function getMauticSegments() {
-    // TODO: use civicrm cache.
     if (!self::$segmentData) {
       $segmentsApi = MC::singleton()->newApi('segments');
       if ($segmentsApi) {
         $segments = $segmentsApi->getList();
+        dpm($segments);
         if (!empty($segments['lists'])) {
           self::$segmentData = $segments['lists'];
         }
@@ -34,41 +35,52 @@ class CRM_Mautic_Utils {
     }
     return self::$segmentData;
   }
+  
+  public static function getContactsInSegment($segmentID, $batchSize = 300) {
+    $contactAPI = MC::singleton()->newApi('contacts');
+    // @todo retrieve in batches.
+ $search = 'segment:' . $segmentID;
+    $start = 0;
+    $limit = 0;
+    $orderBy = 'id';
+    $orderDir = 'DESC';
+    // Not sure what published / unpublished contact means.
+    $publishedOnly = TRUE;
+    $minimal = TRUE;
+    $contact = $contactApi->getList(
+        $search,
+        $start,
+        $limit,
+        $orderBy, 
+        $orderDir,
+        $publishedOnly,
+        $minimal
+    );
+    if (!empty($contact['contacts'])) {
+      return  $contact['contacts'];
+    }
+  
+  }
  
   /**
    * Convenience function to get details on a Mautic Segment.
    * @param int $segmentId
-   * @return array
+   * @param string $property
+   *  Name of property to return. If not set, will return all properties in an associative array.  
+   * 
+   * @return mixed|array
    */
-  public static function getMauticSegment($segmentId) {
-    return CRM_Utils_Array::value($segmentId, self::getMauticSegments(), []);
-  }
-  
-  /**
-   * Returns the webhook URL.
-   */
-  public static function getWebhookUrl() {
-    // FIXME: url is not registered.
-    // FIXME: mautic webhooks are via events. What data is sent?
-    $security_key =  Civi::settings()->get('mautic_webhook_security_key');
-    if (empty($security_key)) {
-      // @Todo what exception should this throw?
-      throw new InvalidArgumentException("You have not set a security key for your Mailchimp integration. Please do this on the settings page at civicrm/mailchimp/settings");
+  public static function getMauticSegment($segmentId, $property = NULL) {
+    $segment = CRM_Utils_Array::value($segmentId, self::getMauticSegments(), []);
+    if ($property) {
+      return CRM_Utils_Array::value($property, $segment, '');
     }
-    $webhook_url = CRM_Utils_System::url('civicrm/mautic/webhook',
-        $query = 'reset=1&key=' . urlencode($security_key),
-        $absolute = TRUE,
-        $fragment = NULL,
-        $htmlize = FALSE,
-        $fronteend = TRUE);
-    
-    return $webhook_url;
+    return $segment;
   }
   
-  public static function 
   
   /**
-   * Look up an array of CiviCRM groups linked to Maichimp groupings.
+   * Look up an array of CiviCRM groups linked to Mautic segments.
    *
    * @param $groupIDs mixed array of CiviCRM group Ids to fetch data for; or empty to return ALL mapped groups.
    * @param $mauticSegmentId mixed Fetch details for a particular segment only, or null.
@@ -115,7 +127,7 @@ class CRM_Mautic_Utils {
           'civigroup_uses_cache' => (bool) (($dao->saved_search_id > 0) || (bool) $dao->children),
        ];
     }
-   // CRM_Mautic_Utils::checkDebug( __CLASS__ . __FUNCTION__ . '$groups', $groups);
+    CRM_Mautic_Utils::checkDebug( __CLASS__ . __FUNCTION__ . '$groups', $groups);
     return $groups;
   }
   
@@ -123,7 +135,7 @@ class CRM_Mautic_Utils {
    * Log a message and optionally a variable, if debugging is enabled.
    */
   public static function checkDebug($description, $variable='VARIABLE_NOT_PROVIDED') {
-    $debugging = Civi::settings()->get('mautic_enable_debugging');
+    $debugging = CRM_Mautic_Setting::get('mautic_enable_debugging');
     
     if ($debugging == 1) {
       if ($variable === 'VARIABLE_NOT_PROVIDED') {
