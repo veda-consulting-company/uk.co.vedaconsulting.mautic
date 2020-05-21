@@ -10,7 +10,9 @@ class CRM_Mautic_Contact_FieldMapping {
     'first_name' => 'firstname',
     'last_name' => 'lastname',
     'email' => 'email',
+    // We treat the civi contact id separately.
     'id' => 'civicrm_contact_id',
+    'civicrm_contact_id' => 'civicrm_contact_id',
   ];
   
   

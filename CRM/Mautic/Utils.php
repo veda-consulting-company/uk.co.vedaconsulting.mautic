@@ -27,7 +27,6 @@ class CRM_Mautic_Utils {
       $segmentsApi = MC::singleton()->newApi('segments');
       if ($segmentsApi) {
         $segments = $segmentsApi->getList();
-        dpm($segments);
         if (!empty($segments['lists'])) {
           self::$segmentData = $segments['lists'];
         }
@@ -36,31 +35,14 @@ class CRM_Mautic_Utils {
     return self::$segmentData;
   }
   
-  public static function getContactsInSegment($segmentID, $batchSize = 300) {
-    $contactAPI = MC::singleton()->newApi('contacts');
-    // @todo retrieve in batches.
- $search = 'segment:' . $segmentID;
-    $start = 0;
-    $limit = 0;
-    $orderBy = 'id';
-    $orderDir = 'DESC';
-    // Not sure what published / unpublished contact means.
-    $publishedOnly = TRUE;
-    $minimal = TRUE;
-    $contact = $contactApi->getList(
-        $search,
-        $start,
-        $limit,
-        $orderBy, 
-        $orderDir,
-        $publishedOnly,
-        $minimal
-    );
-    if (!empty($contact['contacts'])) {
-      return  $contact['contacts'];
-    }
-  
+  public function getCiviGroupFromMauticSegment() {
+    
   }
+  
+  public function getMauticSegmentFromCiviGroup() {
+    
+  }
+  
  
   /**
    * Convenience function to get details on a Mautic Segment.

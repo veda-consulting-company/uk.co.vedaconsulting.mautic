@@ -7,7 +7,7 @@
 class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
 
   const QUEUE_NAME = 'mautic-sync';
-  const END_URL    = 'civicrm/mautic/pushsync';
+  const END_URL    = 'civicrm/admin/mautic/pushsync';
   const END_PARAMS = 'state=done';
 
   /**
@@ -318,7 +318,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     CRM_Mautic_Utils::checkDebug('Start-CRM_Mautic_Form_PushSync updatePushStats $updates= ', $updates);
 
     $stats = CRM_Mautic_Setting::get('mautic_push_stats');
-    foreach ($updates as $segmentId=>$settings) {
+    foreach ($updates as $segmentId => $settings) {
       if ($segmentId == 'dry_run') {
         continue;
       }

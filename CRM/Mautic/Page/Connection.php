@@ -28,7 +28,6 @@ class CRM_Mautic_Page_Connection extends CRM_Core_Page {
     if ($this->isConnectedToMautic) {
       $sections['webhook_content'] = $this->webhookContent();
       $sections['fields_content'] = $this->fieldsContent();
-    // $sections['activity_type_content'] =
     }
     
     $this->assign('sections', $sections); 

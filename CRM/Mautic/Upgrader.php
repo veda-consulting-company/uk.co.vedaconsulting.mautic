@@ -98,10 +98,13 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
       'api_action'    => 'pushsync',
       'is_active'     => 0,
     );
-    $result = civicrm_api3('job', 'create', $params);
+    $result = $this->createIfNotExists('Job', $params);
+    // $result = civicrm_api3('job', 'create', $params);
     
     
     // Create Pull Sync job.
+    /**
+     * Not implemented yet, so don't expose it as a job.
     $params = array(
       'sequential' => 1,
       'name'          => 'Mautic Pull Sync',
@@ -112,7 +115,8 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
       'is_active'     => 0,
     );
     $result = civicrm_api3('job', 'create', $params);
-    return !empty($result['values']); 
+    **/
+    return !empty($result); 
   } // */
 
 
