@@ -154,11 +154,12 @@ EOF;
       'type' => 'text',
       'description' => 'CiviCRM Contact ID on ' . CRM_Utils_System::baseCMSURL(),
       'isPubliclyUpdatable' => FALSE,
-      'group' => 'civicrm',
+     // 'group' => 'civicrm',
     ];
     $alias = [];
     if ($fieldApi) {
       $fields = $fieldApi->getList();
+
       foreach ($fields['fields'] as $field) {
         $alias[$field['id']] = $field['alias'];
         if ($field['alias'] == $civiField['alias']) {
@@ -170,8 +171,11 @@ EOF;
         $createdField = $fieldApi->create($civiField);  
       }
     }
-    if ($createdField) {
-      $section['content'] =  $this->labelValue(E::ts('Mautic Field'), E::ts('%1 created on Mautic on %2', [ 
+    if (!empty($createdField['errors'])) {
+        $section['content'] = E::ts("There was a problem creating field on Mautic.");
+    }
+    elseif ($createdField) {
+      $section['content'] =  $this->labelValue(E::ts('Mautic Field:'), E::ts('%1 created on Mautic on %2', [ 
         $createdField['label'],
         date_format(date_create($createdField['dateAdded']), 'd-m-Y'),
       ]));
