@@ -177,8 +177,8 @@ class CRM_Mautic_WebHook {
      );
     $hooks = CRM_Utils_Array::value('hooks', $list);
     $urlParts = parse_url(self::getWebhookUrl(FALSE));
-    $urlPattern = $urlParts['host'] . $urlParts['path'];
-    
+    $port = !empty($urlParts['port']) ? ':' . $urlParts['port'] : '';
+    $urlPattern = $urlParts['host'] . $port . $urlParts['path'];
     return array_filter($hooks, function($hook) use($urlPattern) { 
       return !empty($hook['isPublished']) && preg_match('#^http(s)?://' . $urlPattern . '#', $hook['webhookUrl']);
     });
@@ -204,6 +204,7 @@ class CRM_Mautic_WebHook {
    **/
   public static function validateWebhook() {
     $hooks = self::getMauticWebhooks();
+
     // We are only interested in particular properties.
     $compareKeys = array_flip(['isPublished', 'webhookUrl']);
     $template = self::templateWebHook();
