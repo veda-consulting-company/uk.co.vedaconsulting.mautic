@@ -108,6 +108,9 @@ class CRM_Mautic_Connection {
    * @return \Mautic\Auth\ApiAuth
    */
   public function getAuth($authorize = FALSE) {
+    if (!$this->getBaseUrl() || !$this->getauthMethod()) {
+      return;
+    }	    
     
     if (!$this->mauticAuth) {
       $params = ['baseUrl' => $this->getBaseUrl()];
