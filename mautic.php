@@ -148,7 +148,7 @@ function mautic_civicrm_buildForm($formName, &$form) {
     $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
     if($segments){
       // Add form elements
-      $form->add('select', 'mautic_segment', ts('Mailchimp Segment'), array('' => '- select -') + $segments);
+      $form->add('select', 'mautic_segment', ts('Mautic Segment'), array('' => '- select -') + $segments);
       
       $options = array(
         ts('No integration'),
