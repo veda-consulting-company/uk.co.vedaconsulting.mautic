@@ -33,25 +33,34 @@ class CRM_Mautic_WebHook {
    * 
    * @return array
    */
-  public static function getTriggersToRegister() {
+  public static function getEnabledTriggers() {
+    $triggers = CRM_Mautic_Setting::get('mautic_webhook_trigger_events');
+    sort($triggers);
+    return $triggers;
+  }
+  
+  public static function getAllTriggerOptions() {
     return [
      // Contact Channel Subscription Change Event.
-     'mautic.lead_channel_subscription_changed',
+     'mautic.lead_channel_subscription_changed' => E::ts('Contact Channel Subscription Change Event'),
      // Contact Deleted Event.
-     'mautic.lead_post_delete',
+     'mautic.lead_post_delete' => E::ts('Contact Deleted Event'),
      // Contact Identified Event.
-     'mautic.lead_post_save_new',
+     'mautic.lead_post_save_new' => E::ts('Contact Identified Event'),
      // Contact Points Changed Event
-     'mautic.lead_points_change',
+     'mautic.lead_points_change' => E::ts('Contact Points Changed Event'),
       // Contact Updated Event.
-     'mautic.lead_post_save_update',
-     /**
-      Email Open Event
-      Email Send Event
-      Form Submit Event
-      Page Hit Event
-      Text Send Event
-      **/
+     'mautic.lead_post_save_update' => E::ts('Contact Updated Event'),
+      // Email Open Event.
+      'mautic.email_open' => E::ts('Email Open Event'), 
+      // Email Send Event.
+      'mautic.email_send' => E::ts('Email Send Event'),
+      // Form Submit Event.
+      'mautic.form_submit' => E::ts('Form Submit Event'),
+      // Page Hit Event.
+      'mautic.page_on_hit' => E::ts('Page Hit Event'),
+      // Text Send Event,
+      'mautic.text_send' => E::ts('Text Send Event'),
     ];
   }
   
@@ -114,7 +123,7 @@ class CRM_Mautic_WebHook {
   public static function processWebHookPayload($data) {
     CRM_Core_Error::debug_log_message("Processing Mautic webhook.");
     CRM_Core_Error::debug_var('triggerdatakeys', array_keys((array)$data));
-    $triggers = self::getTriggersToRegister();
+    $triggers = self::getEnabledTriggers();
     foreach ($triggers as $trigger) {
       CRM_Core_Error::debug_log_message("trying trigger" . $trigger);
       if (!empty($data->{$trigger})) {
@@ -204,12 +213,11 @@ class CRM_Mautic_WebHook {
    **/
   public static function validateWebhook() {
     $hooks = self::getMauticWebhooks();
-
     // We are only interested in particular properties.
     $compareKeys = array_flip(['isPublished', 'webhookUrl']);
     $template = self::templateWebHook();
     $compare1 = array_intersect_key($template, $compareKeys);
-    $triggers = sort($template['triggers']);
+    $triggers = $template['triggers'];
     $return = ['valid' => [], 'invalid' => []];
     foreach ($hooks as $key => $hook) {
       $compare2 = array_intersect_key($hook, $compareKeys);
@@ -217,7 +225,7 @@ class CRM_Mautic_WebHook {
       // - There isn't already another valid webhook.
       // - The properties we are interested in are correct.
       // - Triggers are correct.
-      if (empty($return['valid']) && $compare2 == $compare1 && $triggers == sort($hook['triggers'])) {
+      if (empty($return['valid']) && $compare2 == $compare1 && $triggers == $hook['triggers']) {
         $return['valid'][$key] = $hook;
       }
       else {
@@ -234,19 +242,15 @@ class CRM_Mautic_WebHook {
   public static function fixMauticWebhooks() {
     $hooks = self::validateWebhook();
     $api = MC::singleton()->newApi('webhooks');
-    if (empty($hooks['valid'])) {
+    if (empty($hooks['valid']) && !empty(self::getEnabledTriggers())) {
       // No valid webhooks. Need to create them.
       $newHook = self::templateWebHook();
       $created = $api->create($newHook);
     }
     if (!empty($hooks['invalid'])) {
-      // Unpublish invalid hooks. 
+      // Delete invalid hooks. 
       foreach($hooks['invalid'] as $hook) {
-        $hookParams = [
-          'isPublished' => FALSE,
-          'id' => $hook['id'],
-        ];
-        $res = $api->edit($hook['id'], $hookParams, FALSE);
+        $api->delete($hook['id']);
       }
     }
   }
@@ -266,7 +270,7 @@ class CRM_Mautic_WebHook {
       'description' => E::ts('Created via API by %1.', [1 => E::LONG_NAME]),
       'eventsOrderbyDir' => 'ASC',
       'isPublished' => TRUE,
-      'triggers' => self::getTriggersToRegister(),
+      'triggers' => self::getEnabledTriggers(),
     ];
   }
   

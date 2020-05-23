@@ -169,6 +169,37 @@ return [
     ],
     'quick_form_type' => 'Element',
   ],
+  'mautic_webhook_trigger_events' => [
+    'group_name' => 'Mautic Settings',
+    'group' => 'mautic',
+    'name' => 'mautic_webhook_trigger_events',
+    'type' => 'checkboxes',
+    'add' => '4.4',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'Events on Mautic to listen for.',
+    'title' => 'Webhook trigger events',
+    'help_text' => '',
+    'html_type' => 'checkboxes',
+    'is_multiple' => TRUE,
+    'multiple' => TRUE,
+    'quick_form_type' => 'element',
+    'html_attributes' => [
+      'size' => 50,
+    ],
+    'pseudoconstant' => ['callback' => 'CRM_Mautic_WebHook::getAllTriggerOptions'],
+    'default' => [
+      'mautic.lead_post_delete',
+      // Contact Identified Event.
+      'mautic.lead_post_save_new',
+      // Contact Points Changed Event
+      'mautic.lead_points_change',
+      // Contact Updated Event.
+      'mautic.lead_post_save_update',
+    ],
+    'quick_form_type' => 'Element',
+    
+  ],
   // OAuth Access token data.
   'mautic_access_token' => [
     'group_name' => 'Mautic Settings',
@@ -210,7 +241,6 @@ return [
     'help_text' => '',
     // No form element
   ],
-  // This could be stored directly in the cache rather than as a setting.
   'mautic_push_stats' => [
     'group_name' => 'Mautic Settings',
     'group' => 'mautic',
@@ -224,7 +254,6 @@ return [
     'help_text' => '',
     // No form element
   ],
-  // This could be stored directly in the cache rather than as a setting.
   'mautic_pull_stats' => [
     'group_name' => 'Mautic Settings',
     'group' => 'mautic',
