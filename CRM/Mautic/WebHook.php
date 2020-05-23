@@ -7,26 +7,23 @@ use CRM_Mautic_Utils as U;
  * @class
  * 
  * Contains utility functionality for Mautic Webhook.
- * 
- * Includes creating a hook on Mautic and processing the incoming hooks.
- * 
  */
 class CRM_Mautic_WebHook {
   
  /**
   * @var string
   */ 
-  private const webhookBaseUrl = 'civicrm/mautic/webhook';
+  protected const webhookBaseUrl = 'civicrm/mautic/webhook';
   
   /**
    * @var string
    */
-  private const webhookName = 'CiviCRM_Mautic';
+  public const webhookName = 'CiviCRM_Mautic';
   
   /**
    * 
    */
-  private const activityType = 'Mautic_Webhook_Triggered'; 
+  public const activityType = 'Mautic_Webhook_Triggered'; 
   
   /**
    * Get the Mautic events for which our webhooks will listen.
@@ -37,6 +34,14 @@ class CRM_Mautic_WebHook {
     $triggers = CRM_Mautic_Setting::get('mautic_webhook_trigger_events');
     sort($triggers);
     return $triggers;
+  }
+  
+  public static function getTriggerLabel($trigger) {
+    $prefix = 'mautic.';
+    if (0 !==  strpos($trigger, $prefix)) {
+      $trigger = $prefix . $trigger;
+    }
+    return CRM_Utils_Array::value($trigger, static::getAllTriggerOptions());
   }
   
   public static function getAllTriggerOptions() {
@@ -62,108 +67,6 @@ class CRM_Mautic_WebHook {
       // Text Send Event,
       'mautic.text_send' => E::ts('Text Send Event'),
     ];
-  }
-  
-  public static function identifyContact($contact) {
-   // @todo: Add setting to select dedupe rule to identify
-   // incoming contact data.
-      
-    $cid = NULL;
-    // $contact is a Mautic contact in a std object.
-    if (!$contact) {
-      return;
-    }
-  }
-  
-  public static function processEvent($trigger, $data) {
-    
-    $civicrmContactId = NULL;
-    $eventTrigger = str_replace('mautic.', '', $trigger);
-    // Data may include lead and contact properties - they appear to be the same.
-    $contact = !empty($data->contact) ? $data->contact : NULL;
-    CRM_Core_Error::debug_var("webhook trigger", $eventTrigger);
-    if (!$eventTrigger || !$contact ) {
-     CRM_Core_Error::debug_log_message("Processing Mautic webhook: no contact data, exiting.");
-      return;
-    } 
-    
-    if (!empty($contact->fields->core->civicrm_contact_id->value)) {
-      $civicrmContactId = $contact->fields->core->civicrm_contact_id->value;
-    }
-    // It would be good here to use a wrapper to normalize access to contact fields.
-    
-    if ($civicrmContactId && $eventTrigger == 'lead_post_save_new') {
-      // If this is a new contact then it was created by Civi.
-      // Ignore, it may be from a bulk sync.
-      return;
-    }
-    CRM_Core_Error::debug_var("Processing Mautic webhook item:", ['trigger' => $eventTrigger, 
-      'contact_id' => $civicrmContactId, 
-      'mauticcontactid' => $contact->id]
-        );
-    
-    
-    if (!$civicrmContactId) {
-      $civicrmContactId = self::identifyContact($contact);
-    }
-    // We have extracted enough information for an action. 
-    if ($civicrmContactId) {
-      // Create an activity for this contact.
-      self::createActivity($eventTrigger, $contact, $civicrmContactId);
-    }
-    else {
-      // @todo: setting to determine what to do here.
-      // Could create a new contact?
-      // Possibly expose in CiviRules conditions.
-      U::checkDebug("Webhook: no matching contact found for trigger: " . $trigger);
-      return;
-    }
-  }
-  
-  public static function processWebHookPayload($data) {
-    CRM_Core_Error::debug_log_message("Processing Mautic webhook.");
-    CRM_Core_Error::debug_var('triggerdatakeys', array_keys((array)$data));
-    $triggers = self::getEnabledTriggers();
-    foreach ($triggers as $trigger) {
-      CRM_Core_Error::debug_log_message("trying trigger" . $trigger);
-      if (!empty($data->{$trigger})) {
-        CRM_Core_Error::debug_log_message("found data at " . $trigger);
-        // We may be processing a batch.
-        if (is_array($data->{$trigger})) {
-          foreach ($data->{$trigger} as $idx => $item) {
-            self::processEvent($trigger, $item);
-          }
-        }
-      }
-    }
-    if (!$trigger) {
-      CRM_Core_Error::debug_log_message("Mautic Webhook: Trigger not found.");
-    }
-  }
-  
-  public static function createActivity($trigger, $mauticContact, $cid, $data=NULL) {
-    CRM_Core_Error::debug_log_message("Creating Mautic Webhook Activity");
-    // We expect this to be called only om WebHook url.
-    // So won't bother catching exceptions.
-    $fieldInfo = [];
-    $fieldResult = civicrm_api3('CustomField', 'get', [
-      'sequential' => 1,
-      'custom_group_id' => "Mautic_Webhook_Data",
-    ]);
-    foreach ($fieldResult['values'] as $field) {
-      $fieldInfo[$field['name']] = $field['id'];
-    }
-    CRM_Core_Error::debug_var('fieldInfo', [$fieldInfo]);
-    $params = [
-      'activity_type_id' => self::activityType,
-      // We could have a more descriptive subject.
-      'subject' => E::ts('Mautic Webhook Triggered'),
-      'source_contact_id' => $cid,
-      'custom_' . $fieldInfo['Trigger_Event'] => $trigger,
-      'custom_' . $fieldInfo['Data'] => json_encode($mauticContact),
-    ];
-    CRM_Core_Error::debug_var('creating activity', $params);
-    civicrm_api3('Activity', 'create', $params); 
   }
   
   /**
@@ -314,5 +217,4 @@ class CRM_Mautic_WebHook {
     }
     return $key;
   }
-  
 }
