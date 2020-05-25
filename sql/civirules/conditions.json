@@ -1,0 +1,3 @@
+[
+  {"name":"mautic_webhook_of_type","label":"Mautic WebHook is (not) one of Type(s)","class_name":"CRM_Civirules_Condition_MauticWebHookType"}
+]

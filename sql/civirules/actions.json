@@ -1,0 +1,4 @@
+[
+  {"name":"mautic_contact_sync_to_mautic","label":"Sync contact to Mautic","class_name":"CRM_Civirules_Action_ContactSyncToMautic"},
+  {"name":"mautic_create_contact","label":"Create Contact from Mautic WebHook Data","class_name":"CRM_Civirules_Action_MauticWebHookCreateContact"}
+]

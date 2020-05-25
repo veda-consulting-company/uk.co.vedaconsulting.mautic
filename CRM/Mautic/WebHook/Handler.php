@@ -24,8 +24,8 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   }
   
   protected function processEvent($trigger, $data) {
-    
-    $civicrmContactId = NULL;
+     
+    $civicrmContactId = $activityId = NULL;
     $eventTrigger = str_replace('mautic.', '', $trigger);
     // Data may include lead and contact properties - they appear to be the same.
     $contact = !empty($data->contact) ? $data->contact : NULL;
@@ -45,11 +45,6 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       // Ignore, it may be from a bulk sync.
       return;
     }
-    CRM_Core_Error::debug_var("Processing Mautic webhook item:", ['trigger' => $eventTrigger, 
-      'contact_id' => $civicrmContactId, 
-      'mauticcontactid' => $contact->id]
-        );
-    
     
     if (!$civicrmContactId) {
       $civicrmContactId = $this->identifyContact($contact);
@@ -57,15 +52,20 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     // We have extracted enough information for an action. 
     if ($civicrmContactId) {
       // Create an activity for this contact.
-      $this->createActivity($eventTrigger, $contact, $civicrmContactId);
+      $activityId = $this->createActivity($eventTrigger, $contact, $civicrmContactId);
     }
     else {
       // @todo: setting to determine what to do here.
       // Could create a new contact?
       // Possibly expose in CiviRules conditions.
       U::checkDebug("Webhook: no matching contact found for trigger: " . $trigger);
-      return;
     }
+    civicrm_api3('MauticWebHook', 'create', [
+      'contact_id' => $civicrmContactId,
+      'activity_id' => $activityId,
+      'data' => json_encode($data),
+      'webhook_trigger_type' => $eventTrigger,      
+    ]);
   }
  
   /**
@@ -112,7 +112,8 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       'custom_' . $fieldInfo['Trigger_Event'] => $trigger,
       'custom_' . $fieldInfo['Data'] => json_encode($mauticContact),
     ];
-    CRM_Core_Error::debug_var('creating activity', $params);
-    civicrm_api3('Activity', 'create', $params); 
+    CRM_Core_Error::debug_log_message('Creating mautic webhook activity');
+    $result =  civicrm_api3('Activity', 'create', $params); 
+    return !empty($result['id']) ? $result['id'] : NULL;
   }
 }
