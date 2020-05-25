@@ -28,6 +28,10 @@ class CRM_Mautic_Page_Connection extends CRM_Core_Page {
     if ($this->isConnectedToMautic) {
       $sections['webhook_content'] = $this->webhookContent();
       $sections['fields_content'] = $this->fieldsContent();
+      $civirules = $this->civirulesContent();
+      if ($civirules) {
+        $sections['civirules_content'] = $civirules;
+      }
     }
     
     $this->assign('sections', $sections); 
@@ -42,7 +46,7 @@ class CRM_Mautic_Page_Connection extends CRM_Core_Page {
    * @return string
    */
   protected function buttonLink($label, $params, $path = '') {
-    $path = $path ? $path : CRM_Utils_System::getUrlPath();
+    $path = $path ? $path : CRM_Utils_System::currentPath();
     $url = CRM_Utils_System::url(
       $path,
       $params,
@@ -179,6 +183,65 @@ EOF;
         $createdField['label'],
         date_format(date_create($createdField['dateAdded']), 'd-m-Y'),
       ]));
+    }
+    return $section;
+  }
+ 
+  /**
+   * Get status content for CiviRules triggers, conditions and actions.
+   * 
+   * If CiviRules was installed after this extension, then insert the items so CiviRules knows about them.
+   */
+  public function civirulesContent() {
+    $section = [];
+    // Check CiviRules is installed and its upgrader is available.
+    if (class_exists('CRM_Civirules_Utils_Upgrader')) {
+      $section = $this->blankSection(E::ts('CiviRules'));
+      $action = 'register_civirules_components';
+      $ruleComponents = [
+        'trigger' => 'insertTriggersFromJson',
+        'condition' => 'insertConditionsFromJson',
+        'action' => 'insertActionsFromJson',
+      ];
+      $missing = FALSE;
+      $content = '';
+      // Are components already inserted?
+      foreach ($ruleComponents as $component => $insertMethod) {
+        $filePath = E::path('sql/civirules/' . $component . 's.json');
+        $items = json_decode(file_get_contents($filePath));
+        if (!$items) {
+          continue;
+        }
+        $names = array_filter(array_map(function($val) {
+          return $val->name ? $val->name : '';
+        }, $items));
+        // Get names we want to register
+        $table = 'civirule_' . $component;
+        $sql = "SELECT name FROM $table WHERE name IN ('" . implode('\', \'', $names) . "')";
+        $dao = CRM_Core_DAO::executeQuery($sql);
+        $insertedNames = $dao->fetchAll();
+        if (count($insertedNames) != count($names)) {
+          if ($this->action == $action) {
+            call_user_func(['CRM_Civirules_Utils_Upgrader', $insertMethod], $filePath);
+          }
+          else {
+            $missing = TRUE;
+          }
+        }
+        $content .= $this->labelValue(
+            ucwords($component) . '(s):',
+            implode(', ', array_map(function($val){ return '<em>&quot;' . $val->label . '&quot;</em>';}, $items)));
+      }
+      if ($missing) {
+        $section['content'] = E::ts('Click button below to make available CiviRules Triggers, Conditions and Actions provided by this extension.');
+        $section['action'] = $this->buttonLink(
+           E::ts('Enable CiviRules Items'),
+           [$this->actionKey => $action]
+        );
+      }
+      else {
+        $section['content'] = $content;
+      }
     }
     return $section;
   }

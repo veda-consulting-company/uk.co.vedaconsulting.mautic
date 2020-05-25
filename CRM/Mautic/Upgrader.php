@@ -121,14 +121,18 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
 
 
   /**
-   * Example: Run an external SQL script.
+   * Insert Civirules trigger for WebHook.
    *
    * @return TRUE on success
    * @throws Exception
+   **/
   public function upgrade_4201() {
     $this->ctx->log->info('Applying update 4201');
-    // this path is relative to the extension base dir
-    $this->executeSqlFile('sql/upgrade_4201.sql');
+    if (class_exists('CRM_Civirules_Utils_Upgrader')) {
+      CRM_Civirules_Utils_Upgrader::insertTriggersFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/triggers.json');
+      CRM_Civirules_Utils_Upgrader::insertConditionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/conditions.json');
+      CRM_Civirules_Utils_Upgrader::insertActionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/actions.json');
+    }
     return TRUE;
   } // */
 
