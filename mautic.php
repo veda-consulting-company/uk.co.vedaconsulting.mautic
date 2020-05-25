@@ -144,10 +144,9 @@ function mautic_civicrm_preProcess($formName, &$form) {
  */
 function mautic_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Group_Form_Edit' AND ($form->getAction() == CRM_Core_Action::ADD OR $form->getAction() == CRM_Core_Action::UPDATE)) {
-    // Get Mautic Segments
+    //  Add form elements to associate group with Mautic Segment.
     $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
     if($segments){
-      // Add form elements
       $form->add('select', 'mautic_segment', ts('Mautic Segment'), array('' => '- select -') + $segments);
       
       $options = array(
@@ -263,3 +262,38 @@ function mautic_civicrm_navigationMenu(&$menu) {
   **/
   _mautic_civix_navigationMenu($menu);
 } // */
+
+/**
+ * Implements hook_civicrm_merge().
+ * 
+ * @see https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_merge/
+ * 
+ * @param string $type
+ * @param mixed $data
+ * @param int $mainId
+ * @param int $otherId
+ * @param array $tables
+ */
+function mautic_civicrm_merge($type, $data, $mainId, $otherId, $tables) {
+  // @todo. 
+  // If there is a contact with civicrm_contact_id of $otherId,
+  // Update it to reference mainId.
+ // if ($type == 'sqls') {    
+  //}
+}
+
+/**
+function mautic civicrm_post($op, $objectName, $objectId, &$objectRef) {
+}
+**/
+function mautic_civicrm_entityTypes(&$entityTypes) {
+  $entityTypes['CRM_Mautic_DAO_MauticWebHook'] = [
+    'name' => 'MauticWebHook',
+    'class' => 'CRM_Mautic_DAO_MauticWebHook',
+    'table' => 'civicrm_mauticwebhook',
+    
+  ];
+  if (function_exists('_mautic_civix_civicrm_entityTypes')) {
+    _mautic_civix_civicrm_entityTypes($entityTypes);
+  }
+}
