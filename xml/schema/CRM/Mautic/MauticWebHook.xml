@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<table>
+  <base>CRM/Mautic</base>
+  <class>MauticWebHook</class>
+  <name>civicrm_mauticwebhook</name>
+  <comment>Entity representing an incoming Mautic WebHook</comment>
+  <add>4.4</add>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique MauticWebHook ID</comment>
+    <add>4.4</add>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+  <field>
+    <name>data</name>
+    <type>text</type>
+    <serialize>JSON</serialize>
+    <comment>JSON serialized data received from the webhook</comment>
+    <add>4.4</add>
+  </field>
+  <field>
+    <name>webhook_trigger_type</name>
+    <type>varchar</type>
+    <pseudoconstant>CRM_Mautic_WebHook::getAllTriggerOptions</pseudoconstant>
+    <comment>Mautic Webhook trigger event type.</comment>
+    <add>4.4</add>
+  </field>
+  <field>
+    <name>activity_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Contact</comment>
+    <add>4.4</add>
+  </field>
+  <field>
+    <name>contact_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Contact</comment>
+    <add>4.4</add>
+  </field>
+
+  <foreignKey>
+    <name>contact_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <add>4.4</add>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+  <foreignKey>
+    <name>activity_id</name>
+    <table>civicrm_activity</table>
+    <key>id</key>
+    <add>4.4</add>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+</table>

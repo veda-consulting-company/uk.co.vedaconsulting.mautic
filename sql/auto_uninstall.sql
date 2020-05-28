@@ -14,3 +14,7 @@ DROP TABLE IF EXISTS `civicrm_mautic_sync`;
 
 -- delete job entry
 DELETE FROM `civicrm_job` WHERE name = 'Mautic Sync';
+
+-- drop webhook entity table
+DROP TABLE IF EXISTS `civicrm_mauticwebhook`;
+

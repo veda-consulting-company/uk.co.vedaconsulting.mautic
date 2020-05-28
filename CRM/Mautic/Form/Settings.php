@@ -36,7 +36,7 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
     $callback = CRM_Mautic_Connection::singleton()->getCallbackUrl(); 
     $txt = [];
     $txt[] = ts('You will need to enable the API in your Mautic installation.');
-    $txt[] = ts('If using OAuth 1 or 2, your callback URL should be: <br /> <emphasis>%1</emphasis>', [1 => $callback]);
+    $txt[] = ts('For OAuth use the following callback URL: <br /> <emphasis>%1</emphasis>', [1 => $callback]);
     if (Civi::settings()->get('mautic_connection_authentication_method')) {
       $txt[] = ts('<a href="%1">Test connection</a>', [1 => $callback]);
     }
@@ -67,6 +67,10 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
         ],
       'mautic_oauth2' => [
         'title' => E::ts('OAuth 2'),
+        'help' => '',
+      ],
+      'mautic_webhook' => [
+        'title' => E::ts('Webhook'),
         'help' => '',
       ],
       'mautic_enable_debugging' => [
