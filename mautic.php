@@ -155,9 +155,6 @@ function mautic_civicrm_buildForm($formName, &$form) {
       );
       $form->addRadio('mautic_integration_option', '', $options, NULL, '<br/>');
       
-      $form->addElement('checkbox', 'mautic_fixup',
-          ts('Add Mautic webhook settings when this form is saved.'));
-      
       // Prepopulate details if 'edit' action
       $groupId = $form->getVar('_id');
       if ($form->getAction() == CRM_Core_Action::UPDATE AND !empty($groupId)) {
