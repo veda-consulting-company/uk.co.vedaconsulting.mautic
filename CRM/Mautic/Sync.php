@@ -565,7 +565,6 @@ class CRM_Mautic_Sync {
         
       }
       $params = static::updateMauticFromCiviLogic($cParams, $mParams);
-      
       if (!$params) {
         // No change required.
         $no_change++;
@@ -582,7 +581,7 @@ class CRM_Mautic_Sync {
         if (!$params || empty($dao->m_group_info)) {
           $addToGroup[] = $mautic_contact_id;
         }
-        elseif ($dao->m_group_info && $params['id']) {
+        elseif ($dao->m_group_info && $params) {
           // Updating the contact details. Already in the group.
           $params['id'] = $mautic_contact_id;
           $edit[] = $params;
