@@ -1,8 +1,12 @@
 <script>
-
+{if $mautic_groups}
+var mautic_groups = {$mautic_groups};
+{/if}
 {literal}
 function mauticGroupsPageAlter() {
-
+  if (!mautic_groups) {
+    return;
+  }
   // Add header only once
   if (cj('table.crm-group-selector thead th.crm-mautic').length < 1) {
     cj('table.crm-group-selector thead th.crm-group-visibility').after(
@@ -14,6 +18,9 @@ function mauticGroupsPageAlter() {
     var row = cj(this);
     var group_id_index = 'id' + row.data('id');
     var mautic_td = cj('<td class="crm-mautic" />');
+    if (mautic_groups[group_id_index]) {
+      mautic_td.text(mautic_groups[group_id_index]);
+    }
     row.find('td.crm-group-visibility').after(mautic_td);
   });
 }

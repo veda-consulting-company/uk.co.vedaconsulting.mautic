@@ -210,6 +210,31 @@ function mautic_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$er
 }
 
 /**
+ * Implements hook_civicrm_pageRun().
+ * 
+ * @param unknown $page
+ */
+function mautic_civicrm_pageRun( &$page ) {
+  if ($page->getVar('_name') == 'CRM_Group_Page_Group') {
+    // Manage Groups page at /civicrm/group?reset=1
+    
+    $js_safe_object = [];
+    foreach (CRM_Mautic_Utils::getGroupsToSync() as $group_id => $group) {
+        if ($group['segment_name']) {
+          $val = strtr(ts("Sync to segment: %segment_name"),
+              [ '%segment_name'     => htmlspecialchars($group['segment_name']), ]);
+        }
+        else {
+          $val = ts("Missing segment.");
+        }
+      
+      $js_safe_object['id' . $group_id] = $val;
+    }
+    $page->assign('mautic_groups', json_encode($js_safe_object));
+  }
+}
+
+/**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
