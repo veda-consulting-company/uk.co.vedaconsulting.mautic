@@ -155,9 +155,6 @@ function mautic_civicrm_buildForm($formName, &$form) {
       );
       $form->addRadio('mautic_integration_option', '', $options, NULL, '<br/>');
       
-      $form->addElement('checkbox', 'mautic_fixup',
-          ts('Add Mautic webhook settings when this form is saved.'));
-      
       // Prepopulate details if 'edit' action
       $groupId = $form->getVar('_id');
       if ($form->getAction() == CRM_Core_Action::UPDATE AND !empty($groupId)) {
@@ -209,6 +206,31 @@ function mautic_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$er
             . $otherGroup['civigroup_title'].'"');
       }
     }
+  }
+}
+
+/**
+ * Implements hook_civicrm_pageRun().
+ * 
+ * @param unknown $page
+ */
+function mautic_civicrm_pageRun( &$page ) {
+  if ($page->getVar('_name') == 'CRM_Group_Page_Group') {
+    // Manage Groups page at /civicrm/group?reset=1
+    
+    $js_safe_object = [];
+    foreach (CRM_Mautic_Utils::getGroupsToSync() as $group_id => $group) {
+        if ($group['segment_name']) {
+          $val = strtr(ts("Sync to segment: %segment_name"),
+              [ '%segment_name'     => htmlspecialchars($group['segment_name']), ]);
+        }
+        else {
+          $val = ts("Missing segment.");
+        }
+      
+      $js_safe_object['id' . $group_id] = $val;
+    }
+    $page->assign('mautic_groups', json_encode($js_safe_object));
   }
 }
 

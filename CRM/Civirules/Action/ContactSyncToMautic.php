@@ -1,9 +1,6 @@
 <?php
 /**
  * CiviRules action to create contact from Mautic Webhook.
- *
- * @author Jaap Jansma (CiviCooP) <jaap.jansma@civicoop.org>
- * @license AGPL-3.0
  */
 
 class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {

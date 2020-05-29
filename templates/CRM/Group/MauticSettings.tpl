@@ -13,17 +13,6 @@
     <td class="label">{$form.mautic_segment.label}</td>
     <td class="html-adjust">{$form.mautic_segment.html}</td>
 </tr>
-<tr class="custom_field-row mautic_fixup show-enabled" id="mautic_fixup_tr">
-    <td colspan=2>{$form.mc_fixup.html}{$form.mc_fixup.label}<br />
-      <span class="description">{ts}If this is ticked when you press Save,
-      CiviCRM will edit the webhook settings of this Mautic segment to make
-      sure they're configured correctly. The only time you would want to
-      <em>untick</em> this box is if you are doing some development on a local
-      server because that would result in supplying an invalid webhook URL to a
-      possibly production list at mautic. So basically leave this ticked,
-      unless you know what you're doing.{/ts}</span>
-    </td>
-</tr>
 </table>
 
 {literal}
