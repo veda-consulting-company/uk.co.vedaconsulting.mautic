@@ -17,6 +17,8 @@ class CRM_Mautic_Page_Connection extends CRM_Core_Page {
   
   protected $mauticVersion = '';
   
+  protected $apiUser = [];
+  
   public function run() {
     
     CRM_Utils_System::setTitle(E::ts('Mautic Integration'));
@@ -78,14 +80,16 @@ EOT;
     // Check connection and redirect to the Authorization workflow if needed.
     $authAction = 'mautic_authorization';
     $doAuthorizationRedirect = $this->action == $authAction;
-    $this->isConnectedToMautic = $this->checkConnection($doAuthorizationRedirect);
+    $apiUser = $this->checkConnection($doAuthorizationRedirect);
+    $this->isConnectedToMautic = !empty($apiUser);
     
     if ($this->isConnectedToMautic) {
-      $this->isConnectedToMautic = TRUE;
+      $apiUser = $this->apiUser;
       $section['content'] .= '<p><strong>' . E::ts('Connection to Mautic Successful.') . '</strong></p>';
       $section['content'] .= $this->labelValue(E::ts('Mautic URL'), $mauticUrl); 
       $section['content'] .= $this->labelValue(E::ts('Mautic Version'), $this->mauticVersion); 
       $section['content'] .= $this->labelValue(E::ts('Connection Method'), $authMethodLabel);
+      $section['content'] .= $this->labelValue(E::ts('Connected As:'), $apiUser['username'] . ' (' . $apiUser['role']['description']. ')');
     }
     elseif (0 === strpos(strtolower($authMethod), 'oauth') && empty($_GET['oauth_token'])) {
       // Add button for the user to authorize.
@@ -307,10 +311,10 @@ EOF;
     
     // Make an api request to test the connection.
     // The choice of context is quite arbitrary.
-    $testApi = MC::singleton()->newApi('segments');
+    $testApi = MC::singleton()->newApi('users');
     if ($testApi) {
       // Just retrieve one entity for this check.
-      $res = $testApi->getList('', 0, 1);
+      $this->apiUser = $testApi->getSelf();
       $responseInfo = $auth->getResponseInfo();
       $this->mauticVersion = $testApi->getMauticVersion();
       return 200 == $responseInfo['http_code'];

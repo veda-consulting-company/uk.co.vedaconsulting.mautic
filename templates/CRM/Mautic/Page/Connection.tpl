@@ -1,8 +1,3 @@
-<h3>Mautic Connection</h3>
-
-{if $content}
-  {$content}
-{/if}
 <div class="crm-container">
 {foreach from=$sections item="section"}
 <div class="crm-section">
