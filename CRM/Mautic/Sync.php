@@ -373,6 +373,8 @@ class CRM_Mautic_Sync {
       [1 => [$this->membership_group_id, 'Integer' ]]);
 
     $stats = [
+      'byCiviReference' => 0,
+      'byMauticReference' => 0,
       'bySubscribers' => 0,
       'byUniqueEmail' => 0,
       'byNameEmail' => 0,
@@ -384,6 +386,13 @@ class CRM_Mautic_Sync {
 
     // Do the fast SQL identification against CiviCRM contacts.
     $start = microtime(TRUE);
+    $stats['byCiviReference'] = static::guessContactIdsByCiviReference();
+    CRM_Mautic_Utils::checkDebug('guessContactIdsByCiviReference took ' . round(microtime(TRUE) - $start, 2) . 's');
+    $start = microtime(TRUE);
+    $stats['byMauticReference'] = static::guessContactIdsByMauticReference();
+    CRM_Mautic_Utils::checkDebug('guessContactIdsByMauticReference took ' . round(microtime(TRUE) - $start, 2) . 's');
+    $start = microtime(TRUE);
+    /**
     $stats['bySubscribers'] = static::guessContactIdsBySubscribers();
     CRM_Mautic_Utils::checkDebug('guessContactIdsBySubscribers took ' . round(microtime(TRUE) - $start, 2) . 's');
     $start = microtime(TRUE);
@@ -393,7 +402,7 @@ class CRM_Mautic_Sync {
     $stats['byNameEmail'] = static::guessContactIdsByNameAndEmail();
     CRM_Mautic_Utils::checkDebug('guessContactIdsByNameAndEmail took ' . round(microtime(TRUE) - $start, 2) . 's');
     $start = microtime(TRUE);
-
+**/
     // Now slow match the rest.
     $dao = CRM_Core_DAO::executeQuery( "SELECT * FROM tmp_mautic_push_m m WHERE cid_guess IS NULL;");
     $db = $dao->getDatabaseConnection();
@@ -455,6 +464,42 @@ class CRM_Mautic_Sync {
       [1 => [$this->membership_group_id, 'Integer']]);
     }
 
+    return $stats;
+  }
+  
+  /**
+   * For matched civi contacts, update the custom fields that reference a mautic contact.
+   * @return []
+   */
+  public function updateContactReferenceFields() {
+    $stats = ['updatedContactReferenceFields' => 0];
+    $count = 0;
+    CRM_Mautic_Utils::checkDebug(__FUNCTION__ . " for group #$this->membership_group_id");
+    $query = ' 
+           SELECT m.cid_guess, m.mautic_contact_id 
+           FROM tmp_mautic_push_m m 
+            WHERE m.cid_guess IS NOT NULL AND m.mautic_contact_id IS NOT NULL
+    '; 
+    if (!$this->dry_run) {
+      // Avoid  Cannot use ON DUPLICATE KEY UPDATE so we replace.
+      $updateQuery = "
+        UPDATE civicrm_value_mautic_contact cf
+        INNER JOIN tmp_mautic_push_m m ON m.cid_guess = cf.entity_id AND m.mautic_contact_id != cf.mautic_contact_id
+        SET cf.mautic_contact_id = m.mautic_contact_id
+        ";
+      $count += static::runSqlReturnAffectedRows($updateQuery);
+      $insertQuery = "
+       INSERT INTO civicrm_value_mautic_contact (entity_id, mautic_contact_id)
+        $query
+        AND m.cid_guess NOT IN (SELECT entity_id FROM civicrm_value_mautic_contact)";
+      $count += static::runSqlReturnAffectedRows($insertQuery);
+    }
+    else {
+      $dao = CRM_Core_DAO::executeQuery($query);
+      $count = count($dao->fetchAll());
+    }
+    $stats['updatedContactReferenceFields'] = $count;
+    CRM_Mautic_Utils::checkDebug(__FUNCTION__ . " Affected rows: " . $count);
     return $stats;
   }
 
@@ -666,7 +711,11 @@ class CRM_Mautic_Sync {
   protected function processEditBatch($data) {
     U::checkDebug('editBatch', $data);
     $api = $this->getApi('contacts');
-    $result = $api->editBatch($data, TRUE);
+    // Mautic API will either patch or put.
+    // We want to patch since we are not sending
+    // the complete set of fields.
+    $createIfNotExists = FALSE;
+    $result = $api->editBatch($data, FALSE);
     U::checkDebug('editBatchResult', $result);
   }
   
@@ -724,7 +773,6 @@ class CRM_Mautic_Sync {
     if ($ids) {
       $this->processAddToSegmentBatch($ids);
     }
-    
   }
   
   
@@ -796,204 +844,12 @@ class CRM_Mautic_Sync {
    * - remove
    */
   public function updateCiviFromMautic() {
-
-    // Ensure posthooks don't trigger while we make GroupContact changes.
-    CRM_Mautic_Utils::$post_hook_enabled = FALSE;
-
-    // This is a functional variable, not a stats. one
-    $changes = ['removals' => [], 'additions' => []];
-
-    CRM_Mautic_Utils::checkDebug("updateCiviFromMautic for group #$this->membership_group_id");
-
-    // Stats.
-    $stats = [
-      'created' => 0,
-      'joined'  => 0,
-      'in_sync' => 0,
-      'removed' => 0,
-      'updated' => 0,
-      ];
-
-    // all Mautic table *except*  where the contact matches multiple
-    // contacts in CiviCRM.
-    $dao = CRM_Core_DAO::executeQuery( "SELECT m.*,
-      c.contact_id c_contact_id,
-      c.group_info c_group_info, c.first_name c_first_name, c.last_name c_last_name
-      FROM tmp_mautic_push_m m
-      LEFT JOIN tmp_mautic_push_c c ON m.cid_guess = c.contact_id
-      WHERE m.cid_guess IS NOT NULL
-      ;");
-
-    // Create lookup hash to map Mautic Segment to CiviCRM Groups.
-    $interest_to_group_id = [];
-    foreach ($this->interest_group_details as $group_id=>$details) {
-      $interest_to_group_id[$details['segment_id']] = $group_id;
-    }
-
-    // Loop records found at Mautic, creating/finding contacts in CiviCRM.
-    while ($dao->fetch()) {
-      $existing_contact_changed = FALSE;
-
-      if (!empty($dao->cid_guess)) {
-        // Matched existing contact: result: joined or in_sync
-        $contact_id = $dao->cid_guess;
-
-        if ($dao->c_contact_id) {
-          // Contact is already in the membership group.
-          $stats['in_sync']++;
-        }
-        else {
-          // Contact needs joining to the membership group.
-          $stats['joined']++;
-          if (!$this->dry_run) {
-            // Live.
-            $changes['additions'][$this->membership_group_id][] = $contact_id;
-          }
-          else {
-            // Dry Run.
-            CRM_Mautic_Utils::checkDebug("Would add existing contact to membership group. Email: $dao->email Contact Id: $dao->cid_guess");
-          }
-        }
-
-        // Update the first name and last name of the contacts we know
-        // if needed and making sure we don't overwrite
-        // something with nothing. See issue #188.
-        $edits = static::updateCiviFromMauticContactLogic(
-          ['first_name' => $dao->first_name,   'last_name' => $dao->last_name],
-          ['first_name' => $dao->c_first_name, 'last_name' => $dao->c_last_name]
-        );
-        if ($edits) {
-          if (!$this->dry_run) {
-            // There are changes to be made so make them now.
-            civicrm_api3('Contact', 'create', ['id' => $contact_id] + $edits);
-          }
-          else {
-            // Dry run.
-            CRM_Mautic_Utils::checkDebug("Would update CiviCRM contact $dao->cid_guess "
-              . (empty($edits['first_name']) ? '' : "First name from $dao->c_first_name to $dao->first_name ")
-              . (empty($edits['last_name']) ? '' : "Last name from $dao->c_last_name to $dao->last_name "));
-          }
-          $existing_contact_changed = TRUE;
-        }
-      }
-      else {
-        // Contact does not exist, create a new one.
-        if (!$this->dry_run) {
-          // Live:
-          $result = civicrm_api3('Contact', 'create', [
-            'contact_type' => 'Individual',
-            'first_name'   => $dao->first_name,
-            'last_name'    => $dao->last_name,
-            'email'        => $dao->email,
-            'sequential'   => 1,
-            ]);
-          $contact_id = $result['values'][0]['id'];
-          $changes['additions'][$this->membership_group_id][] = $contact_id;
-        }
-        else {
-          // Dry Run:
-          CRM_Mautic_Utils::checkDebug("Would create new contact with email: $dao->email, name: $dao->first_name $dao->last_name");
-          $contact_id = 'dry-run';
-        }
-        $stats['created']++;
-      }
-
-      // Do group_info need updating?
-      if ($dao->c_group_info && $dao->c_group_info == $dao->group_info) {
-        // Nothing to change.
-      }
-      else {
-        // Unpack the group_info reported by MC
-        $mautic_group_info = unserialize($dao->group_info);
-        if ($dao->c_group_info) {
-          // Existing contact.
-          $existing_contact_changed = TRUE;
-          $civi_group_info = unserialize($dao->c_group_info);
-        }
-        else {
-          // Newly created contact is not in any interest groups.
-          $civi_group_info = [];
-        }
-
-        // Discover what needs changing to bring CiviCRM inline with Mautic.
-        foreach ($mautic_group_info as $interest=>$member_has_interest) {
-          if ($member_has_interest && empty($civi_group_info[$interest])) {
-            // Member is interested in something, but CiviCRM does not know yet.
-            if (!$this->dry_run) {
-              $changes['additions'][$interest_to_group_id[$interest]][] = $contact_id;
-            }
-            else {
-              CRM_Mautic_Utils::checkDebug("Would add CiviCRM contact $dao->cid_guess to interest group "
-                . $interest_to_group_id[$interest]);
-            }
-          }
-          elseif (!$member_has_interest && !empty($civi_group_info[$interest])) {
-            // Member is not interested in something, but CiviCRM thinks it is.
-            if (!$this->dry_run) {
-              $changes['removals'][$interest_to_group_id[$interest]][] = $contact_id;
-            }
-            else {
-              CRM_Mautic_Utils::checkDebug("Would remove CiviCRM contact $dao->cid_guess from interest group "
-                . $interest_to_group_id[$interest]);
-            }
-          }
-        }
-      }
-
-      if ($existing_contact_changed) {
-        $stats['updated']++;
-      }
-    }
-
-    // And now, what if a contact is not in the Mautic segment?
-    // We must remove them from the membership group.
-    // Accademic interest (#188): what's faster, this or a 'WHERE NOT EXISTS'
-    // construct?
-    $dao = CRM_Core_DAO::executeQuery( "
-    SELECT c.contact_id
-      FROM tmp_mautic_push_c c
-      LEFT OUTER JOIN tmp_mautic_push_m m ON m.cid_guess = c.contact_id
-      WHERE m.email IS NULL;
-      ");
-    // Collect the contact_ids that need removing from the membership group.
-    while ($dao->fetch()) {
-      if (!$this->dry_run) {
-        $changes['removals'][$this->membership_group_id][] =$dao->contact_id;
-      }
-      else {
-        CRM_Mautic_Utils::checkDebug("Would remove CiviCRM contact $dao->contact_id from membership group - no longer subscribed at Mautic.");
-      }
-      $stats['removed']++;
-    }
-
-    if (!$this->dry_run) {
-      // Log group contacts which are going to be added/removed to/from CiviCRM
-      CRM_Mautic_Utils::checkDebug('Mautic $changes', $changes);
-
-      // Make the changes.
-      if ($changes['additions']) {
-        // We have some contacts to add into groups...
-        foreach($changes['additions'] as $groupID => $contactIDs) {
-          CRM_Contact_BAO_GroupContact::addContactsToGroup($contactIDs, $groupID, 'Admin', 'Added');
-        }
-      }
-
-      if ($changes['removals']) {
-        // We have some contacts to add into groups...
-        foreach($changes['removals'] as $groupID => $contactIDs) {
-          CRM_Contact_BAO_GroupContact::removeContactsFromGroup($contactIDs, $groupID, 'Admin', 'Removed');
-        }
-      }
-    }
-
-    // Re-enable the post hooks.
-    CRM_Mautic_Utils::$post_hook_enabled = TRUE;
-
-    return $stats;
+    // Not implemented.
   }
+  
 
   /**
-   * Get segment of emails to unsubscribe.
+   * Get contacts to remove from mautic segment.
    *
    * We *exclude* any emails in Mautic that matched multiple contacts in
    * CiviCRM - these have their cid_guess field set to NULL.
@@ -1311,7 +1167,30 @@ class CRM_Mautic_Sync {
         WHERE m.cid_guess IS NULL");
   }
   
-  // @todo: guessContactIdsByCustomField
+  /**
+   * Matches contacts from a reference to the CiviCRM contact id on the mautic contact.
+   */
+  public static function guessContactIdsByCiviReference() {
+    return static::runSqlReturnAffectedRows(
+        "UPDATE tmp_mautic_push_m m
+        INNER JOIN civicrm_contact c ON c.id = m.civicrm_contact_id AND c.is_deleted = 0
+        SET m.cid_guess =  m.civicrm_contact_id
+        WHERE m.cid_guess IS NULL
+        ");
+  }
+  
+  /**
+   * Matches contacts from a reference to the Mautic contact id on a CiviCRM contact.
+   */
+  public static function guessContactIdsByMauticReference() {
+    
+    return static::runSqlReturnAffectedRows(
+        "UPDATE tmp_mautic_push_m m
+        INNER JOIN civicrm_value_mautic_contact cm ON cm.mautic_contact_id = m.mautic_contact_id 
+        SET m.cid_guess =  cm.entity_id
+        WHERE m.cid_guess IS NULL
+        ");
+  }
 
   /**
    * Guess the contact id by there only being one email in CiviCRM that matches.
