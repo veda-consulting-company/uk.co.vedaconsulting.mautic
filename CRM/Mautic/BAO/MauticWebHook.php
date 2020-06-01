@@ -27,5 +27,18 @@ class CRM_Mautic_BAO_MauticWebHook extends CRM_Mautic_DAO_MauticWebHook {
 
     return $instance;
   }
+  
+  public static function unpackData($webhookdata) {
+    $mauticData = NULL;
+    if (isset($webhook['data'])) {
+      if (is_string($webhook['data'])) {
+        $mauticData = json_decode($webhook['data']);
+      }
+      else {
+        $mauticData = $webhook['data'];
+      }
+    }
+    return $mauticData;
+  }
 
 }

@@ -35,7 +35,6 @@ class CRM_Mautic_Page_Connection extends CRM_Core_Page {
         $sections['civirules_content'] = $civirules;
       }
     }
-    
     $this->assign('sections', $sections); 
     parent::run();
   }
@@ -313,7 +312,7 @@ EOF;
     // The choice of context is quite arbitrary.
     $testApi = MC::singleton()->newApi('users');
     if ($testApi) {
-      // Just retrieve one entity for this check.
+      // Retrieve the connected user as a test.
       $this->apiUser = $testApi->getSelf();
       $responseInfo = $auth->getResponseInfo();
       $this->mauticVersion = $testApi->getMauticVersion();

@@ -32,8 +32,14 @@
   </item>
   <item>
     <path>civicrm/admin/mautic/civirules/condition/mauticwebhooktype</path>
-    <page_callback>CRM_Mautic_Form_Civirules_Condition_MauticWebHookType</page_callback>
+    <page_callback>Condition: Mautic WebHook Type</page_callback>
     <title>Civirules_Condition_MauticWebHookType</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/admin/mautic/civirules/action/mauticwebhookcreatecontact</path>
+    <page_callback>CRM_Mautic_Form_Civirules_Action_MauticWebHookCreateContact</page_callback>
+    <title>Action: Create Contact from Mautic WebHook</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
 </menu>
