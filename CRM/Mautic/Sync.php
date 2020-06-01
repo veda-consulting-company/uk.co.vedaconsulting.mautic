@@ -580,7 +580,7 @@ class CRM_Mautic_Sync {
       m.group_info m_group_info, m.first_name m_first_name, m.last_name m_last_name,
       m.email m_email, m.mautic_contact_id m_mautic_contact_id, m.civicrm_contact_id m_civicrm_contact_id
       FROM tmp_mautic_push_c c
-      LEFT JOIN tmp_mautic_push_m m ON c.email = m.email;");
+      LEFT JOIN tmp_mautic_push_m m ON c.contact_id = m.cid_guess");
 
     $changes = $additions = 0;
     $no_change = 0;
