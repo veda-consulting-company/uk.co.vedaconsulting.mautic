@@ -1,3 +1,3 @@
 [
-  {"name":"new_mautic_webhook","label":"Mautic WebHook added","object_name":"MauticWebHook","op":"create","class_name":"CRM_Civirules_MauticWebHook","post":"0"}
+  {"name":"new_mautic_webhook","label":"Mautic WebHook added","object_name":"MauticWebHook","op":"create","class_name":"CRM_Civirules_Trigger_MauticWebHook","post":"0"}
 ]
