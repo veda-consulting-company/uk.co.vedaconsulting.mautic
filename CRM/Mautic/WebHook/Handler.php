@@ -16,7 +16,6 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
    // @todo: Add setting to select dedupe rule to identify
    // incoming contact data.
       
-    $cid = NULL;
     // $contact is a Mautic contact in a std object.
     if (!$contact) {
       return;
@@ -30,20 +29,25 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     // Data may include lead and contact properties - they appear to be the same.
     $contact = !empty($data->contact) ? $data->contact : NULL;
     CRM_Core_Error::debug_var("webhook trigger", $eventTrigger);
-    if (!$eventTrigger || !$contact ) {
-     CRM_Core_Error::debug_log_message("Processing Mautic webhook: no contact data, exiting.");
+    if (!$eventTrigger || !$contact) {
+     CRM_Core_Error::debug_log_message("Processing Mautic webhook: trigger or contact not found exiting.");
       return;
     } 
     
+    // Don't act on updates being pushed from Civi.
+    // We detect this from the connected user, which should be reserved by the extension.
+    $modifiedBy = !empty($contact->modifiedBy) ? $contact->modifiedBy : $contact->createdBy;
+    $ignoreTriggersIfCiviModified = ['lead_post_save_new', 'lead_post_save_update'];
+    if (in_array($eventTrigger, $ignoreTriggersIfCiviModified)) {
+      $connectedUserId = CRM_Utils_Array::value('id', MC::singleton()->getConnectedUser());
+      if ($connectedUserId == $contact->id || $connectedUserId == $modifiedBy) {
+        U::checkDebug("WebHook: " . $eventTrigger ." - Mautic Contact last modified by CiviCRM - no further processing required." );
+        return;
+      }
+    }
+    
     if (!empty($contact->fields->core->civicrm_contact_id->value)) {
       $civicrmContactId = $contact->fields->core->civicrm_contact_id->value;
-    }
-    // It would be good here to use a wrapper to normalize access to contact fields.
-    
-    if ($civicrmContactId && $eventTrigger == 'lead_post_save_new') {
-      // If this is a new contact then it was created by Civi.
-      // Ignore, it may be from a bulk sync.
-      return;
     }
     
     if (!$civicrmContactId) {
@@ -52,14 +56,16 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     // We have extracted enough information for an action. 
     if ($civicrmContactId) {
       // Create an activity for this contact.
+      // @todo Should this be a setting? 
+      // Then we let users choose whether to create one by default or in a civi rule.
+      // 
       $activityId = $this->createActivity($eventTrigger, $contact, $civicrmContactId);
     }
     else {
-      // @todo: setting to determine what to do here.
-      // Could create a new contact?
-      // Possibly expose in CiviRules conditions.
       U::checkDebug("Webhook: no matching contact found for trigger: " . $trigger);
     }
+    // Create a WebHook entity to store the data.
+    // This may be processed by CiviRules.
     civicrm_api3('MauticWebHook', 'create', [
       'contact_id' => $civicrmContactId,
       'activity_id' => $activityId,
@@ -94,7 +100,6 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   }
   
   public function createActivity($trigger, $mauticContact, $cid, $data=NULL) {
-    CRM_Core_Error::debug_log_message("Creating Mautic Webhook Activity");
     // We expect this to be called only om WebHook url.
     // So won't bother catching exceptions.
     $fieldInfo = [];
@@ -112,7 +117,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       'custom_' . $fieldInfo['Trigger_Event'] => $trigger,
       'custom_' . $fieldInfo['Data'] => json_encode($mauticContact),
     ];
-    CRM_Core_Error::debug_log_message('Creating mautic webhook activity');
+    U::checkDebug('Creating mautic webhook activity');
     $result =  civicrm_api3('Activity', 'create', $params); 
     return !empty($result['id']) ? $result['id'] : NULL;
   }

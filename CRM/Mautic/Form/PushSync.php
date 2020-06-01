@@ -211,11 +211,17 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
       "$identifier: Fetched data from Mautic. Matching..."
     ));
 
-    // Add the slow match process for difficult contacts.
+    // Match contacts.
     $ctx->queue->createItem( new CRM_Queue_Task(
-      array('CRM_Mautic_Form_PushSync', 'syncPushDifficultMatches'),
+      array('CRM_Mautic_Form_PushSync', 'syncPushMatchContacts'),
       array($segmentID),
       "$identifier: Matched up contacts. Comparing..."
+    ));
+    // Populate CiviCRM contacts with the mautic contact reference.  
+    $ctx->queue->createItem( new CRM_Queue_Task(
+      array('CRM_Mautic_Form_PushSync', 'syncPushUpdateReferenceFields'),
+      array($segmentID, $dry_run),
+      "$identifier: Updated contact reference fields."
     ));
 
     // Add the Mautic collect data task to the queue
@@ -267,14 +273,14 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
   }
 
   /**
-   * Do the difficult matches.
+   * Bulk match civi and mautic contacts.
    */
-  public static function syncPushDifficultMatches(CRM_Queue_TaskContext $ctx, $segmentID) {
+  public static function syncPushMatchContacts(CRM_Queue_TaskContext $ctx, $segmentID) {
 
     // Nb. collectCiviCrm must have run before we call this.
     $sync = new CRM_Mautic_Sync($segmentID);
     $c = $sync->matchMauticMembersToContacts();
-    CRM_Mautic_Utils::checkDebug('CRM_Mautic_Form_PushSync syncPushDifficultMatches count=', $c);
+    CRM_Mautic_Utils::checkDebug('CRM_Mautic_Form_PushSync syncPushMatchContacts count=', $c);
     return CRM_Queue_Task::TASK_SUCCESS;
   }
 
@@ -304,12 +310,25 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     $sync->dry_run = $dry_run;
     // this generates updates and unsubscribes
     $stats[$segmentID] = $sync->updateMauticFromCivi();
-    // Finally, finish up by removing the two temporary tables
-    //CRM_Mautic_Sync::dropTemporaryTables();
     static::updatePushStats($stats);
     
     return CRM_Queue_Task::TASK_SUCCESS;
   }
+  
+  /**
+   * Batch update CiviCRM reference fields to mautic contacts.
+   */
+  public static function syncPushUpdateReferenceFields(CRM_Queue_TaskContext $ctx, $segmentID, $dry_run) {
+    CRM_Mautic_Utils::checkDebug('Start-CRM_Mautic_Form_PushSync syncPushUpdateReferenceFields $segmentID= ', $segmentID);
+    
+    $sync = new CRM_Mautic_Sync($segmentID);
+    $sync->dry_run = $dry_run;
+    $stats[$segmentID] = $sync->updateContactReferenceFields();
+    static::updatePushStats($stats);
+    
+    return CRM_Queue_Task::TASK_SUCCESS;
+  }
+  
 
   /**
    * Update the push stats setting.

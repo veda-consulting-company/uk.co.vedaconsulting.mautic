@@ -6,6 +6,24 @@ class CRM_Mautic_Utils {
   
   protected static $segmentData = [];
   
+  
+  public static function getContactCustomFieldInfo($fieldName = NULL) {
+    static $fieldInfo = [];
+    $groupName = 'Mautic_Contact';
+    if (!$fieldInfo) {
+      $result = self::civiApi('CustomField', 'get', [
+        'custom_group_id' => $groupName,
+      ]);
+      if ($result['values']) {
+        // Key by name for easier lookup.
+        foreach ($result['values'] as $field) {
+          $fieldInfo[$field['name']] = $field;
+        }
+      }
+    }
+    return !$fieldName ? CRM_Utils_Array::value($fieldName, $fieldInfo) : $fieldInfo;
+  }
+  
  
   /**
    * Gets Mautic Segments in [id] => label format.
@@ -133,5 +151,22 @@ class CRM_Mautic_Utils {
     }
   }
   
+  /**
+   * Wraps civiCRM api.
+   * 
+   * @param unknown $entity
+   * @param unknown $method
+   * @param unknown $params
+   * @return array
+   */
+  protected static function civiApi($entity, $method, $params) {
+    try {
+      $result = civicrm_api3($entity, $method, $params);
+      return $result;
+    }
+    catch (Exception $e) {
+      CRM_Core_Error::debug_var('API Error: ' . __CLASS__, [$e->getMessage(), $params]);
+    }
+  }
   
 }

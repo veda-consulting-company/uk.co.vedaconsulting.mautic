@@ -11,6 +11,7 @@ class CRM_Mautic_Contact_ContactMatch {
    */
   public const mauticIdFieldAlias = 'civicrm_contact_id';
   
+  
   /**
    * Get the custom field ID 
    */

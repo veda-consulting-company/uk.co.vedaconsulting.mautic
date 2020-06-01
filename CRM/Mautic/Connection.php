@@ -59,6 +59,12 @@ class CRM_Mautic_Connection {
  
   protected $errors = [];
   
+  /**
+   * Contact data for the Connected Mautic user. 
+   * @var array
+   */
+  protected $connectedUser = [];
+  
   
   /**
    * Singleton method.
@@ -80,6 +86,14 @@ class CRM_Mautic_Connection {
   */
   protected function __construct($params = []) {
     $this->init($params);
+  }
+  
+  public function getConnectedUser() {
+    if (!$this->connectedUser) {
+      $userApi = $this->newApi('users');
+      $this->connectedUser = $userApi->getSelf();
+    }
+    return $this->connectedUser;
   }
   
   /**
