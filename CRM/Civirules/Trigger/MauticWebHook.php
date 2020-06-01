@@ -61,8 +61,16 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
    * @param \CRM_Civirules_TriggerData_TriggerData $triggerData
    */
   public function alterTriggerData(CRM_Civirules_TriggerData_TriggerData &$triggerData) {
+    
     $hook_invoker = CRM_Civirules_Utils_HookInvoker::singleton();
     $hook_invoker->hook_civirules_alterTriggerData($triggerData);
+    // Set the trigger contact id to the WebHook data.
+    // The contact is discovered when the webhook is initially processed.
+    if (empty($triggerData['contact_id'])) {
+      if (!empty($triggerData['mauticwebhook']['contact_id'])) {
+        $triggerData['contact_id'] = $triggerData['mauticwebhook']['contact_id'];
+      }
+    }
     CRM_Core_Error::debug_var(__CLASS__ .'::'.__FUNCTION__, $triggerData);
   }
   
