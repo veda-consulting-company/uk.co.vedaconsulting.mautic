@@ -22,13 +22,32 @@ class CRM_Mautic_BAO_MauticWebHook extends CRM_Mautic_DAO_MauticWebHook {
     $instance = new $className();
     $instance->copyValues($params);
     $instance->save();
-    CRM_Core_Error::debug_log_message("Calling post hook for MauticWebhook entity.");
     CRM_Utils_Hook::post($hook, $entityName, $instance->id, $instance);
-
     return $instance;
   }
-  
-  public static function unpackData($webhookdata) {
+ 
+  /**
+   * Gets an entity from the webhook.
+   * 
+   * @param string $mauticEntityType
+   * @param array $params
+   *  API MauticWebHook data.
+   * @return Object|mixed.
+   */
+  public static function getProvidedData($mauticEntityType, $params) {
+    $data = self::unpackData($params);
+    if (!empty($data->{$mauticEntityType})) {
+      return $data->{$mauticEntityType};
+    }
+  }
+ 
+  /**
+   * Unserializes the webhook data.
+   * 
+   * @param array $webhook
+   * @return NULL|unknown|mixed
+   */
+  public static function unpackData($webhook) {
     $mauticData = NULL;
     if (isset($webhook['data'])) {
       if (is_string($webhook['data'])) {

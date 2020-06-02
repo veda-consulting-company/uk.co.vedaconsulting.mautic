@@ -29,7 +29,6 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       }
       else {
         // Skip. Do nothing.
-        CRM_Core_Error::debug_log_message('MauticWebHookCreateContact not updating from rule.');
         return;
       }
     }
@@ -41,6 +40,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     // Get the contact data from the webhook.
     $mauticData = CRM_Mautic_BAO_MauticWebHook::unpackData($webhook);
     $mauticContact = !empty($mauticData->contact) ? $mauticData->contact : $mauticData->lead;
+    
     if (!$mauticContact) {
       CRM_Core_Error::debug_log_message('MauticWebHookCreateContact contact data not in payload.');
       return;
@@ -55,8 +55,11 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       return;
     }
     try {
-      CRM_Core_Error::debug_var('MauticWebHookCreateContact createContact', $contactParams);
-      civicrm_api3('Contact', 'create', $contactParams);
+      $result = civicrm_api3('Contact', 'create', $contactParams);
+      // Set the contact id for other rule actions.
+      if (!empty($result['id']) && !$triggerData->getContactId()) {
+        $triggerData->setContactId($result['id']);
+      }
     }
     catch(Exception $e) {
       CRM_Core_Error::debug_var('MauticWebHookCreateContact Error::', $e->getMessage());
