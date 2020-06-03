@@ -1,4 +1,5 @@
 <?php
+use CRM_Mautic_ExtensionUtil as E;
 /**
  * Class for CiviRule Condition Mautic WebHook is of type.
  *
@@ -20,7 +21,7 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
    */
   public function setRuleConditionData($ruleCondition) {
     parent::setRuleConditionData($ruleCondition);
-    $this->conditionParams = array();
+    $this->conditionParams = [];
     if (!empty($this->ruleCondition['condition_params'])) {
       $this->conditionParams = unserialize($this->ruleCondition['condition_params']);
     }
@@ -33,7 +34,15 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
    * @access public
    */
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    // todo: implement.
+    $field_name = $this->conditionParams['field_name'];
+    $searchValue = $this->conditionParams[$field_name];
+    $webHook = $triggerData->getEntityData('mauticwebhook');
+    if ($searchValue && $webHook) {
+      $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webHook);
+      if (!empty($contact->fields->core->{$field_name})) {
+        return $contact->fields->core->{$field_name}->value == $searchValue;
+      }
+    }
     return false;
   }
   
@@ -44,13 +53,13 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
    * @access public
    */
   public function userFriendlyConditionParams() {
-    return "Has field value." ;
+    $params = $this->conditionParams;
+    return E::ts("Field <em>%1</em> has value: <em>%2</em>.", [
+      '%1' => $params['field_name'],
+      '%2' => $params[$params['field_name']]
+    ]);
   }
   
-  protected function getSelectedTags() {
-    return explode(',', $this->conditionParams['mautic_tags']);
-  }
-
   /**
    * This function validates whether this condition works with the selected trigger.
    *
