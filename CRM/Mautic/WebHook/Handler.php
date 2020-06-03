@@ -8,6 +8,9 @@ use CRM_Mautic_Utils as U;
  * /
  * Functionality for processing Mautic Webhooks.
  * 
+ * For each individual trigger event, tries to Match to a contact and creates a webhook entity and/or activity.
+ * 
+ * 
  */
 class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   

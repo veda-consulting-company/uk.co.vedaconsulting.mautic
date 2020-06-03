@@ -21,7 +21,7 @@ class CRM_Mautic_Utils {
         }
       }
     }
-    return !$fieldName ? CRM_Utils_Array::value($fieldName, $fieldInfo) : $fieldInfo;
+    return $fieldName ? CRM_Utils_Array::value($fieldName, $fieldInfo) : $fieldInfo;
   }
   
  
