@@ -59,7 +59,7 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
         ],
        'mautic_basic' => [
          'title' => E::ts('Basic Authentication'),
-         'help' => '',
+         'help' => E::ts('It is best to create a dedicated admin user to connect as CiviCRM.'),
        ],
       'mautic_oauth1' => [
         'title' => E::ts('OAuth 1a'),

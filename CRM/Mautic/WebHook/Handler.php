@@ -15,14 +15,14 @@ use CRM_Mautic_Utils as U;
 class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   
   
-  public function identifyContact($contact) {
-   // @todo: Add setting to select dedupe rule to identify
-   // incoming contact data.
-      
-    // $contact is a Mautic contact in a std object.
-    if (!$contact) {
-      return;
-    }
+  /**
+   * Get corresponding CiviCRM contact from Mautic contact.
+   * 
+   * @param Object $mauticContact
+   */
+  public function identifyContact($mauticContact) {
+   $contactId = CRM_Mautic_Contact_ContactMatch::getCiviFromMauticContact($mauticContact);
+   return $contactId;
   }
   
   protected function processEvent($trigger, $data) {
@@ -49,13 +49,8 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       }
     }
     
-    if (!empty($contact->fields->core->civicrm_contact_id->value)) {
-      $civicrmContactId = $contact->fields->core->civicrm_contact_id->value;
-    }
     
-    if (!$civicrmContactId) {
-      $civicrmContactId = $this->identifyContact($contact);
-    }
+    $civicrmContactId = $this->identifyContact($contact);
     // We have extracted enough information for an action. 
     if ($civicrmContactId) {
       // Create an activity for this contact.

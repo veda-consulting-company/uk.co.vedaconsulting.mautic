@@ -156,7 +156,7 @@ EOF;
     $fieldApi = MC::singleton()->newApi('contactFields');
     $createdField = NULL;
     $civiField = [
-      'alias' => CRM_Mautic_Contact_ContactMatch::mauticIdFieldAlias,
+      'alias' => CRM_Mautic_Contact_ContactMatch::MAUTIC_ID_FIELD_ALIAS,
       'label' => 'CiviCRM Contact ID',
       'type' => 'text',
       'description' => 'CiviCRM Contact ID on ' . CRM_Utils_System::baseCMSURL(),
