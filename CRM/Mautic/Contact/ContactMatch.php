@@ -43,6 +43,9 @@ class CRM_Mautic_Contact_ContactMatch {
    */
   public static function lookupMauticContactReference($mauticContactId) {
     U::checkDebug("looking up mautic contact id $mauticContactId");
+    if (!intval($mauticContactId)) {
+      return $mauticContactId;
+    }
     $query = "SELECT entity_id FROM civicrm_value_mautic_contact 
      WHERE mautic_contact_id = %1
     ";
