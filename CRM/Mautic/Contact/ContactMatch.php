@@ -1,4 +1,5 @@
 <?php 
+use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Utils as U;
 
 /**
@@ -11,6 +12,29 @@ class CRM_Mautic_Contact_ContactMatch {
    * The alias for the field created on Mautic.
    */
   public const MAUTIC_ID_FIELD_ALIAS = 'civicrm_contact_id';
+  
+  
+  /**
+   * Retrieve available dedupe rule options for settings form.
+   * 
+   * @return array
+   */
+  public static function getDedupeRules() {
+    $dao = CRM_Core_DAO::executeQuery("
+     SELECT * FROM civicrm_dedupe_rule_group 
+    WHERE contact_type = 'Individual' 
+    AND used = 'Unsupervised'
+    ");
+    while ($dao->fetch()) {
+      $title = $dao->name == 'IndividualUnsupervised' ? E::ts('Default Unsupervised') : $dao->title;
+      $rules[$dao->id] = $title;
+    }
+    // Allow no dedupe rule in case high volume of webhooks 
+    // stresses the system.
+    $rules[0] = E::ts('-- None --');
+    
+    return $rules;
+  }
   
   /**
    * Find a contact with a reference to a Mautic Contact.
@@ -49,20 +73,19 @@ class CRM_Mautic_Contact_ContactMatch {
    * @return NULL
    */
   public static function dedupeFromMauticContact($mauticContact) {
+    $ruleId = CRM_Mautic_Setting::get('mautic_webhook_dedupe_rule');
+    if (!$ruleId) {
+      U::checkDebug("No dedupe rule selected. Skipping.");
+      return;
+    }
     $contactData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact);
-    U::checkDebug(__FUNCTION__ . ' using contact data', $contactData);
-    
-    // We use default unsupervised.
-    // @todo make dedupe rule configurable.
     
     $ruleType = 'Unsupervised';
     $contactType = 'Individual';
+    
     $params =  CRM_Dedupe_Finder::formatParams($contactData, $contactType);
     $params['check_permission'] = FALSE;
-    U::checkDebug("deduping params are", $params);
-    
-    $dupes = CRM_Dedupe_Finder::dupesByParams($params, $contactType, $ruleType, []);
-    U::checkDebug("deduping result is", $dupes);
+    $dupes = CRM_Dedupe_Finder::dupesByParams($params, $contactType, $ruleType, [], $ruleId);
     if ($dupes) {
       return !empty($dupes[0]) ? $dupes[0] : NULL;
     }

@@ -241,6 +241,20 @@ return [
     'help_text' => '',
     // No form element
   ],
+  'mautic_webhook_dedupe_rule' => [
+    'group_name' => 'Mautic Settings',
+    'group' => 'mautic',
+    'name' => 'mautic_webhook_dedupe_rule',
+    'type' => 'String',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'description' => 'Dedupe rule used to match contacts when processing webhooks. Before this is applied, custom fields are looked up on the mautic contact and in CiviCRM.',
+    'title' => 'Webhook Dedupe Fallback Rule',
+    'pseudoconstant' => ['callback' => 'CRM_Mautic_Contact_ContactMatch::getDedupeRules'],
+    'html_type' => 'select',
+    'quick_form_type' => 'Element',
+    'help_text' => '',
+  ],
   'mautic_push_stats' => [
     'group_name' => 'Mautic Settings',
     'group' => 'mautic',
