@@ -27,7 +27,6 @@ class CRM_Mautic_Contact_FieldMapping {
     $mapping = static::$defaultFieldMapping;
     // Map the custom field referencing the Mautic contact id.
     $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
-    CRM_Mautic_Utils::checkDebug('field_info', $mautic_field_info);
     if (!empty($mautic_field_info['id'])) {
       $mapping['custom_' . $mautic_field_info['id']] = 'id';
     }
@@ -73,7 +72,14 @@ class CRM_Mautic_Contact_FieldMapping {
       }
     }
   }
-  
+ 
+  /**
+   * Converts between Mautic and CiviCRM values.
+   * 
+   * @param mixed $contactData
+   * @param boolean $civiToMautic
+   * @return mixed[]|array[]|string[]
+   */
   protected static function convertContact($contactData, $civiToMautic = TRUE) {
     $mapping = static::getMapping();
     if (!$civiToMautic) {
@@ -91,6 +97,12 @@ class CRM_Mautic_Contact_FieldMapping {
     return $convertedContact;
   }
   
+  /**
+   * Converts mautic contact data to values for a civicrm contact.
+   * 
+   * @param unknown $mauticContact
+   * @return mixed[]|array|string[]
+   */
   public static function convertToCiviContact($mauticContact) {
     $contact = static::convertContact($mauticContact, FALSE);
     unset($contact['civicrm_contact_id']);
