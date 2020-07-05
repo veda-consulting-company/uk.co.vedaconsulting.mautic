@@ -42,9 +42,15 @@ class CRM_Mautic_Contact_ContactMatch {
    * @param int $mauticContactId
    */
   public static function lookupMauticContactReference($mauticContactId) {
+    if (!intval($mauticContactId)) {
+      return;
+    }
     U::checkDebug("looking up mautic contact id $mauticContactId");
-    $query = "SELECT entity_id FROM civicrm_value_mautic_contact 
-     WHERE mautic_contact_id = %1
+    $query = "SELECT entity_id FROM civicrm_value_mautic_contact mc
+      INNER JOIN civicrm_contact c 
+      ON  c.id = mc.entity_id
+       AND mc.mautic_contact_id = %1 
+       AND c.is_deleted != 1
     ";
     $dao = CRM_Core_DAO::executeQuery($query, [1 => [$mauticContactId, 'Integer']]);
     return $dao->fetchValue();
@@ -79,7 +85,6 @@ class CRM_Mautic_Contact_ContactMatch {
       return;
     }
     $contactData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact);
-    
     $ruleType = 'Unsupervised';
     $contactType = 'Individual';
     
