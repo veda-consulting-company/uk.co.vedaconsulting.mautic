@@ -1,4 +1,6 @@
 <?php
+use CRM_Mautic_Utils as U;
+
 /**
  * CiviRules action to create contact from Mautic Webhook.
  */
@@ -33,8 +35,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       }
     }
     else {
-      // If a new contact, set the source.
-      $contactParams['source'] = 'Mautic: ' .  CRM_Mautic_WebHook::getTriggerLabel($webhook['webhook_trigger_type']);
+      // This is a new contact.
     }
     
     // Get the contact data from the webhook.
@@ -42,7 +43,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     $mauticContact = !empty($mauticData->contact) ? $mauticData->contact : $mauticData->lead;
     
     if (!$mauticContact) {
-      CRM_Core_Error::debug_log_message('MauticWebHookCreateContact contact data not in payload.');
+      U::checkDebug('MauticWebHookCreateContact contact data not in payload.');
       return;
     }
     
@@ -62,12 +63,11 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       }
     }
     catch(Exception $e) {
-      CRM_Core_Error::debug_var('MauticWebHookCreateContact Error::', $e->getMessage());
+      U::checkDebug('MauticWebHookCreateContact Error::', $e->getMessage());
     }
   }
   
   public function getExtraDataInputUrl($ruleActionId) {
-    // @todo: implement input form.
     return CRM_Utils_System::url('civicrm/admin/mautic/civirules/action/mauticwebhookcreatecontact', 'rule_action_id=' . $ruleActionId); 
   }
 }
