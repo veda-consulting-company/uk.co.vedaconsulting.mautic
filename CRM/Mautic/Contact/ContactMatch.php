@@ -3,7 +3,7 @@ use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Utils as U;
 
 /**
- * @todo: implement.
+ * Matches Mautic Contacts with CiviCRM contacts.
  *
  */
 class CRM_Mautic_Contact_ContactMatch {
@@ -36,18 +36,26 @@ class CRM_Mautic_Contact_ContactMatch {
     return $rules;
   }
   
+  public static function getMauticContactReferenceFieldId() {
+    $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
+    return CRM_Utils_Array::value('id', $mautic_field_info);
+  }
+  
   /**
    * Find a contact with a reference to a Mautic Contact.
    * 
    * @param int $mauticContactId
    */
   public static function lookupMauticContactReference($mauticContactId) {
-    U::checkDebug("looking up mautic contact id $mauticContactId");
     if (!intval($mauticContactId)) {
-      return $mauticContactId;
+      return;
     }
-    $query = "SELECT entity_id FROM civicrm_value_mautic_contact 
-     WHERE mautic_contact_id = %1
+    U::checkDebug("looking up mautic contact id $mauticContactId");
+    $query = "SELECT entity_id FROM civicrm_value_mautic_contact mc
+      INNER JOIN civicrm_contact c 
+      ON  c.id = mc.entity_id
+       AND mc.mautic_contact_id = %1 
+       AND c.is_deleted != 1
     ";
     $dao = CRM_Core_DAO::executeQuery($query, [1 => [$mauticContactId, 'Integer']]);
     return $dao->fetchValue();
@@ -82,7 +90,6 @@ class CRM_Mautic_Contact_ContactMatch {
       return;
     }
     $contactData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact);
-    
     $ruleType = 'Unsupervised';
     $contactType = 'Individual';
     
@@ -104,15 +111,15 @@ class CRM_Mautic_Contact_ContactMatch {
    *  
    * @param [] $mauticContact
    * 
-   * @return int
+   * @return int|NULL
    *  Id of a CiviCRM contact.
    */
   public static function getCiviFromMauticContact($mauticContact) {
-    U::checkDebug('get civi from mautic contact', $mauticContact); 
+    U::checkDebug('get civi from mautic contact'); 
     // Look for contact reference in the Mautic Contact.
     $contactId = self::getContactReferenceFromMautic($mauticContact);
     if ($contactId) {
-      U::checkDebug('foundCivi contact reference in mautic data');
+      U::checkDebug('found Civi contact reference in mautic data');
       return $contactId;
     }
     // Are there any contacts referencing this mautic contact via custom field?
@@ -125,10 +132,38 @@ class CRM_Mautic_Contact_ContactMatch {
     return self::dedupeFromMauticContact($mauticContact);
     
   }
-  
+ 
+  /**
+   * Attempt to find a Mautic Contact Id for a CiviCRM Contact.
+   * 
+   * @param array $contact
+   * @return int|NULL
+   */
   public static function getMauticFromCiviContact($contact) {
-    // Use custom field.
-    // Use email match.
+    if (empty($contact['id'])) {
+      return;
+    }
+    // Use custom field value.
+    U::checkDebug("Looking for mautic contact reference in contact.");
+    $key = 'custom_' . static::getMauticContactReferenceFieldId();
+    $mauticContactId = CRM_Utils_Array::value($key, $contact);
+    if ($mauticContactId) {
+      return $mauticContactId;
+    }
+    $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
+    $result = $api->getList(static::MAUTIC_ID_FIELD_ALIAS . ':' . $contact['id'], 
+        $start = 0,
+        $limit = 0,
+        $orderBy = '',
+        $orderByDir = 'ASC',
+        $publishedOnly = TRUE,
+        $minimal = TRUE);
+    
+    if (!empty($result['contacts'])) {
+     U::checkDebug("Fetched mautic contact for civi contact.");
+      $contact = reset($result['contacts']);
+      return $contact['id'];
+    }
   }
     
 }

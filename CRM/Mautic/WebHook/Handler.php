@@ -26,14 +26,14 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   }
   
   protected function processEvent($trigger, $data) {
-     
     $civicrmContactId = $activityId = NULL;
     $eventTrigger = str_replace('mautic.', '', $trigger);
     // Data may include lead and contact properties - they appear to be the same.
     $contact = !empty($data->contact) ? $data->contact : NULL;
-    CRM_Core_Error::debug_var("webhook trigger", $eventTrigger);
+    U::checkDebug("webhook trigger", $eventTrigger);
+    U::checkDebug('webhookdata', $data);
     if (!$eventTrigger || !$contact) {
-     CRM_Core_Error::debug_log_message("Processing Mautic webhook: trigger or contact not found exiting.");
+      U::checkDebug("Processing Mautic webhook: trigger or contact not found exiting.");
       return;
     } 
     
@@ -77,13 +77,10 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
    * @param [] $data
    */
   public function process($data) {
-    CRM_Core_Error::debug_log_message("Processing Mautic webhook.");
-    CRM_Core_Error::debug_var('triggerdatakeys', array_keys((array)$data));
+    U::checkDebug("Processing Mautic webhook.", array_keys((array)$data));
     $triggers = static::getEnabledTriggers();
     foreach ($triggers as $trigger) {
-      CRM_Core_Error::debug_log_message("trying trigger" . $trigger);
       if (!empty($data->{$trigger})) {
-        CRM_Core_Error::debug_log_message("found data at " . $trigger);
         // We may be processing a batch.
         if (is_array($data->{$trigger})) {
           foreach ($data->{$trigger} as $idx => $item) {
