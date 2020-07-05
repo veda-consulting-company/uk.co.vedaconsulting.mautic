@@ -14,7 +14,7 @@ class CRM_Mautic_Form_Civirules_Action_MauticWebHookCreateContact extends CRM_Ci
     // add form elements
     $this->addRadio(
       'if_matching_civicrm_contact', // field name
-      'If a matching CiviCRM contact is found', // field label
+      E::ts('If a matching CiviCRM contact is found'), // field label
       ['skip' => 'Skip', 'update' => 'Update Contact'], // list of options
       ['required' => TRUE],
       NULL,
