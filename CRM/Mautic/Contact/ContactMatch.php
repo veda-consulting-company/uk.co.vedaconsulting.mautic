@@ -36,6 +36,11 @@ class CRM_Mautic_Contact_ContactMatch {
     return $rules;
   }
   
+  public static function getMauticContactReferenceFieldId() {
+    $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
+    return CRM_Utils_Array::value('id', $mautic_field_info);
+  }
+  
   /**
    * Find a contact with a reference to a Mautic Contact.
    * 
@@ -106,11 +111,11 @@ class CRM_Mautic_Contact_ContactMatch {
    *  
    * @param [] $mauticContact
    * 
-   * @return int
+   * @return int|NULL
    *  Id of a CiviCRM contact.
    */
   public static function getCiviFromMauticContact($mauticContact) {
-    U::checkDebug('get civi from mautic contact', $mauticContact); 
+    U::checkDebug('get civi from mautic contact'); 
     // Look for contact reference in the Mautic Contact.
     $contactId = self::getContactReferenceFromMautic($mauticContact);
     if ($contactId) {
@@ -127,10 +132,38 @@ class CRM_Mautic_Contact_ContactMatch {
     return self::dedupeFromMauticContact($mauticContact);
     
   }
-  
+ 
+  /**
+   * Attempt to find a Mautic Contact Id for a CiviCRM Contact.
+   * 
+   * @param array $contact
+   * @return int|NULL
+   */
   public static function getMauticFromCiviContact($contact) {
-    // Use custom field.
-    // Use email match.
+    if (empty($contact['id'])) {
+      return;
+    }
+    // Use custom field value.
+    U::checkDebug("Looking for mautic contact reference in contact.");
+    $key = 'custom_' . static::getMauticContactReferenceFieldId();
+    $mauticContactId = CRM_Utils_Array::value($key, $contact);
+    if ($mauticContactId) {
+      return $mauticContactId;
+    }
+    $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
+    $result = $api->getList(static::MAUTIC_ID_FIELD_ALIAS . ':' . $contact['id'], 
+        $start = 0,
+        $limit = 0,
+        $orderBy = '',
+        $orderByDir = 'ASC',
+        $publishedOnly = TRUE,
+        $minimal = TRUE);
+    
+    if (!empty($result['contacts'])) {
+     U::checkDebug("Fetched mautic contact for civi contact.");
+      $contact = reset($result['contacts']);
+      return $contact['id'];
+    }
   }
     
 }

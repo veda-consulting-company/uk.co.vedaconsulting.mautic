@@ -26,7 +26,7 @@ class CRM_Mautic_Contact_FieldMapping {
   public static function getMapping() {
     $mapping = static::$defaultFieldMapping;
     // Map the custom field referencing the Mautic contact id.
-    $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
+ $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
     if (!empty($mautic_field_info['id'])) {
       $mapping['custom_' . $mautic_field_info['id']] = 'id';
     }
@@ -95,6 +95,10 @@ class CRM_Mautic_Contact_FieldMapping {
       }
     }
     return $convertedContact;
+  }
+  
+  public static function convertToMauticContact($contact) {
+    return static::convertContact($contact, TRUE);
   }
   
   /**
