@@ -3,7 +3,7 @@ use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Utils as U;
 
 /**
- * @todo: implement.
+ * Matches Mautic Contacts with CiviCRM contacts.
  *
  */
 class CRM_Mautic_Contact_ContactMatch {
@@ -114,7 +114,7 @@ class CRM_Mautic_Contact_ContactMatch {
     // Look for contact reference in the Mautic Contact.
     $contactId = self::getContactReferenceFromMautic($mauticContact);
     if ($contactId) {
-      U::checkDebug('foundCivi contact reference in mautic data');
+      U::checkDebug('found Civi contact reference in mautic data');
       return $contactId;
     }
     // Are there any contacts referencing this mautic contact via custom field?

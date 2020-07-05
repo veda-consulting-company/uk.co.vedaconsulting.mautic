@@ -1,7 +1,6 @@
 <?php
 /**
  * Class for retrieving lists in batches.
- * @author che
  *
  */
 class CRM_Mautic_APIBatchList {
