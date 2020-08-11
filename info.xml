@@ -2,16 +2,16 @@
 <extension key="uk.co.vedaconsulting.mautic" type="module">
   <file>mautic</file>
   <name>Mautic Integration</name>
-  <description>FIXME</description>
+  <description>Extension to integrate with Mautic marketing automation software.</description>
   <license>AGPL-3.0</license>
   <maintainer>
     <author>Veda Consulting</author>
-    <email>che@vedaconsulting.co.uk</email>
+    <email>info@vedaconsulting.co.uk</email>
   </maintainer>
   <urls>
-    <url desc="Main Extension Page">http://FIXME</url>
-    <url desc="Documentation">http://FIXME</url>
-    <url desc="Support">http://FIXME</url>
+    <url desc="Main Extension Page">https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic</url>
+    <url desc="Documentation">https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic/README.md</url>
+    <url desc="Support">https://vedaconsulting.co.uk</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
   <releaseDate>2020-04-22</releaseDate>
@@ -20,7 +20,7 @@
   <compatibility>
     <ver>5.1</ver>
   </compatibility>
-  <comments>This is a new, undeveloped module</comments>
+  <comments></comments>
   <civix>
     <namespace>CRM/Mautic</namespace>
   </civix>
