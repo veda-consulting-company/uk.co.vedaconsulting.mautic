@@ -2,6 +2,5 @@
   {"name":"mautic_webhook_of_type","label":"Mautic WebHook is (not) one of Type(s)","class_name":"CRM_Civirules_Condition_MauticWebHookType"},
   {"name":"mautic_contact_matches_civicrm","label":"Mautic Contact matches a CiviCRM Contact","class_name":"CRM_Civirules_Condition_MauticContactMatches"},
   {"name":"mautic_contact_has_tag","label":"Mautic Contact has a tag","class_name":"CRM_Civirules_Condition_MauticContactHasTag"},
-  {"name":"mautic_contact_in_linked_segment","label":"Mautic Contact in segment linked to a CiviCRM group","class_name":"CRM_Civirules_Condition_MauticContactInLinkedSegment"},
   {"name":"mautic_contact_field_value","label":"Mautic Contact field has value","class_name":"CRM_Civirules_Condition_MauticContactFieldValue"}
 ]

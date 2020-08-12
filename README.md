@@ -13,7 +13,6 @@ It currently provides:
    - Mautic Webhook type
    - Mautic Contact matches a CiviCRM Contact
    - Mautic Contact has a tag
-   - Mautic Contact is in a segment linked to a CiviCRM group
    - Mautic Contact field has a particular value
  - CiviRules Actions:
    - Sync contact to Mautic
