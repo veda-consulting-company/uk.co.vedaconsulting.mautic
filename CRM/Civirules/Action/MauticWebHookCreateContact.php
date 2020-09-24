@@ -24,7 +24,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     $contactParams = [
       'contact_type' => 'Individual',
     ];
-    if (!empty($webhook['contact_id'])) { 
+    if (!empty($webhook['contact_id'])) {
       if ($updateContact) {
         // Update with the ID.
         $contactParams['id'] = $webhook['contact_id'];
@@ -37,16 +37,16 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     else {
       // This is a new contact.
     }
-    
+
     // Get the contact data from the webhook.
     $mauticData = CRM_Mautic_BAO_MauticWebHook::unpackData($webhook);
     $mauticContact = !empty($mauticData->contact) ? $mauticData->contact : $mauticData->lead;
-    
+
     if (!$mauticContact) {
       U::checkDebug('MauticWebHookCreateContact contact data not in payload.');
       return;
     }
-    
+
     // Convert from Mautic to Civi contact fields.
     $convertedData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact);
     if ($convertedData) {
@@ -57,14 +57,16 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     }
     try {
       $result = civicrm_api3('Contact', 'create', $contactParams);
-      
+
       // Set the contact id for other rule actions.
       if (!empty($result['id']) && !$triggerData->getContactId()) {
         $triggerData->setContactId($result['id']);
       }
-      // Update the Mautic Contact with a reference to the CiviCRM Contact.
       $contactId = !empty($result['id']) ? $result['id'] : NULL;
-      
+      // Update the contact tags.
+      CRM_Mautic_Contact_FieldMapping::saveMauticTagsToCiviContact($mauticContact, $contactId);
+
+      // Update the Mautic Contact with a reference to the CiviCRM Contact.
       if ($contactId && $contactId != CRM_Mautic_Contact_ContactMatch::getContactReferenceFromMautic($mauticContact)) {
          $mautic = CRM_Mautic_Connection::singleton()->newApi('contacts');
          $editParams = [CRM_Mautic_Contact_ContactMatch::MAUTIC_ID_FIELD_ALIAS => $contactId];
@@ -76,8 +78,8 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       U::checkDebug('MauticWebHookCreateContact Error::', $e->getMessage());
     }
   }
-  
+
   public function getExtraDataInputUrl($ruleActionId) {
-    return CRM_Utils_System::url('civicrm/admin/mautic/civirules/action/mauticwebhookcreatecontact', 'rule_action_id=' . $ruleActionId); 
+    return CRM_Utils_System::url('civicrm/admin/mautic/civirules/action/mauticwebhookcreatecontact', 'rule_action_id=' . $ruleActionId);
   }
 }

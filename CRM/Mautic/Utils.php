@@ -39,11 +39,11 @@ class CRM_Mautic_Utils {
     if ($contactId && $mauticId != $savedMauticId) {
       // Prefer to save customValue directly rather than update Contact.
       // This may be called from a contact update rule trigger.
-      $update = U::civiApi('CustomValue', 'create', [
-        'entity_id' => $contact_id,
-        'custom_' . $fid => $mauticContactId,
+      $update = self::civiApi('CustomValue', 'create', [
+        'entity_id' => $contactId,
+        'custom_' . $fid => $mauticId,
       ]);
-      self::checkDebug(__FUNCTION__, $update);
+      self::checkDebug(__FUNCTION__, ['updated' => $update, 'contact' => $contact]);
     }
   }
 
