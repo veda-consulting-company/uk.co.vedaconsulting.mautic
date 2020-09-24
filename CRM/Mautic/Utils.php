@@ -24,6 +24,29 @@ class CRM_Mautic_Utils {
     return $fieldName ? CRM_Utils_Array::value($fieldName, $fieldInfo) : $fieldInfo;
   }
 
+  /**
+   * Save the Mautic Contact ID to CiviCRM custom field.
+   * @param [] $contact
+   *  Should have id element.
+   * @param [] $mauticId
+   */
+  public static function saveMauticIDCustomField($contact, $mauticId) {
+
+    $contactId = CRM_Utils_Array::value('id', $contact);
+    $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Contact_ID', 'Mautic_Contact');
+    $key = 'custom_' . $fid;
+    $savedMauticId = CRM_Utils_Array::value($key, $contact);
+    if ($contactId && $mauticId != $savedMauticId) {
+      // Prefer to save customValue directly rather than update Contact.
+      // This may be called from a contact update rule trigger.
+      $update = U::civiApi('CustomValue', 'create', [
+        'entity_id' => $contact_id,
+        'custom_' . $fid => $mauticContactId,
+      ]);
+      self::checkDebug(__FUNCTION__, $update);
+    }
+  }
+
 
   /**
    * Gets Mautic Segments in [id] => label format.

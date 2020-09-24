@@ -1,6 +1,6 @@
 <?php
 /**
- * 
+ *
  * CiviRules action to create contact from Mautic Webhook.
  */
 use CRM_Mautic_Utils as U;
@@ -28,8 +28,9 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
     $contact = civicrm_api3('Contact', 'getsingle', ['id' => $contact_id, 'return' => $fields]);
     U::checkDebug("Contact for CiviRules Action", $contact);
     if ($contact) {
-      $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($contact);
+      $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($contact, TRUE);
       $mauticContactId = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact($contact);
+
       if ($mauticContact) {
         $api = MC::singleton()->newApi('contacts');
         if ($mauticContactId) {
@@ -37,9 +38,14 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
           $response = $api->edit($mauticContactId, $mauticContact);
         }
         else {
-          U::checkDebug("Creating mautic contact.");
+          U::checkDebug("Creating mautic contact.", $mauticContact);
           $response = $api->create($mauticContact);
         }
+        if (!$mauticContactId && !empty($response['contact']['id'])) {
+          $mauticContactId = $response['contact']['id'];
+        }
+        // Save mautic id to custom field if it is not stored already.
+        U::saveMauticIDCustomField($contact, $mauticContactId);
         // Sync segments from Civi Groups.
         // For this to be effective with smart groups the rule should have a delay
         // greater than smartgroup cache timeout.
@@ -47,13 +53,13 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
       }
     }
   }
- 
+
   /**
-   * 
+   *
    * {@inheritDoc}
    * @see CRM_Civirules_Action::getExtraDataInputUrl()
    */
   public function getExtraDataInputUrl($ruleActionId) {
-    return NULL; 
+    return NULL;
   }
 }
