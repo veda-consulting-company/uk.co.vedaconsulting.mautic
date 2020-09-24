@@ -34,14 +34,17 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
         $api = MC::singleton()->newApi('contacts');
         if ($mauticContactId) {
           U::checkDebug("Updating mautic contact.");
-          $api->edit($mauticContactId, $mauticContact);
+          $response = $api->edit($mauticContactId, $mauticContact);
         }
         else {
           U::checkDebug("Creating mautic contact.");
-          $api->create($mauticContact);
+          $response = $api->create($mauticContact);
         }
+        // Sync segments from Civi Groups.
+        // For this to be effective with smart groups the rule should have a delay
+        // greater than smartgroup cache timeout.
+        U::syncContactSegmentsFromGroups($contact_id, $mauticContactId);
       }
-      
     }
   }
  
