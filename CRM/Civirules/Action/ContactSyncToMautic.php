@@ -20,13 +20,17 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     $this->logAction(__CLASS__, $triggerData);
+    if (U::$skipUpdatesToMautic) {
+      U::checkDebug('Skipping update to Mautic because contact has just been synched.');
+      return;
+    }
     // The civi api gives more data compared to $triggerData::getEntityData().
     $contact_id = $triggerData->getContactId();
     $fields = CRM_Mautic_Contact_FieldMapping::getMapping();
     unset($fields['civicrm_contact_id']);
-    $fields = array_keys($fields);
+    $commsPrefs = ['is_opt_out', 'do_not_email', 'do_not_phone', 'do_not_sms', 'do_not_mail'];
+    $fields = array_merge(array_keys($fields), $commsPrefs);
     $contact = civicrm_api3('Contact', 'getsingle', ['id' => $contact_id, 'return' => $fields]);
-    U::checkDebug("Contact for CiviRules Action", $contact);
     if ($contact) {
       $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($contact, TRUE);
       $mauticContactId = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact($contact);
@@ -34,7 +38,7 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
       if ($mauticContact) {
         $api = MC::singleton()->newApi('contacts');
         if ($mauticContactId) {
-          U::checkDebug("Updating mautic contact.");
+          U::checkDebug("Updating mautic contact.", $mauticContact);
           $response = $api->edit($mauticContactId, $mauticContact);
         }
         else {

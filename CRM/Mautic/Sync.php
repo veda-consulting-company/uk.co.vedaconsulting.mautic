@@ -8,24 +8,24 @@ use CRM_Mautic_Utils as U;
  * This class holds all the sync logic for a particular segment.
  */
 class CRM_Mautic_Sync {
-  
-  
+
+
   protected const MAUTIC_FETCH_BATCH_SIZE = 100;
   protected const MAUTIC_PUSH_BATCH_SIZE = 500;
-  
+
   /**
    * Holds the Mautic List ID.
    *
    * This is accessible read-only via the __get().
    */
   protected $segment_id;
-  
+
   /**
    * The segment alias is used when filtering contacts.
    * @var string
    */
   protected $segment_alias;
-  
+
   /**
    * Cache of details from CRM_Mautic_Utils::getGroupsToSync.
    ▾ $this->group_details['61'] = (array [12])
@@ -46,7 +46,7 @@ class CRM_Mautic_Sync {
 
   /** If true no changes will be made to Mautic or CiviCRM. */
   protected $dry_run = FALSE;
- 
+
   /**
    * Get Mautic API client object for Contacts.
    * @return NULL|\Mautic\Api\Api
@@ -54,7 +54,7 @@ class CRM_Mautic_Sync {
   protected function getApi($context) {
     return MC::singleton()->newApi($context);
   }
- 
+
   /**
    * Returns a key => value array of the current CiviCRM group and Mautic Segment.
    * @return NULL[]
@@ -62,7 +62,7 @@ class CRM_Mautic_Sync {
   protected function singleGroupMapping() {
     return [$this->membership_group_id => $this->segment_id];
   }
-  
+
   public function __construct($segment_id) {
     $this->segment_id = $segment_id;
     $this->segment_alias = U::getMauticSegment($segment_id, 'alias');
@@ -103,7 +103,7 @@ class CRM_Mautic_Sync {
     }
     throw new InvalidArgumentException("'$property' property inaccessible or unknown");
   }
-   
+
   // The following methods are the key steps of the pull and push syncs.
   /**
    * Collect Mautic data into temporary working table.
@@ -132,18 +132,18 @@ class CRM_Mautic_Sync {
     $insert = $db->prepare('INSERT INTO tmp_mautic_push_m
              (email, first_name, last_name, hash, group_info, mautic_contact_id, civicrm_contact_id)
       VALUES (?,     ?,          ?,         ?,    ?, ?, ?)');
-    
+
 
     CRM_Mautic_Utils::checkDebug('CRM_Mautic_Form_Sync syncCollectMautic: ', $this->interest_group_details);
     //
     // Main loop of all the records.
     $collected = 0;
-    $batchAPI = new CRM_Mautic_APIBatchList('contacts', 
+    $batchAPI = new CRM_Mautic_APIBatchList('contacts',
         self::MAUTIC_FETCH_BATCH_SIZE,
         ['search' => 'segment:' . $this->segment_alias]
-        ); 
-    
-    // All mautic contacts are in the current segment. 
+        );
+
+    // All mautic contacts are in the current segment.
     while ($members = $batchAPI->fetchBatch()) {
       $start = microtime(TRUE);
       foreach ($members as $member) {
@@ -153,11 +153,11 @@ class CRM_Mautic_Sync {
         // Serialize the grouping array for SQL storage - this is the fastest way.
         $groupInfo = serialize($this->singleGroupMapping());
         $civicrm_contact_id = CRM_Mautic_Contact_FieldMapping::getValue($member, 'civicrm_contact_id', 0);
-        $mautic_contact_id = $member['id']; 
+        $mautic_contact_id = $member['id'];
         // for comparison with the hash created from the CiviCRM data (elsewhere).
-  
+
         $hash = md5($first_name . $last_name . $email . $groupInfo);
-        
+
         // run insert prepared statement
         $result = $db->execute($insert, [
           $email,
@@ -271,11 +271,11 @@ class CRM_Mautic_Sync {
     $start = microtime(TRUE);
 
     $collected = 0;
-    $insert = $db->prepare('INSERT IGNORE INTO tmp_mautic_push_c 
+    $insert = $db->prepare('INSERT IGNORE INTO tmp_mautic_push_c
    (contact_id, email,
       first_name, last_name, hash, group_info, mautic_contact_id)
     VALUES(?, ?, ?, ?, ?, ?, ?)');
-    
+
     // Loop contacts:
     foreach ($result['values'] as $id => $contact) {
       // Which email to use?
@@ -291,7 +291,7 @@ class CRM_Mautic_Sync {
         continue;
       }
 
-      if (!(filter_var($email, FILTER_VALIDATE_EMAIL))) { 
+      if (!(filter_var($email, FILTER_VALIDATE_EMAIL))) {
         continue;
       }
 
@@ -304,7 +304,7 @@ class CRM_Mautic_Sync {
       // See note above about why we don't include email in the hash.
       // $hash = md5($email . $contact['first_name'] . $contact['last_name'] . $info);
       $hash = md5($contact['first_name'] . $contact['last_name'] . $email . $info);
-      
+
       // Set mautic id to a numeric value.
       $mautic_contact_id = 0;
       // run insert prepared statement
@@ -466,7 +466,7 @@ class CRM_Mautic_Sync {
 
     return $stats;
   }
-  
+
   /**
    * For matched civi contacts, update the custom fields that reference a mautic contact.
    * @return []
@@ -475,11 +475,11 @@ class CRM_Mautic_Sync {
     $stats = ['updatedContactReferenceFields' => 0];
     $count = 0;
     CRM_Mautic_Utils::checkDebug(__FUNCTION__ . " for group #$this->membership_group_id");
-    $query = ' 
-           SELECT m.cid_guess, m.mautic_contact_id 
-           FROM tmp_mautic_push_m m 
+    $query = '
+           SELECT m.cid_guess, m.mautic_contact_id
+           FROM tmp_mautic_push_m m
             WHERE m.cid_guess IS NOT NULL AND m.mautic_contact_id IS NOT NULL
-    '; 
+    ';
     if (!$this->dry_run) {
       // Avoid  Cannot use ON DUPLICATE KEY UPDATE so we replace.
       $updateQuery = "
@@ -556,7 +556,7 @@ class CRM_Mautic_Sync {
 
     return $count + $doubles;
   }
-  
+
   /**
    * "Push" sync.
    *
@@ -572,7 +572,7 @@ class CRM_Mautic_Sync {
     $operations = [];
     $contactApi = self::getApi('contacts');
     $segmentApi = self::getApi('segments');
-    
+
     $dao = CRM_Core_DAO::executeQuery(
       "SELECT
       c.group_info c_group_info, c.first_name c_first_name, c.last_name c_last_name,
@@ -595,8 +595,8 @@ class CRM_Mautic_Sync {
     while ($dao->fetch()) {
       $baseFields = [
         'email',
-        'first_name', 
-        'last_name', 
+        'first_name',
+        'last_name',
         'group_info',
         'mautic_contact_id',
         'civicrm_contact_id',
@@ -607,7 +607,7 @@ class CRM_Mautic_Sync {
         $cField = 'c_' . $baseField;
         $mParams[$baseField] = isset($dao->{$mField}) ? $dao->{$mField} : NULL;
         $cParams[$baseField] = isset($dao->{$cField}) ? $dao->{$cField} : NULL;
-        
+
       }
       $params = static::updateMauticFromCiviLogic($cParams, $mParams);
       if (!$params) {
@@ -619,7 +619,7 @@ class CRM_Mautic_Sync {
       if (!empty($params['mautic_contact_id'])) {
         $mautic_contact_id = $params['mautic_contact_id'];
         unset($params['mautic_contact_id']);
- 
+
         // We haven't retrieved from Mautic since it is not in the segment.
         // But we have the reference to the mautic contact id in the civi contact.
         // So we only need to add to the segment.
@@ -637,8 +637,8 @@ class CRM_Mautic_Sync {
         // We might possibly lookup by id here.
         $create[] = $params;
       }
-      
-      
+
+
 
       if ($this->dry_run) {
         // Log the operation description.
@@ -690,11 +690,11 @@ class CRM_Mautic_Sync {
         $this->batchAPIOperation($batchSize, $operation['data'], $operation['callback']);
       }
     }
-    
+
     // Development debugging. Mautic API logs to SESSION
     // But is too verbose to be useful unless you need to drill down to requests.
     // U::checkDebug('sessiondump', $_SESSION);
-    
+
     // Get in sync stats that were discovered via db.
     $stats = CRM_Mautic_Setting::get('mautic_push_stats');
     $in_sync = $stats[$this->segment_id]['in_sync'];
@@ -703,11 +703,11 @@ class CRM_Mautic_Sync {
       'additions' => count($create),
       'updates' => count($edit),
       'unsubscribes' => count($removals),
-      'in_sync' => $in_sync, 
+      'in_sync' => $in_sync,
     ];
   }
   // @todo refactor to own class.
-  
+
   protected function processEditBatch($data) {
     U::checkDebug('editBatch', $data);
     $api = $this->getApi('contacts');
@@ -718,7 +718,7 @@ class CRM_Mautic_Sync {
     $result = $api->editBatch($data, FALSE);
     U::checkDebug('editBatchResult', $result);
   }
-  
+
   protected function processAddToSegmentBatch($data) {
     U::checkDebug(__FUNCTION__, ['segment_id' => $this->segment_id, 'ids' => $data]);
     $api = $this->getApi('segments');
@@ -738,7 +738,7 @@ class CRM_Mautic_Sync {
       U::checkDebug(__FUNCTION__ . ': Invalid data', $data);
     }
   }
-  
+
   protected function processRemoveFromSegmentBatch($data) {
     U::checkDebug(__FUNCTION__, $data);
     $api = $this->getApi('segments');
@@ -759,9 +759,9 @@ class CRM_Mautic_Sync {
       U::checkDebug(__FUNCTION__ . ': Invalid data', $data);
     }
   }
-  
+
   protected function processCreateBatch($data) {
-    U::checkDebug(__FUNCTION__, $data);        
+    U::checkDebug(__FUNCTION__, $data);
     $api = $this->getApi('contacts');
     $result = $api->createBatch($data);
     $ids = [];
@@ -774,11 +774,11 @@ class CRM_Mautic_Sync {
       $this->processAddToSegmentBatch($ids);
     }
   }
-  
-  
+
+
   /**
    * Perform an operation in batches.
-   * 
+   *
    * @param int $batchSize
    * @param array $data
    * @param callable $function
@@ -846,7 +846,7 @@ class CRM_Mautic_Sync {
   public function updateCiviFromMautic() {
     // Not implemented.
   }
-  
+
 
   /**
    * Get contacts to remove from mautic segment.
@@ -904,8 +904,8 @@ class CRM_Mautic_Sync {
   public function updateMauticFromCiviSingleContact($contact_id) {
     // @todo: implement.
     return;
-    
-    
+
+
     // Get all the groups related to this segment that the contact is currently in.
     // We have to use this dodgy API that concatenates the titles of the groups
     // with a comma (making it unsplittable if a group title has a comma in it).
@@ -976,14 +976,14 @@ class CRM_Mautic_Sync {
     catch (Exception $e) {
       CRM_Core_Session::setStatus(ts('There was a problem trying to subscribe this contact at Mautic:') . $e->getMessage());
     }
-   
+
   }
   /**
    * Identify a contact who is expected to be subscribed to this segment.
    *
    * This is used in a couple of cases, for finding a contact from incomming
    * data for:
-   * - a possibly new contact, 
+   * - a possibly new contact,
    * - a contact that is expected to be in this membership group.
    *
    * Here's how we match a contact:
@@ -1021,7 +1021,7 @@ class CRM_Mautic_Sync {
    * @param string|null $last_name
    * @param bool $must_be_on_segment    If TRUE, only return an ID if this contact
    *                                 is known to be on the segment. defaults to
-   *                                 FALSE. 
+   *                                 FALSE.
    * @throw CRM_Mautic_DuplicateContactsException if the email is known bit
    * it fails to identify one contact.
    * @return int|null Contact Id if found.
@@ -1166,7 +1166,7 @@ class CRM_Mautic_Sync {
         SET m.cid_guess = c.contact_id
         WHERE m.cid_guess IS NULL");
   }
-  
+
   /**
    * Matches contacts from a reference to the CiviCRM contact id on the mautic contact.
    */
@@ -1178,15 +1178,15 @@ class CRM_Mautic_Sync {
         WHERE m.cid_guess IS NULL
         ");
   }
-  
+
   /**
    * Matches contacts from a reference to the Mautic contact id on a CiviCRM contact.
    */
   public static function guessContactIdsByMauticReference() {
-    
+
     return static::runSqlReturnAffectedRows(
         "UPDATE tmp_mautic_push_m m
-        INNER JOIN civicrm_value_mautic_contact cm ON cm.mautic_contact_id = m.mautic_contact_id 
+        INNER JOIN civicrm_value_mautic_contact cm ON cm.mautic_contact_id = m.mautic_contact_id
         SET m.cid_guess =  cm.entity_id
         WHERE m.cid_guess IS NULL
         ");
@@ -1354,10 +1354,15 @@ class CRM_Mautic_Sync {
    */
   public static function updateMauticFromCiviLogic($civi_details, $mautic_details) {
     $params = [];
+    // Sync tags if settings indicate so.
+    $tagHelper = new CRM_Mautic_Tag();
+    if ($tagHelper->isSync()) {
+      $params['tags'] = $tagHelper->getCiviTagsForMautic($civi_details['civicrm_contact_id']);
+    }
     // I think possibly some installations don't have Multibyte String Functions
     // installed?
     $lower = function_exists('mb_strtolower') ? 'mb_strtolower' : 'strtolower';
-    
+    //
     // The contact exists in mautic but is not a member of the group.
     // This will just need adding to the group.
     if (!empty($civi_details['mautic_contact_id']) && empty($mautic_details['mautic_contact_id'])) {
@@ -1367,7 +1372,7 @@ class CRM_Mautic_Sync {
     if ($civi_details['civicrm_contact_id'] && empty($mautic_details['civicrm_contact_id'])) {
       $params['civicrm_contact_id'] = $civi_details['civicrm_contact_id'];
     }
-    
+
     if ($civi_details['email'] && $lower($civi_details['email']) != $lower($mautic_details['email'])) {
       // This is the case for additions; when we're adding someone new.
       $params['email'] = $civi_details['email'];

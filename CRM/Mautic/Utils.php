@@ -6,6 +6,11 @@ class CRM_Mautic_Utils {
 
   protected static $segmentData = [];
 
+  /**
+   * If we are updating a CiviCRM contact from Mautic, we do not want to trigger a sync going back to Mautic.
+   * @var boolean
+   */
+  public static $skipUpdatesToMautic = FALSE;
 
   public static function getContactCustomFieldInfo($fieldName = NULL) {
     static $fieldInfo = [];

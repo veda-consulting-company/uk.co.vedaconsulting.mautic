@@ -41,6 +41,43 @@ class CRM_Mautic_Contact_FieldMapping {
   }
 
   /**
+   * Alter the converted contact communication prefs to include  subscription changes on Mautic.
+   * @param stdClass $mauticContact
+   * @param array $contact
+   */
+  public static function commsPrefsMauticToCivi($mauticContact, &$contact) {
+    // The doNotContact field appears to have an empty array when false and a nested empty array when true.
+    // Not sure how to interpret this. So will use the channel and status property which is included
+    // in the payload for webook mautic.lead_channel_subscription_changed.
+    $channel = self::lookupMauticValue('channel', $mauticContact);
+    if (!$channel) {
+      return;
+    }
+    $status = self::lookupMauticValue('new_status', $mauticContact);
+    // Only make a change if channel is explicitly set.
+    if ($channel == 'email' && $status) {
+      // Can be contactable|manual.
+      $contact['is_opt_out'] = $status != 'contactable';
+      // We wont set do_not_email here.
+    }
+  }
+
+  /**
+   * Sets doNotContact when Converting to a Mautic contact.
+   *
+   * @param [] $civiContact
+   * @param [] $mauticContact
+   */
+  public static function commsPrefsCiviToMautic($civiContact, &$mauticContact) {
+    if (!empty($civiContact['is_opt_out']) || !empty($civiContact['do_not_email'])) {
+       $mauticContact['doNotContact'][] = [
+         'channel' => 'email',
+         'reason' => Mautic\Api\Contacts::MANUAL,
+       ];
+    }
+  }
+
+  /**
    * Gets a value by key on mautic data.
    *
    * Mautic api return associative arrays whereas webhook data are objects.
@@ -109,6 +146,7 @@ class CRM_Mautic_Contact_FieldMapping {
         $mauticContact['tags'] = $tagHelper->getCiviTagsForMautic($contact['id']);
       }
     }
+    self::commsPrefsCiviToMautic($contact, $mauticContact);
     return $mauticContact;
   }
 
@@ -120,6 +158,7 @@ class CRM_Mautic_Contact_FieldMapping {
    */
   public static function convertToCiviContact($mauticContact, $includeTags = FALSE) {
     $contact = static::convertContact($mauticContact, FALSE);
+    self::commsPrefsMauticToCivi($mauticContact, $contact);
     unset($contact['civicrm_contact_id']);
     return $contact;
   }
