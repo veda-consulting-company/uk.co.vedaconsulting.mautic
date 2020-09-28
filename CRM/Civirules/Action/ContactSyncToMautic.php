@@ -19,7 +19,6 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
    * @access public
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    $this->logAction(__CLASS__, $triggerData);
     if (U::$skipUpdatesToMautic) {
       U::checkDebug('Skipping update to Mautic because contact has just been synched.');
       return;
