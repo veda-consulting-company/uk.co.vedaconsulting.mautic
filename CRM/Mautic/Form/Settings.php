@@ -8,21 +8,39 @@ use CRM_Mautic_ExtensionUtil as E;
  * @see https://wiki.civicrm.org/confluence/display/CRMDOC/QuickForm+Reference
  */
 class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
-  
+
+ /**
+  * {@inherit}
+  */
   public function buildQuickForm() {
     $this->setTitle(ts('Mautic Settings'));
-    
+
     // Assign settings before calling parent.
     $this->_settings = $this->getExtensionSettings();
     parent::buildQuickForm();
     CRM_Core_Session::singleton()->pushUserContext(CRM_Utils_System::url('civicrm/admin/mautic/connection', 'reset=1'));
-    
+
     $sections = $this->getFormSections();
     $this->assign('sections', $sections);
     $this->assign('elementNames', array_keys($this->_settings));
-    $this->addRule('mautic_connection_url', t('Please enter a valid URL'), 'url'); 
+    $this->addRule('mautic_connection_url', t('Please enter a valid URL'), 'url');
   }
-  
+
+  /**
+   * {@inheritdoc}
+   */
+  public function postProcess() {
+    parent::postProcess();
+    $values = $this->exportValues();
+    if ($values['mautic_sync_tag_method'] == 'sync_tag_children' && empty($values['mautic_sync_tag_parent'])) {
+      $tid = CRM_Mautic_Tag::createParentTag();
+      if ($tid) {
+        Civi::settings()->set('mautic_sync_tag_parent', $tid);
+        CRM_Core_Session::setStatus("Created new tag: 'Mautic'. $tid");
+      }
+    }
+  }
+
   protected function getExtensionSettings() {
     $result = civicrm_api3('Setting', 'getfields',[
       'filters' => ['group' => 'mautic'],
@@ -31,9 +49,9 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
       return !empty($item['html_type']);
     });
   }
-  
+
   private function getSectionHelp() {
-    $callback = CRM_Mautic_Connection::singleton()->getCallbackUrl(); 
+    $callback = CRM_Mautic_Connection::singleton()->getCallbackUrl();
     $txt = [];
     $txt[] = ts('You will need to enable the API in your Mautic installation.');
     $txt[] = ts('For OAuth use the following callback URL: <br /> <emphasis>%1</emphasis>', [1 => $callback]);
@@ -45,13 +63,13 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
 
   /**
    * Returns section structure for the form.
-   * 
+   *
    * @return array[]
    */
   protected function getFormSections() {
     // Groups elements into sections.
     // This structure is interpreted by the template, not in Quickform.
-    // Setting names should be prefixed by the section name. 
+    // Setting names should be prefixed by the section name.
     $sections = [
       'mautic_connection' => [
         'title' => E::ts('Connection'),
@@ -73,10 +91,14 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
         'title' => E::ts('Webhook'),
         'help' => '',
       ],
+      'mautic_sync_tag' => [
+        'title' => E::ts('Tag Synchronization'),
+        'help' => '',
+      ],
       'mautic_enable_debugging' => [
         'title' => 'Logging',
         'help' => '',
-      ], 
+      ],
     ];
     $this->assign('sectionTitles', $sections);
     $elementNames = array_keys($this->_settings);
@@ -86,9 +108,10 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
         return 0 === strpos($name, $section);
       });
     }
+
     return $sectionElements;
   }
-  
+
   /**
    * {@inheritdoc}
    */

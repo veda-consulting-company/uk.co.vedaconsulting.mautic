@@ -45,10 +45,7 @@ class CRM_Civirules_Condition_MauticContactInLinkedSegment extends CRM_Civirules
    * @access public
    */
   public function userFriendlyConditionParams() {
-    foreach ($this->getSelectedTags() as $tag) {
-      $typeLabels[] = $tag;
-    }
-    return "Has one of tags: " . explode(', ', $this->getSelectedTags());
+    return "Is in linked segment.";
   }
   
   protected function getSelectedTags() {

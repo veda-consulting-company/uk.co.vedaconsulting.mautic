@@ -3,29 +3,29 @@ use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Connection as MC;
 /**
  * A page for general set-up for integration with Mautic.
- * 
- * The page is divided into sections which 
+ *
+ * The page is divided into sections which
  * report on status and may also provide a button to complete an action.
  */
 class CRM_Mautic_Page_Connection extends CRM_Core_Page {
-  
+
   protected $isConnectedToMautic = NULL;
-  
+
   protected $action = '';
-  
+
   protected $actionKey = 'doAction';
-  
+
   protected $mauticVersion = '';
-  
+
   protected $apiUser = [];
-  
+
   public function run() {
-    
+
     CRM_Utils_System::setTitle(E::ts('Mautic Integration'));
     $this->action = CRM_Utils_Request::retrieve($this->actionKey, 'String',  CRM_Core_DAO::$_nullObject, FALSE, NULL, 'GET');
-    
+
     $sections = [];
-    
+
     $sections['connection_content'] = $this->connectionContent();
     if ($this->isConnectedToMautic) {
       $sections['webhook_content'] = $this->webhookContent();
@@ -35,13 +35,13 @@ class CRM_Mautic_Page_Connection extends CRM_Core_Page {
         $sections['civirules_content'] = $civirules;
       }
     }
-    $this->assign('sections', $sections); 
+    $this->assign('sections', $sections);
     parent::run();
   }
- 
+
   /**
    * Return HTML for a self-linking button.
-   * 
+   *
    * @param string $label
    * @param array $params
    * @return string
@@ -65,28 +65,28 @@ class CRM_Mautic_Page_Connection extends CRM_Core_Page {
      </div>
 EOT;
   }
-  
+
   protected function connectionContent() {
     $section = $this->blankSection(E::ts('Connection'));
-     
-    $authMethod = MC::singleton()->getAuthMethod(); 
-    $authMethodLabel = $authMethod 
+
+    $authMethod = MC::singleton()->getAuthMethod();
+    $authMethodLabel = $authMethod
      ? CRM_Mautic_Setting::getLabel('mautic_connection_authentication_method', $authMethod)
      : E::ts('None set');
 
-    $mauticUrl = MC::singleton()->getBaseUrl(); 
-    
+    $mauticUrl = MC::singleton()->getBaseUrl();
+
     // Check connection and redirect to the Authorization workflow if needed.
     $authAction = 'mautic_authorization';
     $doAuthorizationRedirect = $this->action == $authAction;
     $apiUser = $this->checkConnection($doAuthorizationRedirect);
     $this->isConnectedToMautic = !empty($apiUser);
-    
+
     if ($this->isConnectedToMautic) {
       $apiUser = $this->apiUser;
       $section['content'] .= '<p><strong>' . E::ts('Connection to Mautic Successful.') . '</strong></p>';
-      $section['content'] .= $this->labelValue(E::ts('Mautic URL'), $mauticUrl); 
-      $section['content'] .= $this->labelValue(E::ts('Mautic Version'), $this->mauticVersion); 
+      $section['content'] .= $this->labelValue(E::ts('Mautic URL'), $mauticUrl);
+      $section['content'] .= $this->labelValue(E::ts('Mautic Version'), $this->mauticVersion);
       $section['content'] .= $this->labelValue(E::ts('Connection Method'), $authMethodLabel);
       $section['content'] .= $this->labelValue(E::ts('Connected As:'), $apiUser['username'] . ' (' . $apiUser['role']['description']. ')');
     }
@@ -96,13 +96,13 @@ EOT;
       $section['action'] .= $this->buttonLink(E::ts('Authorize with Mautic'), [$this->actionKey => 'mautic_authorization']);
     }
     else {
-      // Settings. 
+      // Settings.
        $section['help'] .= '<p>' . E::ts(
            'Could not connect to Mautic. Please <a href="%1">check your settings</a>.', [
              1 => CRM_Utils_System::url(
                  'civicrm/admin/mautic/settings'),
-           ]) . '</p>'; 
-       $section['help'] .= '<p>' . E::ts('Check your <a target="blank" href="%1">Mautic installation</a>:', 
+           ]) . '</p>';
+       $section['help'] .= '<p>' . E::ts('Check your <a target="blank" href="%1">Mautic installation</a>:',
            [1 => $mauticUrl]
            ) . '</p>';
        // Some general troublehooting tips, in no way complete.
@@ -115,14 +115,14 @@ EOT;
     }
     return $section;
   }
-  
-  
+
+
  /**
   * Get a structure to start a page section.
-  * 
+  *
   * @param string $title
   * @return string[]
-  */ 
+  */
   protected function blankSection($title = '') {
     return [
       'title' => $title,
@@ -131,10 +131,10 @@ EOT;
       'action' => '',
     ];
   }
- 
+
   /**
    * Return HTML to format informational content with a label and value.
-   * 
+   *
    * @param string $label
    * @param string $value
    * @return string
@@ -148,8 +148,8 @@ EOT;
 </div>
 EOF;
   }
-  
-  
+
+
   protected function fieldsContent() {
     $section = $this->blankSection(E::ts('Field'));
     $section['help'] .= E::ts('CiviCRM adds a Contact Field on Mautic to identify contacts.');
@@ -175,24 +175,24 @@ EOF;
         }
       }
       if (!$createdField) {
-        $createdField = $fieldApi->create($civiField);  
+        $createdField = $fieldApi->create($civiField);
       }
     }
     if (!empty($createdField['errors'])) {
         $section['content'] = E::ts("There was a problem creating field on Mautic.");
     }
     elseif ($createdField) {
-      $section['content'] =  $this->labelValue(E::ts('Mautic Field:'), E::ts('%1 created on Mautic on %2', [ 
+      $section['content'] =  $this->labelValue(E::ts('Mautic Field:'), E::ts('%1 created on Mautic on %2', [
         $createdField['label'],
         date_format(date_create($createdField['dateAdded']), 'd-m-Y'),
       ]));
     }
     return $section;
   }
- 
+
   /**
    * Get status content for CiviRules triggers, conditions and actions.
-   * 
+   *
    * If CiviRules was installed after this extension, then insert the items so CiviRules knows about them.
    */
   public function civirulesContent() {
@@ -248,10 +248,10 @@ EOF;
     }
     return $section;
   }
-  
+
   /**
    * Gets status and action for webhooks.
-   * 
+   *
    * @return string[]
    */
   public function webhookContent() {
@@ -268,7 +268,7 @@ EOF;
        <div class="content"> ' . $key . '</div>
        <div class="clear"></div>
        </div>';
-     
+
     if ($this->action == $action) {
       CRM_Mautic_Webhook::fixMauticWebHooks();
     }
@@ -289,14 +289,14 @@ EOF;
     }
     return $section;
   }
-  
-  
+
+
   /**
    * Checks the Mautic connection.
-   * 
+   *
    * @param boolean $doAuthorizationRedirect
    *  If set, then the user will be redirected to authorize.
-   * 
+   *
    * @return Bool
    */
   public function checkConnection($doAuthorizationRedirect = FALSE) {
@@ -307,7 +307,7 @@ EOF;
     }
     $auth = MC::singleton()->getAuth($doAuthorizationRedirect);
     // $auth->enableDebugMode();
-    
+
     // Make an api request to test the connection.
     // The choice of context is quite arbitrary.
     $testApi = MC::singleton()->newApi('users');
