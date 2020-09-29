@@ -125,7 +125,6 @@ class CRM_Mautic_Connection {
     if (!$this->getBaseUrl() || !$this->getauthMethod()) {
       return;
     }	    
-    
     if (!$this->mauticAuth) {
       $params = ['baseUrl' => $this->getBaseUrl()];
       $authMethod = $checkTokenKey = '';

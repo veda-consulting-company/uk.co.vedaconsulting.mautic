@@ -42,10 +42,15 @@
       var method = methods[i];
       var methodSelected = method == $(this).val();
       $('.wrapper-mautic_' +  method ).toggle(methodSelected)
-      .find('input,select').each(function() { 
+      .find('input,select').each(function() {
          $(this).attr('required', methodSelected)
       });
     }
+  }).trigger('change');
+  $('[name=mautic_sync_tag_method]').change(function() {
+    var show = $(this).val() == 'sync_tag_children';
+    console.log(show);
+    $('.wrapper-mautic_sync_tag_parent').toggle(show);
   }).trigger('change');
 
 }(CRM.$));

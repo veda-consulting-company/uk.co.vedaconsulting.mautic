@@ -87,7 +87,7 @@ class CRM_Mautic_WebHook {
         $publishedOnly = TRUE,
         $minimal = FALSE
      );
-    $hooks = CRM_Utils_Array::value('hooks', $list);
+    $hooks = CRM_Utils_Array::value('hooks', $list, []);
     $urlParts = parse_url(self::getWebhookUrl(FALSE));
     $port = !empty($urlParts['port']) ? ':' . $urlParts['port'] : '';
     $urlPattern = $urlParts['host'] . $port . $urlParts['path'];
