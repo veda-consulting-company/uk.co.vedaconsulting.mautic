@@ -1,11 +1,12 @@
 uk.co.vedaconsulting.mautic
 ==============================
+This extension is currently in Alpha. It is not recommended to use this in a production environment.
 
 ## Introduction
 
 This extension integrates CiviCRM with [Mautic](https://www.mautic.org), the Open-Source Marketing Automation software.
 It currently provides:
- 
+
  - Push sync contacts from CiviCRM to Mautic. This will synchronize contacts in a
    group to a Mautic segment.
  - A CiviRules Trigger to handle Mautic webhooks.
@@ -23,7 +24,7 @@ It currently provides:
 You will need full system access to a running Mautic installation.
 You may also need filesystem access on the Mautic installation to clear the Mautic cache.
 
-[CiviRules](https://civicrm.org/extensions/civirules) is strongly recommended. 
+[CiviRules](https://civicrm.org/extensions/civirules) is strongly recommended.
 
 ## Installing the extension
 
@@ -33,7 +34,7 @@ You may also need filesystem access on the Mautic installation to clear the Maut
 4. Proceed with install.
 
 
-For development/testing, a [Docker image](https://hub.docker.com/r/mautic/mautic/) is available with a sample Docker compose file. 
+For development/testing, a [Docker image](https://hub.docker.com/r/mautic/mautic/) is available with a sample Docker compose file.
 
 ## Getting started
 
@@ -68,7 +69,7 @@ After you save the settings, the connection status page will confirm successful 
 ## Set CiviCRM Groups
 
 Synching takes place between CiviCRM groups and Mautic segments.
-Go to the setting form for a group.  
+Go to the setting form for a group.
 Check *Sync to a Mautic segment:*
 Select a Mautic Segment to associate with the group.
 
@@ -81,7 +82,7 @@ The page displays the groups to be pushed and the segments to which they are con
 Check the dry-run option to see what changes would be performed without actually making the change.
 
 The push may take some time, depending on the quantity of contacts in the push-enabled groups.
-When the push has completed, you'll see results such as number of contacts created, 
+When the push has completed, you'll see results such as number of contacts created,
 unchanged (already in sync), updates and removals.
 
 ![Push Results](docs/images/mautic_pushsync_complete.png)
@@ -94,7 +95,7 @@ Find the job *Mautic Push Sync*, and click edit.
 Check *is this Scheduled Job active*.
 
 By default the job is set to run daily. If you are setting this to run more frequently, ensure the job has sufficient time
-to run. 
+to run.
 Alternatively, you can keep the scheduled job disabled and set up a separate system cron job to run the api command *mautic.pushsync* by itself.
 
 ## Processing Webhook events with CiviRules
@@ -114,8 +115,8 @@ For example the *Contact Identified Event* will provide data on new Mautic conta
 
 ### Condition: Mautic Contact matches a CiviCRM Contact
 Use this condition if you want to have different set of actions if the Mautic event concerns a contact that doesn't match an existing contact in CiviCRM.
-If you just want to sync the contact and don't need to treat new contacts differently from existing ones then you don't need to use this condition. 
-The action to create contacts from Mautic can add or update contacts accordingly. 
+If you just want to sync the contact and don't need to treat new contacts differently from existing ones then you don't need to use this condition.
+The action to create contacts from Mautic can add or update contacts accordingly.
 
 When matching contacts, the extension checks for reference to the contact id on a custom field (2-way).
 If a valid reference isn't found, it falls back to a dedupe rule (configured in the main extensions settings).
