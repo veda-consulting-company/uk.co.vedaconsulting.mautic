@@ -84,11 +84,13 @@ EOT;
 
     if ($this->isConnectedToMautic) {
       $apiUser = $this->apiUser;
+      $apiUserName = CRM_Utils_Array::value('username', $apiUser);
+      $apiUserRole = !empty($apiUser['role']['description']) ? $apiUser['role']['description'] : '';
       $section['content'] .= '<p><strong>' . E::ts('Connection to Mautic Successful.') . '</strong></p>';
       $section['content'] .= $this->labelValue(E::ts('Mautic URL'), $mauticUrl);
       $section['content'] .= $this->labelValue(E::ts('Mautic Version'), $this->mauticVersion);
       $section['content'] .= $this->labelValue(E::ts('Connection Method'), $authMethodLabel);
-      $section['content'] .= $this->labelValue(E::ts('Connected As:'), $apiUser['username'] . ' (' . $apiUser['role']['description']. ')');
+      $section['content'] .= $this->labelValue(E::ts('Connected As:'), $apiUserName . ' (' . $apiUserRole . ')');
     }
     elseif (0 === strpos(strtolower($authMethod), 'oauth') && empty($_GET['oauth_token'])) {
       // Add button for the user to authorize.

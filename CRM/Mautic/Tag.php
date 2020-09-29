@@ -63,7 +63,7 @@ class CRM_Mautic_Tag {
         break;
       case 'sync_tag_children':
         if (!$this->tagParent) {
-          U::checkDebug('Missing tag sync parent.', );
+          U::checkDebug('Missing tag sync parent.');
         }
         $tags = $this->getContactTags($contactId, $this->tagParent);
         break;
