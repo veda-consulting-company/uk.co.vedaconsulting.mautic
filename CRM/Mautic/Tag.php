@@ -112,6 +112,9 @@ class CRM_Mautic_Tag {
    *   Array of tag names keyed by tag id.
    */
   private function addTags($tagNames, $parentId = NULL) {
+    if (!$tagNames) {
+      return [];
+    }
     $params = [
       'name' => ['IN' => $tagNames],
       'sequential' => FALSE,
