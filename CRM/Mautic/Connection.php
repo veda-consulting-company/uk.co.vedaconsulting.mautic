@@ -166,7 +166,6 @@ class CRM_Mautic_Connection {
       }
       try {
         $initAuth = new ApiAuth();
-        U::checkDebug('Init auth', $params);
         $this->mauticAuth = $initAuth->newAuth($params, $authMethod);
         $this->mauticAuth->enableDebugMode();
         if ($authMethod == 'OAuth' && !$this->mauticAuth->isAuthorized()) {
