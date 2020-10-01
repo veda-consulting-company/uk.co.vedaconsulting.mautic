@@ -7,10 +7,6 @@ namespace Composer\Autoload;
 class ComposerStaticInit0e726cde81bb16f458f06ab9e56d09fc
 {
     public static $prefixLengthsPsr4 = array (
-        'P' => 
-        array (
-            'Psr\\Log\\' => 8,
-        ),
         'M' => 
         array (
             'Mautic\\' => 7,
@@ -18,10 +14,6 @@ class ComposerStaticInit0e726cde81bb16f458f06ab9e56d09fc
     );
 
     public static $prefixDirsPsr4 = array (
-        'Psr\\Log\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
-        ),
         'Mautic\\' => 
         array (
             0 => __DIR__ . '/..' . '/mautic/api-library/lib',
