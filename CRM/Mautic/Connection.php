@@ -151,8 +151,8 @@ class CRM_Mautic_Connection {
           $authMethod = 'OAuth';
           $params += [
             'version' => 'OAuth2',
-            'clientKey' => CRM_Utils_Array::value('mautic_oauth2_consumer_key', $this->settings),
-            'clientSecret' => CRM_Utils_Array::value('mautic_oauth2_consumer_secret', $this->settings),
+            'clientKey' => CRM_Utils_Array::value('mautic_oauth2_client_id', $this->settings),
+            'clientSecret' => CRM_Utils_Array::value('mautic_oauth2_client_secret', $this->settings),
             'callback' => $this->getCallbackUrl(),
           ];
           $checkTokenKey = 'refreshToken';
@@ -268,6 +268,9 @@ class CRM_Mautic_Connection {
   public function getAccessTokenData($keysToCamelCase = FALSE) {
     $data = Civi::settings()->get('mautic_access_token');
     $data = is_array($data) ? $data : unserialize($data);
+    if (!$data) {
+      return [];
+    }
     if ($keysToCamelCase) {
       // Mautic returns token data in snake case, but the client library takes camel-cased args.
       $newData = [];

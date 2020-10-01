@@ -174,7 +174,6 @@ abstract class AbstractAuth implements AuthInterface
         //Make CURL request
         $curl = curl_init();
         curl_setopt_array($curl, $options);
-        \CRM_Core_Error::debug_var('request', [$options, $parameters]);
         $response = new Response(curl_exec($curl), curl_getinfo($curl));
 
         $this->_httpResponseHeaders = $response->getHeaders();
