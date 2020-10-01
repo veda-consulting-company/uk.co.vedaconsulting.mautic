@@ -168,7 +168,7 @@ EOF;
     $alias = [];
     if ($fieldApi) {
       $fields = $fieldApi->getList();
-      $fields = $fields ? $fields : [];
+      $fields = !empty($fields) ? $fields : ['fields' => []];
       foreach ($fields['fields'] as $field) {
         $alias[$field['id']] = $field['alias'];
         if ($field['alias'] == $civiField['alias']) {

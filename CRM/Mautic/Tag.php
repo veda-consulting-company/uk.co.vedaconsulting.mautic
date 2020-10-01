@@ -9,11 +9,6 @@ class CRM_Mautic_Tag {
 
   private $tagParent = NULL;
 
-  public static function getParentTagID() {
-
-  }
-
-
 
   /**
    * Creates a tag to be the parent of tags imported from Mautic.
@@ -68,7 +63,7 @@ class CRM_Mautic_Tag {
         $tags = $this->getContactTags($contactId, $this->tagParent);
         break;
     }
-    return $tags;
+    return array_values($tags);
   }
 
   /**
@@ -108,7 +103,7 @@ class CRM_Mautic_Tag {
   }
 
   /**
-   * Returns tags from a collection of names, creating them if they do not exist.
+   * Returns tags from a collection of names, creating them in CiviCRM if they do not exist.
    *
    * @param string[] $tagNames
    * @param int $parentId
