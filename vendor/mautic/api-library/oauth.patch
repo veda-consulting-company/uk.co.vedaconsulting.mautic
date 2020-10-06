@@ -1,0 +1,26 @@
+diff --git a/lib/Auth/AbstractAuth.php b/lib/Auth/AbstractAuth.php
+index 4c758eb..eb8eaf4 100644
+--- a/lib/Auth/AbstractAuth.php
++++ b/lib/Auth/AbstractAuth.php
+@@ -146,7 +146,7 @@ abstract class AbstractAuth implements AuthInterface
+                 $headers[]                   = 'Content-Type: multipart/form-data';
+             } else {
+                 $parameters = json_encode($parameters);
+-                $headers[]  = "Content-Type: application/json";
++                $headers[]  = 'Content-Type: application/json';
+             }
+ 
+             $options[CURLOPT_POST]       = true;
+diff --git a/lib/Auth/OAuth.php b/lib/Auth/OAuth.php
+index b073491..fc96356 100755
+--- a/lib/Auth/OAuth.php
++++ b/lib/Auth/OAuth.php
+@@ -592,7 +592,7 @@ class OAuth extends AbstractAuth
+             //OAuth 2.0
+             $this->log('making request using OAuth2 spec');
+ 
+-            $parameters['access_token'] = $this->_access_token;
++            $headers[] = 'Authorization: Bearer '.$this->_access_token;
+         }
+ 
+         return [$headers, $parameters];
