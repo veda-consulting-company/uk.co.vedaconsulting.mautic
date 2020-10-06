@@ -218,9 +218,8 @@ return [
     ],
     'options' => [
       'none' => ts('No tag synchronization'),
-      'sync_tag_children' => ts('Restrict tag synchronization to children of a Mautic tag'),
-
-      'no_remove' => ts('Push and pull tags without removing'),
+      'sync_tag_children' => ts('Restrict tag synchronization to a tag-set'),
+      'no_remove' => ts('Push and pull without removing any tags'),
     ],
     'quick_form_type' => 'Element',
   ],
