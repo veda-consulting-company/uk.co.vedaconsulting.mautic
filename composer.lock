@@ -4,30 +4,31 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "95a5ddef5e51c9983b204d4de85e37a2",
+    "content-hash": "2dd4b799a9a801ff013bfd14de4ba00d",
     "packages": [
         {
             "name": "mautic/api-library",
-            "version": "2.16.1",
+            "version": "3.0-beta",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mautic/api-library.git",
-                "reference": "2a61359d2f706266e8b17a848ea388e7d6b5d533"
+                "reference": "36eac9e3b6d53a20fd5484b760b71c86c15255c9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mautic/api-library/zipball/2a61359d2f706266e8b17a848ea388e7d6b5d533",
-                "reference": "2a61359d2f706266e8b17a848ea388e7d6b5d533",
+                "url": "https://api.github.com/repos/mautic/api-library/zipball/36eac9e3b6d53a20fd5484b760b71c86c15255c9",
+                "reference": "36eac9e3b6d53a20fd5484b760b71c86c15255c9",
                 "shasum": ""
             },
             "require": {
                 "ext-curl": "*",
                 "ext-json": "*",
-                "php": ">=5.3.7",
+                "php": ">=7.2.0",
                 "psr/log": "~1.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^5",
+                "friendsofphp/php-cs-fixer": "~2.16.1",
+                "phpunit/phpunit": "~7.5.0",
                 "raveren/kint": "~0.9"
             },
             "type": "library",
@@ -41,60 +42,15 @@
                 "MIT"
             ],
             "description": "Mautic API Connector Library",
-            "time": "2020-04-24T00:48:24+00:00"
-        },
-        {
-            "name": "psr/log",
-            "version": "1.1.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/php-fig/log.git",
-                "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/0f73288fd15629204f9d42b7055f72dacbe811fc",
-                "reference": "0f73288fd15629204f9d42b7055f72dacbe811fc",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.1.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Psr\\Log\\": "Psr/Log/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "PHP-FIG",
-                    "homepage": "http://www.php-fig.org/"
-                }
-            ],
-            "description": "Common interface for logging libraries",
-            "homepage": "https://github.com/php-fig/log",
-            "keywords": [
-                "log",
-                "psr",
-                "psr-3"
-            ],
-            "time": "2020-03-23T09:12:05+00:00"
+            "time": "2020-04-24T14:24:11+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "mautic/api-library": 10
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
