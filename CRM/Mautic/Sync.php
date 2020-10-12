@@ -1358,7 +1358,7 @@ class CRM_Mautic_Sync {
     $tagHelper = new CRM_Mautic_Tag();
     if ($tagHelper->isSync()) {
       $tagHelper->setData($civi_details['contact'], $mautic_details['contact']);
-      $params['tags'] = $tagHelper->getCiviTagsForMautic($civi_details['civicrm_contact_id']);
+      $params['tags'] = $tagHelper->getCiviTagsForMautic($civi_details['civicrm_contact_id'], TRUE);
     }
     // Comms Prefs.
     CRM_Mautic_Contact_FieldMapping::commsPrefsCiviToMautic($civi_details['contact'], $params);

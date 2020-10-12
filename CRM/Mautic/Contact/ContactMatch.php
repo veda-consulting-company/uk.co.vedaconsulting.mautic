@@ -165,7 +165,7 @@ class CRM_Mautic_Contact_ContactMatch {
           $minimal = TRUE);
 
       if (!empty($result['contacts'])) {
-       U::checkDebug("Fetched mautic contact for civi contact.");
+        U::checkDebug("Fetched mautic contact for civi contact.");
         $mcontact = reset($result['contacts']);
         $cidMapCache[$cid] = $mcontact['id'];
       }

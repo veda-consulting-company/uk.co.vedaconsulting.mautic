@@ -1,33 +1,33 @@
-<?php 
+<?php
 use CRM_Mautic_Connection as MC;
 use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Utils as U;
 
 /**
  * @class
- * 
+ *
  * Contains utility functionality for Mautic Webhook.
  */
 class CRM_Mautic_WebHook {
-  
+
  /**
   * @var string
-  */ 
+  */
   protected const webhookBaseUrl = 'civicrm/mautic/webhook';
-  
+
   /**
    * @var string
    */
   public const webhookName = 'CiviCRM_Mautic';
-  
+
   /**
-   * 
+   *
    */
-  public const activityType = 'Mautic_Webhook_Triggered'; 
-  
+  public const activityType = 'Mautic_Webhook_Triggered';
+
   /**
    * Get the Mautic events for which our webhooks will listen.
-   * 
+   *
    * @return array
    */
   public static function getEnabledTriggers() {
@@ -35,7 +35,7 @@ class CRM_Mautic_WebHook {
     sort($triggers);
     return $triggers;
   }
-  
+
   public static function getTriggerLabel($trigger) {
     $prefix = 'mautic.';
     if (0 !==  strpos($trigger, $prefix)) {
@@ -43,7 +43,7 @@ class CRM_Mautic_WebHook {
     }
     return CRM_Utils_Array::value($trigger, static::getAllTriggerOptions());
   }
-  
+
   public static function getAllTriggerOptions() {
     return [
      // Contact Channel Subscription Change Event.
@@ -57,7 +57,7 @@ class CRM_Mautic_WebHook {
       // Contact Updated Event.
      'mautic.lead_post_save_update' => E::ts('Contact Updated Event'),
       // Email Open Event.
-      'mautic.email_open' => E::ts('Email Open Event'), 
+      'mautic.email_open' => E::ts('Email Open Event'),
       // Email Send Event.
       'mautic.email_send' => E::ts('Email Send Event'),
       // Form Submit Event.
@@ -68,10 +68,10 @@ class CRM_Mautic_WebHook {
       'mautic.text_send' => E::ts('Text Send Event'),
     ];
   }
-  
+
   /**
    * Gets the webhooks from the Mautic installation with callbacks at current host.
-   * 
+   *
    * @return array
    */
   public static function getMauticWebhooks() {
@@ -91,25 +91,25 @@ class CRM_Mautic_WebHook {
     $urlParts = parse_url(self::getWebhookUrl(FALSE));
     $port = !empty($urlParts['port']) ? ':' . $urlParts['port'] : '';
     $urlPattern = $urlParts['host'] . $port . $urlParts['path'];
-    return array_filter($hooks, function($hook) use($urlPattern) { 
+    return array_filter($hooks, function($hook) use($urlPattern) {
       return !empty($hook['isPublished']) && preg_match('#^http(s)?://' . $urlPattern . '#', $hook['webhookUrl']);
     });
   }
-  
-  
+
+
   /**
    * Determines whether webhooks require changing or creating on Mautic.
    * @return boolean
    */
   public static function hooksAreOK() {
     $hooks = self::validateWebhook();
-    return count($hooks['valid']) == 1 && empty($hooks['invalid']);  
+    return count($hooks['valid']) == 1 && empty($hooks['invalid']);
   }
- 
+
   /**
    * Validates the webhooks on the Mautic installation.
-   * 
-   * @return array[] 
+   *
+   * @return array[]
    *  Associative array with keys:
    *   - invalid: Array of invalid hooks, including excess hooks.
    *   - valid: Array of valid hooks. Should not contain more than one element.
@@ -135,12 +135,12 @@ class CRM_Mautic_WebHook {
         $return['invalid'][$key] = $hook;
       }
     }
-    return $return; 
+    return $return;
   }
-  
+
   /**
    * Creates new webhooks and removes invalid hooks from the Mautic installation.
-   * 
+   *
    */
   public static function fixMauticWebhooks() {
     $hooks = self::validateWebhook();
@@ -151,19 +151,19 @@ class CRM_Mautic_WebHook {
       $created = $api->create($newHook);
     }
     if (!empty($hooks['invalid'])) {
-      // Delete invalid hooks. 
+      // Delete invalid hooks.
       foreach($hooks['invalid'] as $hook) {
         $api->delete($hook['id']);
       }
     }
   }
- 
+
   /**
    * Returns hook parameters for this extension.
-   * 
+   *
    * Used when validitating of existing
    * hooks or creating a new hook.
-   * 
+   *
    * @return string[]|boolean[]|array[]|string[][]
    */
   public static function templateWebHook() {
@@ -176,7 +176,7 @@ class CRM_Mautic_WebHook {
       'triggers' => self::getEnabledTriggers(),
     ];
   }
-  
+
   /**
    * Returns the webhook URL.
    */
@@ -193,11 +193,11 @@ class CRM_Mautic_WebHook {
         $fragment = NULL,
         $htmlize = FALSE,
         $fronteend = TRUE);
-    
+
     return $webhook_url;
   }
-  
-  
+
+
   /**
    * Get webhook key.
    * @return mixed|NULL
@@ -205,7 +205,7 @@ class CRM_Mautic_WebHook {
   public static function getKey() {
     return CRM_Mautic_Setting::get('mautic_webhook_security_key');
   }
-  
+
   /**
    * Generate a new security key.
    */

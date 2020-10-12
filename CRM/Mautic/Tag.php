@@ -203,7 +203,7 @@ class CRM_Mautic_Tag {
       }
       $inCivi[$tag['id']] = $tag['name'];
     }
-    $newTags = array_diff($tagNames, $inCivi);
+    $newTags = array_filter(array_diff($tagNames, $inCivi));
     U::checkDebug('newtagsAdded', ['newtags' => $newTags, 'incivi' => $inCivi, 'tagnames' => $tagNames]);
     // Within tagset.
     if ($parentId) {
