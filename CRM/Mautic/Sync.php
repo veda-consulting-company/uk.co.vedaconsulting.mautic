@@ -1346,8 +1346,6 @@ class CRM_Mautic_Sync {
    * This is separate from the method that collects a batch update so that it
    * can be tested more easily.
    *
-   * @param array $merge_fields an array where the *keys* are 'tag' names from
-   * Mautic's merge_fields resource. e.g. FNAME, LNAME.
    * @param array $civi_details Array of civicrm details from
    * tmp_mautic_push_c
    * @param array $mautic_details Array of mautic details from
@@ -1359,6 +1357,7 @@ class CRM_Mautic_Sync {
     // Sync tags if settings indicate so.
     $tagHelper = new CRM_Mautic_Tag();
     if ($tagHelper->isSync()) {
+      $tagHelper->setData($civi_details['contact'], $mautic_details['contact']);
       $params['tags'] = $tagHelper->getCiviTagsForMautic($civi_details['civicrm_contact_id']);
     }
     // Comms Prefs.

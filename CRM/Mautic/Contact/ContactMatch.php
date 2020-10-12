@@ -141,30 +141,36 @@ class CRM_Mautic_Contact_ContactMatch {
    * @return int|NULL
    */
   public static function getMauticFromCiviContact($contact) {
+    static $cidMapCache = [];
     if (empty($contact['id'])) {
       return;
     }
-    // Use custom field value.
-    U::checkDebug("Looking for mautic contact reference in contact.");
-    $key = 'custom_' . static::getMauticContactReferenceFieldId();
-    $mauticContactId = CRM_Utils_Array::value($key, $contact);
-    if ($mauticContactId) {
-      return $mauticContactId;
-    }
-    $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
-    $result = $api->getList(static::MAUTIC_ID_FIELD_ALIAS . ':' . $contact['id'],
-        $start = 0,
-        $limit = 0,
-        $orderBy = '',
-        $orderByDir = 'ASC',
-        $publishedOnly = TRUE,
-        $minimal = TRUE);
+    $cid = $contact['id'];
+    if (!isset($cidMapCache[$cid])) {
+      $cidMapCache[$cid] = 0;
+      // Use custom field value.
+      U::checkDebug("Looking for mautic contact reference in contact.");
+      $key = 'custom_' . static::getMauticContactReferenceFieldId();
+      $mauticContactId = CRM_Utils_Array::value($key, $contact);
+      if ($mauticContactId) {
+        return $mauticContactId;
+      }
+      $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
+      $result = $api->getList(static::MAUTIC_ID_FIELD_ALIAS . ':' . $contact['id'],
+          $start = 0,
+          $limit = 0,
+          $orderBy = '',
+          $orderByDir = 'ASC',
+          $publishedOnly = TRUE,
+          $minimal = TRUE);
 
-    if (!empty($result['contacts'])) {
-     U::checkDebug("Fetched mautic contact for civi contact.");
-      $contact = reset($result['contacts']);
-      return $contact['id'];
+      if (!empty($result['contacts'])) {
+       U::checkDebug("Fetched mautic contact for civi contact.");
+        $mcontact = reset($result['contacts']);
+        $cidMapCache[$cid] = $mcontact['id'];
+      }
     }
+    return $cidMapCache[$cid];
   }
 
 }
