@@ -13,7 +13,7 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
   * {@inherit}
   */
   public function buildQuickForm() {
-    $this->setTitle(ts('Mautic Settings'));
+    $this->setTitle(E::ts('Mautic Settings'));
 
     // Assign settings before calling parent.
     $this->_settings = $this->getExtensionSettings();
@@ -23,7 +23,7 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
     $sections = $this->getFormSections();
     $this->assign('sections', $sections);
     $this->assign('elementNames', array_keys($this->_settings));
-    $this->addRule('mautic_connection_url', t('Please enter a valid URL'), 'url');
+    $this->addRule('mautic_connection_url', E::ts('Please enter a valid URL'), 'url');
   }
 
   /**

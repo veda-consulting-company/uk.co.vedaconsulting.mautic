@@ -143,6 +143,7 @@ class CRM_Mautic_Contact_FieldMapping {
     if ($includeTags) {
       $tagHelper = new CRM_Mautic_Tag();
       if ($tagHelper->isSync()) {
+        $tagHelper->setData($contact, $mauticContact);
         $mauticContact['tags'] = $tagHelper->getCiviTagsForMautic($contact['id']);
       }
     }

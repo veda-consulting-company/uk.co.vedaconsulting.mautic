@@ -9,6 +9,7 @@ class CRM_Mautic_Tag {
 
   private $tagParent = NULL;
 
+  private $contactData = [];
 
   /**
    * Creates a tag to be the parent of tags imported from Mautic.
@@ -46,9 +47,48 @@ class CRM_Mautic_Tag {
   }
 
   /**
+   * Optionally set object state to use instead of retrieving contact data.
+   */
+  public function setData($civicrmContact = [], $mauticContact = []) {
+    if (!empty($contact['id'])) {
+      $this->contactData[$contact['id']] = [
+        'civicrm_contact' => $contact,
+        'mautic_contact' => $mauticContact,
+      ];
+    }
+  }
+
+  /**
+   * Get some cached contact data.
+   *
+   * @param unknown $contactId
+   * @
+   */
+  protected function getData($contactId, $from = 'civicrm_contact', $property = NULL) {
+    $return = [];
+    if ($contactId && !empty($this->contactData[$contactId][$from])) {
+      $return = $this->contactData[$contactId][$from];
+      if ($property && empty($return[$property])) {
+        return;
+      }
+      else {
+        $return = $return[$property];
+      }
+    }
+    return $return;
+  }
+
+  /**
+   * Builds mautic tag data for a contact.
+   *
+   * @param int $contactId
+   *  CiviCRM Contact ID.
+   *
+   * @param bool $emptyIfNoChange
+   *  If true will return an empty array if no changes to the Mautic contact tags are required to be pushed.
    *
    */
-  public function getCiviTagsForMautic($contactId) {
+  public function getCiviTagsForMautic($contactId, $emptyIfNoChange = FALSE) {
     $tags = [];
     switch ($this->syncTagMethod) {
       case 'none' :
@@ -63,7 +103,16 @@ class CRM_Mautic_Tag {
         $tags = $this->getContactTags($contactId, $this->tagParent);
         break;
     }
-    return array_values($tags);
+    $mauticTags = $this->getMauticContactTags($contactId);
+    U::checkDebug('mautictags', $mauticTags);
+    $removeTags = array_filter(
+        array_map(function($tag) use ($tags)  {
+          return !empty($tag['tag']) && !in_array($tag['tag'], $tags) ? '-' . $tag['tag'] : NULL;
+    }, $mauticTags));
+    $tags = array_merge($tags, $removeTags);
+    $changeRequired = !$removeTags && count($mauticTags) == count($tags);
+    U::checkDebug('tags', $tags);
+    return !$changeRequired && $emptyIfNoChange ? [] : array_values($tags);
   }
 
   /**
@@ -103,6 +152,30 @@ class CRM_Mautic_Tag {
   }
 
   /**
+   * Get tags for the mautic contact.
+   *
+   * @param int $contactId
+   * @return void|unknown|mixed
+   */
+  private function getMauticContactTags($contactId) {
+    $tags = $this->getData($contactId, 'mautic_contact', 'tags');
+    if (!$tags) {
+      $contact = $this->getData($contactId, 'civicrm_contact');
+      $contact = $contact ? $contact : ['id' => $contactId];
+      $mauticId = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact($contact);
+      if ($mauticId) {
+        $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
+        $mauticContactResult = $api->get($mauticId);
+        $mauticContact = CRM_Utils_Array::value('contact', $mauticContactResult, []);
+        U::checkDebug(__FUNCTION__ . 'maucicContactResult', $mauticContactResult);
+        $this->setData(NULL, $mauticContact);
+        $tags = CRM_Utils_Array::value('tags', $mauticContact);
+      }
+    }
+    return $tags;
+  }
+
+  /**
    * Returns tags from a collection of names, creating them in CiviCRM if they do not exist.
    *
    * @param string[] $tagNames
@@ -130,7 +203,7 @@ class CRM_Mautic_Tag {
       }
       $inCivi[$tag['id']] = $tag['name'];
     }
-    $newTags = array_diff($tagNames, $inCivi);
+    $newTags = array_filter(array_diff($tagNames, $inCivi));
     U::checkDebug('newtagsAdded', ['newtags' => $newTags, 'incivi' => $inCivi, 'tagnames' => $tagNames]);
     // Within tagset.
     if ($parentId) {
@@ -160,7 +233,7 @@ class CRM_Mautic_Tag {
     }
     $parentId = $this->syncTagMethod == 'sync_tag_children' && $this->tagParent ? $this->tagParent : NULL;
     $civiTags = $this->addTags($tagNames, $parentId);
-    // If we have a contact ID then add tags or
+    // If we have a contact ID then add tags
     if ($contactId) {
       // Remove existing EntityTags that are not included in this set of names.
       // We only do this if Mautic tags are configured to be children of a tag set.

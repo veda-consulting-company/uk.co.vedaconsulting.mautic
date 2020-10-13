@@ -130,8 +130,8 @@ class CRM_Mautic_Sync {
     // Access the database directly to obtain a prepared statement.
     $db = $dao->getDatabaseConnection();
     $insert = $db->prepare('INSERT INTO tmp_mautic_push_m
-             (email, first_name, last_name, hash, group_info, mautic_contact_id, civicrm_contact_id)
-      VALUES (?,     ?,          ?,         ?,    ?, ?, ?)');
+             (email, first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id, civicrm_contact_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
 
 
     CRM_Mautic_Utils::checkDebug('CRM_Mautic_Form_Sync syncCollectMautic: ', $this->interest_group_details);
@@ -157,7 +157,7 @@ class CRM_Mautic_Sync {
         // for comparison with the hash created from the CiviCRM data (elsewhere).
 
         $hash = md5($first_name . $last_name . $email . $groupInfo);
-
+        $contact_serialized = serialize($member);
         // run insert prepared statement
         $result = $db->execute($insert, [
           $email,
@@ -165,6 +165,7 @@ class CRM_Mautic_Sync {
           $last_name,
           $hash,
           $groupInfo,
+          $contact_serialized,
           $mautic_contact_id,
           $civicrm_contact_id
         ]);
@@ -225,17 +226,12 @@ class CRM_Mautic_Sync {
     $start = microtime(TRUE);
     $result = civicrm_api3('Contact', 'get', [
       'is_deleted' => 0,
-      // The email filter in comment below does not work (CRM-18147)
-      // 'email' => array('IS NOT NULL' => 1),
-      // Now I think that on_hold is NULL when there is no e-mail, so if
-      // we are lucky, the filter below implies that an e-mail address
-      // exists ;-)
-      'is_opt_out' => 0,
-      'do_not_email' => 0,
+      // 'is_opt_out' => 0,
+      // 'do_not_email' => 0,
       'on_hold' => 0,
       'is_deceased' => 0,
       'group' => $this->membership_group_id,
-      'return' => ['first_name', 'last_name', 'group'],
+      'return' => ['first_name', 'last_name', 'group', 'is_opt_out', 'do_not_email'],
       'options' => ['limit' => 0],
       //'api.Email.get' => ['on_hold'=>0, 'return'=>'email,is_bulkmail'],
     ]);
@@ -273,8 +269,8 @@ class CRM_Mautic_Sync {
     $collected = 0;
     $insert = $db->prepare('INSERT IGNORE INTO tmp_mautic_push_c
    (contact_id, email,
-      first_name, last_name, hash, group_info, mautic_contact_id)
-    VALUES(?, ?, ?, ?, ?, ?, ?)');
+      first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?)');
 
     // Loop contacts:
     foreach ($result['values'] as $id => $contact) {
@@ -307,6 +303,8 @@ class CRM_Mautic_Sync {
 
       // Set mautic id to a numeric value.
       $mautic_contact_id = 0;
+
+      $contact_serialized = serialize($contact);
       // run insert prepared statement
       try {
         $db->execute($insert, array(
@@ -316,6 +314,7 @@ class CRM_Mautic_Sync {
           $contact['last_name'],
           $hash,
           $info,
+          $contact_serialized,
           $mautic_contact_id
         ));
       }
@@ -576,9 +575,10 @@ class CRM_Mautic_Sync {
     $dao = CRM_Core_DAO::executeQuery(
       "SELECT
       c.group_info c_group_info, c.first_name c_first_name, c.last_name c_last_name,
-      c.email c_email, c.contact_id c_civicrm_contact_id, c.mautic_contact_id,
+      c.email c_email, c.contact_id c_civicrm_contact_id, c.mautic_contact_id, c.contact_serialized c_contact_serialized,
       m.group_info m_group_info, m.first_name m_first_name, m.last_name m_last_name,
-      m.email m_email, m.mautic_contact_id m_mautic_contact_id, m.civicrm_contact_id m_civicrm_contact_id
+      m.email m_email, m.mautic_contact_id m_mautic_contact_id,
+      m.civicrm_contact_id m_civicrm_contact_id, m.contact_serialized m_contact_serialized
       FROM tmp_mautic_push_c c
       LEFT JOIN tmp_mautic_push_m m ON c.contact_id = m.cid_guess");
 
@@ -607,8 +607,10 @@ class CRM_Mautic_Sync {
         $cField = 'c_' . $baseField;
         $mParams[$baseField] = isset($dao->{$mField}) ? $dao->{$mField} : NULL;
         $cParams[$baseField] = isset($dao->{$cField}) ? $dao->{$cField} : NULL;
-
       }
+      $mParams['contact'] = $dao->m_contact_serialized ? unserialize($dao->m_contact_serialized) : NULL;
+      $cParams['contact'] = $dao->c_contact_serialized ? unserialize($dao->c_contact_serialized) : NULL;
+
       $params = static::updateMauticFromCiviLogic($cParams, $mParams);
       if (!$params) {
         // No change required.
@@ -637,8 +639,6 @@ class CRM_Mautic_Sync {
         // We might possibly lookup by id here.
         $create[] = $params;
       }
-
-
 
       if ($this->dry_run) {
         // Log the operation description.
@@ -1305,6 +1305,7 @@ class CRM_Mautic_Sync {
         last_name VARCHAR(100) NOT NULL DEFAULT '',
         hash CHAR(32) NOT NULL DEFAULT '',
         group_info VARCHAR(4096) NOT NULL DEFAULT '',
+        contact_serialized text,
         cid_guess INT(10) DEFAULT NULL,
         mautic_contact_id INT(10) NOT NULL,
         civicrm_contact_id INT(10) DEFAULT NULL,
@@ -1331,6 +1332,7 @@ class CRM_Mautic_Sync {
         last_name VARCHAR(100) NOT NULL DEFAULT '',
         hash CHAR(32) NOT NULL DEFAULT '',
         group_info VARCHAR(4096) NOT NULL DEFAULT '',
+        contact_serialized text,
         mautic_contact_id INT(10) DEFAULT NULL,
         PRIMARY KEY (email, hash),
         KEY (contact_id)
@@ -1344,8 +1346,6 @@ class CRM_Mautic_Sync {
    * This is separate from the method that collects a batch update so that it
    * can be tested more easily.
    *
-   * @param array $merge_fields an array where the *keys* are 'tag' names from
-   * Mautic's merge_fields resource. e.g. FNAME, LNAME.
    * @param array $civi_details Array of civicrm details from
    * tmp_mautic_push_c
    * @param array $mautic_details Array of mautic details from
@@ -1357,8 +1357,11 @@ class CRM_Mautic_Sync {
     // Sync tags if settings indicate so.
     $tagHelper = new CRM_Mautic_Tag();
     if ($tagHelper->isSync()) {
-      $params['tags'] = $tagHelper->getCiviTagsForMautic($civi_details['civicrm_contact_id']);
+      $tagHelper->setData($civi_details['contact'], $mautic_details['contact']);
+      $params['tags'] = $tagHelper->getCiviTagsForMautic($civi_details['civicrm_contact_id'], TRUE);
     }
+    // Comms Prefs.
+    CRM_Mautic_Contact_FieldMapping::commsPrefsCiviToMautic($civi_details['contact'], $params);
     // I think possibly some installations don't have Multibyte String Functions
     // installed?
     $lower = function_exists('mb_strtolower') ? 'mb_strtolower' : 'strtolower';
