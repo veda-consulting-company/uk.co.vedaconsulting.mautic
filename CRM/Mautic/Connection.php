@@ -244,7 +244,7 @@ class CRM_Mautic_Connection {
    * @return string
    */
   public function getCallbackUrl() {
-    return CRM_Utils_System::url(
+    $url = CRM_Utils_System::url(
      $this->callbackBaseUrl,
       NULL,
       TRUE,
@@ -253,6 +253,10 @@ class CRM_Mautic_Connection {
       FALSE,
       TRUE
     );
+    // Mautic stores callback uri with filtered special chars.
+    // eg. '&' is replaced with '&#38;' 
+    // This results in urls not matching when they contain a querystring.
+    return filter_var($url, FILTER_SANITIZE_SPECIAL_CHARS);
   }
 
   /**
