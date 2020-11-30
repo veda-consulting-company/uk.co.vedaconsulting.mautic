@@ -232,9 +232,10 @@ class CRM_Mautic_Utils {
   /**
    * Wraps civiCRM api.
    *
-   * @param unknown $entity
-   * @param unknown $method
-   * @param unknown $params
+   * @param string $entity
+   * @param string $method
+   * @param array $params
+   *
    * @return array
    */
   public static function civiApi($entity, $method, $params) {

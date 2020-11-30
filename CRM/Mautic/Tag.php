@@ -126,7 +126,6 @@ class CRM_Mautic_Tag {
    *  Array of tag names, keyed by tag Id or entity tag Id.
    */
   private function getContactTags($contactId, $parentId = NULL, $keyByEntityTagId = FALSE) {
-
     $params = [
       'entity_id' => $contactId,
       'entity_table' => 'civicrm_contact',

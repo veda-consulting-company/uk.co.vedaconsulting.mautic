@@ -72,7 +72,7 @@ class CRM_Mautic_Connection {
    *
    * @return CRM_Mautic_Connection
    */
-  public function singleton($params = []) {
+  public static function singleton($params = []) {
     if (!static::$singleton) {
       static::$singleton = new CRM_Mautic_Connection($params);
     }
@@ -254,7 +254,7 @@ class CRM_Mautic_Connection {
       TRUE
     );
     // Mautic stores callback uri with filtered special chars.
-    // eg. '&' is replaced with '&#38;' 
+    // eg. '&' is replaced with '&#38;'
     // This results in urls not matching when they contain a querystring.
     return filter_var($url, FILTER_SANITIZE_SPECIAL_CHARS);
   }

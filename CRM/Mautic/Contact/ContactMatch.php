@@ -138,19 +138,18 @@ class CRM_Mautic_Contact_ContactMatch {
    * Attempt to find a Mautic Contact Id for a CiviCRM Contact.
    *
    * @param array $contact
-   * @return int|NULL
+   * @return int|void
    */
   public static function getMauticFromCiviContact($contact) {
-    static $cidMapCache = [];
     if (empty($contact['id'])) {
       return;
     }
     $cid = $contact['id'];
-    if (!isset($cidMapCache[$cid])) {
-      $cidMapCache[$cid] = 0;
+    if (!isset(\Civi::$statics[__FUNCTION__]['cidMapCache'][$cid])) {
+      \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid] = 0;
       // Use custom field value.
       U::checkDebug("Looking for mautic contact reference in contact.");
-      $key = 'custom_' . static::getMauticContactReferenceFieldId();
+      $key = 'custom_' . self::getMauticContactReferenceFieldId();
       $mauticContactId = CRM_Utils_Array::value($key, $contact);
       if ($mauticContactId) {
         return $mauticContactId;
@@ -167,10 +166,10 @@ class CRM_Mautic_Contact_ContactMatch {
       if (!empty($result['contacts'])) {
         U::checkDebug("Fetched mautic contact for civi contact.");
         $mcontact = reset($result['contacts']);
-        $cidMapCache[$cid] = $mcontact['id'];
+        \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid] = $mcontact['id'];
       }
     }
-    return $cidMapCache[$cid];
+    return \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid];
   }
 
 }
