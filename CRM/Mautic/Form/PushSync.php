@@ -53,12 +53,12 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
   }
 
   /**
-   * 
+   *
    * {@inheritDoc}
    * @see CRM_Core_Form::buildQuickForm()
    */
   public function buildQuickForm() {
-    
+
     $groups = CRM_Mautic_Utils::getGroupsToSync();
     $will = '';
     $wont = '';
@@ -96,6 +96,11 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
       $msg .= "<h2>" . ts('The following segments will be NOT synchronised') . "</h2><p>The following segment(s) no longer exist at Mautic.</p><ul>$wont</ul>";
     }
     $this->assign('summary', $msg);
+  }
+
+  public function setDefaultValues() {
+    $defaults['mautic_dry_run'] = TRUE;
+    return $defaults;
   }
 
   /**
@@ -182,7 +187,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     }
     $runner = new CRM_Queue_Runner($runnerParams);
 
-    static::updatePushStats($stats);
+    self::updatePushStats($stats);
     CRM_Mautic_Utils::checkDebug('End-CRM_Mautic_Form_PushSync getRunner $identifier= ', $identifier);
 
     return $runner;
@@ -217,7 +222,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
       array($segmentID),
       "$identifier: Matched up contacts. Comparing..."
     ));
-    // Populate CiviCRM contacts with the mautic contact reference.  
+    // Populate CiviCRM contacts with the mautic contact reference.
     $ctx->queue->createItem( new CRM_Queue_Task(
       array('CRM_Mautic_Form_PushSync', 'syncPushUpdateReferenceFields'),
       array($segmentID, $dry_run),
@@ -251,7 +256,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     $stats[$segmentID]['c_count'] = $sync->collectCiviCrm('push');
 
     CRM_Mautic_Utils::checkDebug('Start-CRM_Mautic_Form_PushSync syncPushCollectCiviCRM $stats[$segmentID][c_count]= ', $stats[$segmentID]['c_count']);
-    static::updatePushStats($stats);
+    self::updatePushStats($stats);
 
     return CRM_Queue_Task::TASK_SUCCESS;
   }
@@ -267,7 +272,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     $stats[$segmentID]['mautic_count'] = $sync->collectMautic('push', $civi_collect_has_already_run=TRUE);
 
     CRM_Mautic_Utils::checkDebug('Start-CRM_Mautic_Form_PushSync syncPushCollectMautic $stats[$segmentID][mautic_count]', $stats[$segmentID]['mautic_count']);
-    static::updatePushStats($stats);
+    self::updatePushStats($stats);
 
     return CRM_Queue_Task::TASK_SUCCESS;
   }
@@ -294,7 +299,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     $stats[$segmentID]['in_sync'] = $sync->removeInSync('push');
 
     CRM_Mautic_Utils::checkDebug('Start-CRM_Mautic_Form_PushSync syncPushIgnoreInSync $stats[$segmentID][in_sync]', $stats[$segmentID]['in_sync']);
-    static::updatePushStats($stats);
+    self::updatePushStats($stats);
 
     return CRM_Queue_Task::TASK_SUCCESS;
   }
@@ -310,25 +315,25 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     $sync->dry_run = $dry_run;
     // this generates updates and unsubscribes
     $stats[$segmentID] = $sync->updateMauticFromCivi();
-    static::updatePushStats($stats);
-    
+    self::updatePushStats($stats);
+
     return CRM_Queue_Task::TASK_SUCCESS;
   }
-  
+
   /**
    * Batch update CiviCRM reference fields to mautic contacts.
    */
   public static function syncPushUpdateReferenceFields(CRM_Queue_TaskContext $ctx, $segmentID, $dry_run) {
     CRM_Mautic_Utils::checkDebug('Start-CRM_Mautic_Form_PushSync syncPushUpdateReferenceFields $segmentID= ', $segmentID);
-    
+
     $sync = new CRM_Mautic_Sync($segmentID);
     $sync->dry_run = $dry_run;
     $stats[$segmentID] = $sync->updateContactReferenceFields();
-    static::updatePushStats($stats);
-    
+    self::updatePushStats($stats);
+
     return CRM_Queue_Task::TASK_SUCCESS;
   }
-  
+
 
   /**
    * Update the push stats setting.

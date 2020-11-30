@@ -569,8 +569,8 @@ class CRM_Mautic_Sync {
   public function updateMauticFromCivi() {
     CRM_Mautic_Utils::checkDebug("updateMauticFromCivi for group #$this->membership_group_id");
     $operations = [];
-    $contactApi = self::getApi('contacts');
-    $segmentApi = self::getApi('segments');
+    self::getApi('contacts');
+    self::getApi('segments');
 
     $dao = CRM_Core_DAO::executeQuery(
       "SELECT
@@ -582,7 +582,6 @@ class CRM_Mautic_Sync {
       FROM tmp_mautic_push_c c
       LEFT JOIN tmp_mautic_push_m m ON c.contact_id = m.cid_guess");
 
-    $changes = $additions = 0;
     $no_change = 0;
     // Field values for batch edit, including id.
     $edit = [];
@@ -590,8 +589,7 @@ class CRM_Mautic_Sync {
     $create = [];
     // Contact ids to add to segment.
     $addToGroup = [];
-    // Contact ids to remove from segment.
-    $removals = [];
+
     while ($dao->fetch()) {
       $baseFields = [
         'email',
