@@ -262,7 +262,7 @@ EOF;
     $key = CRM_Mautic_WebHook::getKey();
     if (!$key) {
       $key = CRM_Mautic_WebHook::generateKey();
-      CRM_Mautic_Setting::set('mautic_webhook_security_key', $key);
+      \Civi::settings()->set('mautic_webhook_security_key', $key);
     }
     // Key info.
     $section['content'] .= '<div class="crm-section webhook-key">

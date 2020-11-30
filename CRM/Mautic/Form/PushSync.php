@@ -11,14 +11,14 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
   const END_PARAMS = 'state=done';
 
   /**
-   * 
+   *
    * {@inheritDoc}
    * @see CRM_Core_Form::preProcess()
    */
   function preProcess() {
     $state = CRM_Utils_Request::retrieve('state', 'String', CRM_Core_DAO::$_nullObject, FALSE, 'tmp', 'GET');
     if ($state == 'done') {
-      $stats = CRM_Mautic_Setting::get('mautic_push_stats');
+      $stats = \Civi::settings()->get('mautic_push_stats');
       $groups = CRM_Mautic_Utils::getGroupsToSync();
       if (!$groups) {
         return;
@@ -128,7 +128,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
 
     // reset push stats
     $stats = ['dry_run' => $dry_run];
-    CRM_Mautic_Setting::set('mautic_push_stats', $stats);
+    \Civi::settings()->set('mautic_push_stats', $stats);
 
     // We need to process one segment at a time.
     $groups = CRM_Mautic_Utils::getGroupsToSync();
@@ -336,7 +336,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
   public static function updatePushStats($updates) {
     CRM_Mautic_Utils::checkDebug('Start-CRM_Mautic_Form_PushSync updatePushStats $updates= ', $updates);
 
-    $stats = CRM_Mautic_Setting::get('mautic_push_stats');
+    $stats = \Civi::settings()->get('mautic_push_stats');
     foreach ($updates as $segmentId => $settings) {
       if ($segmentId == 'dry_run') {
         continue;
@@ -345,6 +345,6 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
         $stats[$segmentId][$key] = $val;
       }
     }
-    CRM_Mautic_Setting::set('mautic_push_stats', $stats);
+    \Civi::settings()->set('mautic_push_stats', $stats);
   }
 }

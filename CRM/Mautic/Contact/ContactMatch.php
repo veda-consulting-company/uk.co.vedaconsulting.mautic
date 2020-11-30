@@ -85,7 +85,7 @@ class CRM_Mautic_Contact_ContactMatch {
    * @return NULL
    */
   public static function dedupeFromMauticContact($mauticContact) {
-    $ruleId = CRM_Mautic_Setting::get('mautic_webhook_dedupe_rule');
+    $ruleId = \Civi::settings()->get('mautic_webhook_dedupe_rule');
     if (!$ruleId) {
       U::checkDebug("No dedupe rule selected. Skipping.");
       return;

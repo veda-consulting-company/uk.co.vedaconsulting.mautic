@@ -696,7 +696,7 @@ class CRM_Mautic_Sync {
     // U::checkDebug('sessiondump', $_SESSION);
 
     // Get in sync stats that were discovered via db.
-    $stats = CRM_Mautic_Setting::get('mautic_push_stats');
+    $stats = \Civi::settings()->get('mautic_push_stats');
     $in_sync = $stats[$this->segment_id]['in_sync'];
     $in_sync = $in_sync ? $in_sync + $no_change : $no_change;
     return [
