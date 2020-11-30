@@ -213,9 +213,11 @@ class CRM_Mautic_Utils {
    * Log a message and optionally a variable, if debugging is enabled.
    */
   public static function checkDebug($description, $variable='VARIABLE_NOT_PROVIDED') {
-    $debugging = \Civi::settings()->get('mautic_enable_debugging');
+    if (!isset(\Civi::$statics[__FUNCTION__]['mautic_enable_debugging'])) {
+      \Civi::$statics[__FUNCTION__]['mautic_enable_debugging'] = (bool) \Civi::settings()->get('mautic_enable_debugging');
+    }
 
-    if ($debugging == 1) {
+    if (\Civi::$statics[__FUNCTION__]['mautic_enable_debugging']) {
       if ($variable === 'VARIABLE_NOT_PROVIDED') {
         // Simple log message.
         CRM_Core_Error::debug_log_message($description, FALSE, 'mautic');
