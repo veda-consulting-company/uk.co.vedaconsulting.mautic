@@ -38,7 +38,7 @@ class CRM_Mautic_Contact_ContactMatch {
 
   public static function getMauticContactReferenceFieldId() {
     $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
-    return CRM_Utils_Array::value('id', $mautic_field_info);
+    return $mautic_field_info['id'] ?? NULL;
   }
 
   /**

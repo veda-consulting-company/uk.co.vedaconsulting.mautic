@@ -12,21 +12,26 @@ class CRM_Mautic_Utils {
    */
   public static $skipUpdatesToMautic = FALSE;
 
-  public static function getContactCustomFieldInfo($fieldName = NULL) {
-    static $fieldInfo = [];
-    $groupName = 'Mautic_Contact';
-    if (!$fieldInfo) {
+  /**
+   * @param string $fieldName
+   *
+   * @return array|mixed|null
+   */
+  public static function getContactCustomFieldInfo($fieldName) {
+    if (!isset(\Civi::$statics[__FUNCTION__]['fieldInfo'])) {
+      $groupName = 'Mautic_Contact';
       $result = self::civiApi('CustomField', 'get', [
         'custom_group_id' => $groupName,
-      ]);
-      if ($result['values']) {
+      ])['values'];
+      if ($result) {
         // Key by name for easier lookup.
-        foreach ($result['values'] as $field) {
+        foreach ($result as $field) {
           $fieldInfo[$field['name']] = $field;
         }
       }
     }
-    return $fieldName ? CRM_Utils_Array::value($fieldName, $fieldInfo) : $fieldInfo;
+
+    return \Civi::$statics[__FUNCTION__]['fieldInfo'][$fieldName];
   }
 
   /**

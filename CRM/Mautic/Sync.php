@@ -611,10 +611,15 @@ class CRM_Mautic_Sync {
 
       if ($this->dry_run) {
         // Log the operation description.
-        $_ = "Would " . ($dao->m_email ? 'update' : 'create')
-          . " mautic member: $dao->m_email";
+        if ($dao->m_email) {
+          $_ = "Would update mautic member: {$dao->m_email}";
+        }
+        else {
+          $_ = "Would create mautic member: {$params['email']}";
+        }
+        // @fixme I only see this in updateMauticFromCiviSingleContact() which is not implemented
         if (key_exists('email_address', $params)) {
-          $_ .= " change email to '$params[email]'";
+          $_ .= " change email to {$params['email']}";
         }
         CRM_Mautic_Utils::checkDebug($_);
       }
