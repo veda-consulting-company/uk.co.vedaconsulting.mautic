@@ -127,12 +127,9 @@ class CRM_Mautic_Sync {
     }
     $dao = static::createTemporaryTableForMautic();
 
-    // Access the database directly to obtain a prepared statement.
-    $db = $dao->getDatabaseConnection();
-    $insert = $db->prepare('INSERT INTO tmp_mautic_push_m
+    $insert = 'INSERT INTO tmp_mautic_push_m
              (email, first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id, civicrm_contact_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-
+      VALUES (%0, %1, %2, %3, %4, %5, %6, %7)';
 
     CRM_Mautic_Utils::checkDebug('CRM_Mautic_Form_Sync syncCollectMautic: ', $this->interest_group_details);
     //
@@ -158,27 +155,22 @@ class CRM_Mautic_Sync {
 
         $hash = md5($first_name . $last_name . $email . $groupInfo);
         $contact_serialized = serialize($member);
-        // run insert prepared statement
-        $result = $db->execute($insert, [
-          $email,
-          $first_name,
-          $last_name,
-          $hash,
-          $groupInfo,
-          $contact_serialized,
-          $mautic_contact_id,
-          $civicrm_contact_id
-        ]);
-        if ($result instanceof DB_Error) {
-          throw new Exception ($result->message . "\n" . $result->userinfo);
-        }
+        $queryParams = [
+          [$email, 'String'],
+          [$first_name, 'String'],
+          [$last_name, 'String'],
+          [$hash, 'String'],
+          [$groupInfo, 'String'],
+          [$contact_serialized, 'String'],
+          [$mautic_contact_id, 'Positive'],
+          [$civicrm_contact_id, 'Positive'],
+        ];
+        CRM_Core_DAO::executeQuery($insert, $queryParams);
         $collected++;
       }
       CRM_Mautic_Utils::checkDebug('collectMautic took ' . round(microtime(TRUE) - $start,2) . 's to copy ' . count($members) . ' mautic Members to tmp table.');
     }
 
-    // Tidy up.
-    $db->freePrepared($insert);
     return $collected;
   }
 
@@ -205,9 +197,7 @@ class CRM_Mautic_Sync {
     if (!in_array($mode, ['pull', 'push'])) {
       throw new InvalidArgumentException(__FUNCTION__ . " expects push/pull but called with '$mode'.");
     }
-    // Cheekily access the database directly to obtain a prepared statement.
     $dao = static::createTemporaryTableForCiviCRM();
-    $db = $dao->getDatabaseConnection();
 
     // There used to be a distinction between the handling of 'normal' groups
     // and smart groups. But now the API will take care of this but this
@@ -267,10 +257,9 @@ class CRM_Mautic_Sync {
     $start = microtime(TRUE);
 
     $collected = 0;
-    $insert = $db->prepare('INSERT IGNORE INTO tmp_mautic_push_c
-   (contact_id, email,
-      first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id)
-    VALUES(?, ?, ?, ?, ?, ?, ?, ?)');
+    $insert = 'INSERT IGNORE INTO tmp_mautic_push_c
+   (contact_id, email, first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id)
+    VALUES(%0, %1, %2, %3, %4, %5, %6, %7)';
 
     // Loop contacts:
     foreach ($result['values'] as $id => $contact) {
@@ -305,33 +294,19 @@ class CRM_Mautic_Sync {
       $mautic_contact_id = 0;
 
       $contact_serialized = serialize($contact);
-      // run insert prepared statement
-      try {
-        $db->execute($insert, array(
-          $contact['id'],
-          trim($email),
-          $contact['first_name'],
-          $contact['last_name'],
-          $hash,
-          $info,
-          $contact_serialized,
-          $mautic_contact_id
-        ));
-      }
-      catch (PEAR_Exception $e) {
-        if (get_class($e->getCause()) == 'DB_Error') {
-          CRM_Mautic_Utils::checkDebug("Database error for {$contact['first_name']} {$contact['last_name']} ({$email}), segment ID: {$this->segment_id}.");
-        }
-        else {
-          // Something else. Rethrow.
-          throw $e;
-        }
-      }
+      $queryParams = [
+        [$contact['id'], 'Positive'],
+        [trim($email), 'String'],
+        [$contact['first_name'], 'String'],
+        [$contact['last_name'], 'String'],
+        [$hash, 'String'],
+        [$info, 'String'],
+        [$contact_serialized, 'String'],
+        [$mautic_contact_id, 'Positive']
+      ];
+      CRM_Core_DAO::executeQuery($insert, $queryParams);
       $collected++;
     }
-
-    // Tidy up.
-    $db->freePrepared($insert);
 
     return $collected;
   }
@@ -404,9 +379,8 @@ class CRM_Mautic_Sync {
 **/
     // Now slow match the rest.
     $dao = CRM_Core_DAO::executeQuery( "SELECT * FROM tmp_mautic_push_m m WHERE cid_guess IS NULL;");
-    $db = $dao->getDatabaseConnection();
-    $update = $db->prepare('UPDATE tmp_mautic_push_m
-      SET cid_guess = ? WHERE email = ? AND hash = ?');
+    $update = 'UPDATE tmp_mautic_push_m
+      SET cid_guess = ? WHERE email = ? AND hash = ?';
     $failures = $new = 0;
     while ($dao->fetch()) {
       try {
@@ -427,17 +401,14 @@ class CRM_Mautic_Sync {
       }
       if ($contact_id !== NULL) {
         // Contact found, or a zero (create needed).
-        $result = $db->execute($update, [
-          $contact_id,
-          $dao->email,
-          $dao->hash,
-        ]);
-        if ($result instanceof DB_Error) {
-          throw new Exception ($result->message . "\n" . $result->userinfo);
-        }
+        $queryParams = [
+          [$contact_id, 'Positive'],
+          [$dao->email, 'String'],
+          [$dao->hash, 'String'],
+        ];
+        CRM_Core_DAO::executeQuery($update, $queryParams);
       }
     }
-    $db->freePrepared($update);
 
     $took = microtime(TRUE) - $start;
     $took = round($took, 2);
@@ -1310,7 +1281,7 @@ class CRM_Mautic_Sync {
         PRIMARY KEY (email, hash),
         KEY (cid_guess)
         )
-        ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;");
+        ENGINE=InnoDB;");
 
     // Convenience in collectMautic.
     return $dao;
@@ -1335,7 +1306,7 @@ class CRM_Mautic_Sync {
         PRIMARY KEY (email, hash),
         KEY (contact_id)
         )
-        ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;");
+        ENGINE=InnoDB;");
     return $dao;
   }
   /**
