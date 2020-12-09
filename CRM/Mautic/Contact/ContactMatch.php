@@ -152,8 +152,10 @@ class CRM_Mautic_Contact_ContactMatch {
       $key = 'custom_' . self::getMauticContactReferenceFieldId();
       $mauticContactId = CRM_Utils_Array::value($key, $contact);
       if ($mauticContactId) {
+        \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid] = $mauticContactId;
         return $mauticContactId;
       }
+      /* @fixme: MJW Why would we ever have a contact in Mautic with a CiviCRM ID that is not already recorded in CiviCRM?
       $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
       $result = $api->getList(static::MAUTIC_ID_FIELD_ALIAS . ':' . $contact['id'],
           $start = 0,
@@ -167,7 +169,7 @@ class CRM_Mautic_Contact_ContactMatch {
         U::checkDebug("Fetched mautic contact for civi contact.");
         $mcontact = reset($result['contacts']);
         \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid] = $mcontact['id'];
-      }
+      }*/
     }
     return \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid];
   }
