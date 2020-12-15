@@ -105,6 +105,9 @@ function mautic_civicrm_buildForm($formName, &$form) {
     return;
   }
 
+  CRM_Core_Region::instance('html-header')->add(
+    ['template' => 'CRM/Group/MauticSettings.tpl']);
+
   if (($form->getAction() == CRM_Core_Action::ADD) || ($form->getAction() == CRM_Core_Action::UPDATE)) {
     //  Add form elements to associate group with Mautic Segment.
     $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
