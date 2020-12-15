@@ -92,24 +92,35 @@ function mautic_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  * Implementation of hook_civicrm_buildForm.
  *
  * Add Mautic integration to group settings.
+ *
+ * @param string $formName
+ * @param CRM_Core_Form $form
  */
 function mautic_civicrm_buildForm($formName, &$form) {
-  if ($formName == 'CRM_Group_Form_Edit' AND ($form->getAction() == CRM_Core_Action::ADD OR $form->getAction() == CRM_Core_Action::UPDATE)) {
+  if ($formName != 'CRM_Group_Form_Edit') {
+    return;
+  }
+
+  if ($form->isSubmitted()) {
+    return;
+  }
+
+  if (($form->getAction() == CRM_Core_Action::ADD) || ($form->getAction() == CRM_Core_Action::UPDATE)) {
     //  Add form elements to associate group with Mautic Segment.
     $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
-    if($segments){
-      $form->add('select', 'mautic_segment', ts('Mautic Segment'), array('' => '- select -') + $segments);
+    if ($segments) {
+      $form->add('select', 'mautic_segment', ts('Mautic Segment'), ['' => '- select -'] + $segments);
 
-      $options = array(
+      $options = [
         ts('No integration'),
         ts('Sync to a Mautic segment: Contacts in this group will be added or removed from a segment.'),
-      );
+      ];
       $form->addRadio('mautic_integration_option', '', $options, NULL, '<br/>');
 
       // Prepopulate details if 'edit' action
       $groupId = $form->getVar('_id');
       if ($form->getAction() == CRM_Core_Action::UPDATE AND !empty($groupId)) {
-        $mauticDetails  = CRM_Mautic_Utils::getGroupsToSync(array($groupId));
+        $mauticDetails  = CRM_Mautic_Utils::getGroupsToSync([$groupId]);
         $groupDetails = CRM_Utils_Array::value($groupId, $mauticDetails, []);
         $defaults['mautic_fixup'] = 1;
         if (!empty($groupDetails)) {
@@ -124,11 +135,12 @@ function mautic_civicrm_buildForm($formName, &$form) {
 
           $form->setDefaults($defaults);
         }
-        $form->assign('mautic_segment_id' ,  CRM_Utils_Array::value('segment_id', $groupDetails, 0));
+        $form->assign('mautic_segment_id' , $groupDetails['segment_id'] ?? 0);
       }
     }
   }
 }
+
 
 /**
  * Implements hook_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors)
@@ -143,21 +155,21 @@ function mautic_civicrm_validateForm($formName, &$fields, &$files, &$form, &$err
     }
     else {
       // We need to make sure that this is the only group for this segment.
-      $otherGroups = CRM_Mautic_Utils::getGroupsToSync(array(), $fields['mautic_segment'], TRUE);
+      $otherGroups = CRM_Mautic_Utils::getGroupsToSync([], $fields['mautic_segment'], TRUE);
       $thisGroup = $form->getVar('_group');
       if ($thisGroup) {
         unset($otherGroups[$thisGroup->id]);
       }
       if (!empty($otherGroups)) {
         $otherGroup = reset($otherGroups);
-        $errors['mailchimp_list'] = ts('There is already a CiviCRM group associated with this Segment, called "'
+        $errors['mautic_segment'] = ts('There is already a CiviCRM group associated with this Segment, called "'
           . $otherGroup['civigroup_title'].'"');
       }
     }
   }
 }
 
-/**
+ /**
  * Implements hook_civicrm_pageRun().
  *
  * @param CRM_Core_Page $page
@@ -169,8 +181,10 @@ function mautic_civicrm_pageRun(&$page) {
     $js_safe_object = [];
     foreach (CRM_Mautic_Utils::getGroupsToSync() as $group_id => $group) {
       if ($group['segment_name']) {
-        $val = strtr(ts("Sync to segment: %segment_name"),
-          [ '%segment_name'     => htmlspecialchars($group['segment_name']), ]);
+        $val = strtr(
+          ts("Sync to segment: %segment_name"),
+          ['%segment_name' => htmlspecialchars($group['segment_name'])]
+        );
       }
       else {
         $val = ts("Missing segment.");
