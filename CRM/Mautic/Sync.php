@@ -380,7 +380,7 @@ class CRM_Mautic_Sync {
     // Now slow match the rest.
     $dao = CRM_Core_DAO::executeQuery( "SELECT * FROM tmp_mautic_push_m m WHERE cid_guess IS NULL;");
     $update = 'UPDATE tmp_mautic_push_m
-      SET cid_guess = ? WHERE email = ? AND hash = ?';
+      SET cid_guess = %1 WHERE email = %2 AND hash = %3';
     $failures = $new = 0;
     while ($dao->fetch()) {
       try {
@@ -402,9 +402,9 @@ class CRM_Mautic_Sync {
       if ($contact_id !== NULL) {
         // Contact found, or a zero (create needed).
         $queryParams = [
-          [$contact_id, 'Positive'],
-          [$dao->email, 'String'],
-          [$dao->hash, 'String'],
+          1 => [$contact_id, 'Positive'],
+          2 => [$dao->email, 'String'],
+          3 => [$dao->hash, 'String'],
         ];
         CRM_Core_DAO::executeQuery($update, $queryParams);
       }
