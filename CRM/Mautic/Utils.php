@@ -165,7 +165,6 @@ class CRM_Mautic_Utils {
    * @return array keyed by CiviCRM group id whose values are arrays of details
    */
   public static function getGroupsToSync($groupIDs = [], $mauticSegmentId = NULL) {
-
     $params = $groups = $temp = [];
     $groupIDs = array_filter(array_map('intval',$groupIDs));
 
@@ -220,13 +219,13 @@ class CRM_Mautic_Utils {
     if (\Civi::$statics[__FUNCTION__]['mautic_enable_debugging']) {
       if ($variable === 'VARIABLE_NOT_PROVIDED') {
         // Simple log message.
-        CRM_Core_Error::debug_log_message($description, FALSE, 'mautic');
+        CRM_Core_Error::debug_log_message($description, FALSE, 'mautic', PEAR_LOG_DEBUG);
       }
       else {
         // Log a variable.
         CRM_Core_Error::debug_log_message(
             $description . "\n" . var_export($variable,1)
-            , FALSE, 'mautic');
+            , FALSE, 'mautic', PEAR_LOG_DEBUG);
       }
     }
   }

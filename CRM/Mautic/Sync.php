@@ -537,11 +537,9 @@ class CRM_Mautic_Sync {
    *
    * @return array ['updates' => INT, 'unsubscribes' => INT]
    */
-  public function updateMauticFromCivi() {
+  public function updateMauticFromCivi(CRM_Queue_TaskContext $ctx) {
     CRM_Mautic_Utils::checkDebug("updateMauticFromCivi for group #$this->membership_group_id");
     $operations = [];
-    self::getApi('contacts');
-    self::getApi('segments');
 
     $dao = CRM_Core_DAO::executeQuery(
       "SELECT
@@ -631,7 +629,7 @@ class CRM_Mautic_Sync {
     if ($this->dry_run) {
       // Just log.
       if ($removals) {
-        CRM_Mautic_Utils::checkDebug("Would unsubscribe " . count($removals) . " Mautic members: " . implode(', ', $removals));
+        CRM_Mautic_Utils::checkDebug("Would unsubscribe " . count($removals) . " Mautic contact IDs: " . implode(', ', $removals));
       }
       else {
         CRM_Mautic_Utils::checkDebug("No Mautic members would be unsubscribed.");
@@ -639,29 +637,37 @@ class CRM_Mautic_Sync {
     }
 
     if (!$this->dry_run) {
+      // Add the Mautic changes
       // Don't print_r all operations in the debug, because deserializing
       // allocates way too much memory if you have thousands of operations.
       // Also split batches in blocks of $batchSize to
       // avoid memory limit problems.
-      $batchSize = self::MAUTIC_PUSH_BATCH_SIZE;
       $operations['edit'] = [
         'callback' => [$this, 'processEditBatch'],
         'data' => $edit,
+        'description' => 'Batch editing ' . count($edit) . 'contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['addToSegment'] = [
         'callback' => [$this, 'processAddToSegmentBatch'],
         'data' => $addToGroup,
+        'description' => 'Batch adding ' . count($addToGroup) . 'contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['removeFromSegment'] = [
         'callback' => [$this, 'processRemoveFromSegmentBatch'],
         'data' => $removals,
+        'description' => 'Batch removing ' . count($removals) . 'contacts from segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['create'] = [
         'callback' => [$this, 'processCreateBatch'],
         'data' => $create,
+        'description' => 'Batch creating ' . count($create) . 'contacts on Mautic',
       ];
       foreach ($operations as $operation) {
-        $this->batchAPIOperation($batchSize, $operation['data'], $operation['callback']);
+        $ctx->queue->createItem(new CRM_Queue_Task(
+          ['CRM_Mautic_Sync', 'batchAPIOperation'],
+          [$operation['data'], $operation['callback']],
+          $operation['description']
+        ));
       }
     }
 
@@ -680,7 +686,6 @@ class CRM_Mautic_Sync {
       'in_sync' => $in_sync,
     ];
   }
-  // @todo refactor to own class.
 
   protected function processEditBatch($data) {
     U::checkDebug('editBatch', $data);
@@ -737,9 +742,9 @@ class CRM_Mautic_Sync {
   protected function processCreateBatch($data) {
     U::checkDebug(__FUNCTION__, $data);
     $api = $this->getApi('contacts');
-    $result = $api->createBatch($data);
+    $batchResult = $api->createBatch($data);
     $ids = [];
-    foreach ($result['contacts'] as $created) {
+    foreach ($batchResult['contacts'] as $created) {
       if (!empty($created['id'])) {
         $ids[] = $created['id'];
       }
@@ -749,15 +754,16 @@ class CRM_Mautic_Sync {
     }
   }
 
-
   /**
    * Perform an operation in batches.
    *
-   * @param int $batchSize
    * @param array $data
    * @param callable $function
+   * @param int $batchSize
+   *
+   * @return int
    */
-  protected function batchAPIOperation($batchSize, $data, $function) {
+  public static function batchAPIOperation($data, $function, $batchSize = self::MAUTIC_PUSH_BATCH_SIZE) {
     if ($data && is_array($data)) {
       $batches = array_chunk($data, $batchSize, TRUE);
       CRM_Mautic_Utils::checkDebug("Batching " . count($data) . " operations into " . count($batches) . " batches.");
@@ -766,6 +772,7 @@ class CRM_Mautic_Sync {
       }
       unset($batch);
     }
+    return CRM_Queue_Task::TASK_SUCCESS;
   }
 
   /**
