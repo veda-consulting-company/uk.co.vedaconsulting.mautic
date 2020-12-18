@@ -109,7 +109,9 @@ class CRM_Mautic_Connection {
       $auth = $this->getAuth();
       if ($auth) {
         $api = $this->api->newApi($context, $auth, $this->getBaseUrl());
-        $api->setLogger(\Civi::log());
+        if ((bool)\Civi::settings()->get('mautic_enable_debugging_api')) {
+          $api->setLogger(\Civi::log());
+        }
         return $api;
       }
     }
