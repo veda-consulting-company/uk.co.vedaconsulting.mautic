@@ -663,9 +663,11 @@ class CRM_Mautic_Sync {
         'description' => 'Batch creating ' . count($create) . 'contacts on Mautic',
       ];
       foreach ($operations as $operation) {
+        $cacheKey = "mautic.{$operation['callback'][1]}";
+        \Civi::cache('long')->set($cacheKey, $operation['data']);
         $ctx->queue->createItem(new CRM_Queue_Task(
           ['CRM_Mautic_Sync', 'batchAPIOperation'],
-          [$operation['data'], $operation['callback']],
+          [$cacheKey, $operation['callback']],
           $operation['description']
         ));
       }
@@ -758,13 +760,16 @@ class CRM_Mautic_Sync {
   /**
    * Perform an operation in batches.
    *
-   * @param array $data
+   * @param \CRM_Queue_TaskContext $ctx
+   * @param string $cacheKey
    * @param callable $function
    * @param int $batchSize
    *
    * @return int
    */
-  public static function batchAPIOperation($data, $function, $batchSize = self::MAUTIC_PUSH_BATCH_SIZE) {
+  public static function batchAPIOperation(CRM_Queue_TaskContext $ctx, $cacheKey, $function, $batchSize = self::MAUTIC_PUSH_BATCH_SIZE) {
+    $data = \Civi::cache('long')->get($cacheKey);
+    \Civi::cache('long')->delete($cacheKey);
     if ($data && is_array($data)) {
       $batches = array_chunk($data, $batchSize, TRUE);
       CRM_Mautic_Utils::checkDebug("Batching " . count($data) . " operations into " . count($batches) . " batches.");
