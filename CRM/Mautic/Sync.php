@@ -643,31 +643,31 @@ class CRM_Mautic_Sync {
       // Also split batches in blocks of $batchSize to
       // avoid memory limit problems.
       $operations['edit'] = [
-        'callback' => [$this, 'processEditBatch'],
+        'callback' => ['CRM_Mautic_Sync', 'processEditBatch'],
         'data' => $edit,
-        'description' => 'Batch editing ' . count($edit) . 'contacts to segment ' . $this->segment_id . ' on Mautic',
+        'description' => 'Batch editing ' . count($edit) . ' contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['addToSegment'] = [
-        'callback' => [$this, 'processAddToSegmentBatch'],
+        'callback' => ['CRM_Mautic_Sync', 'processAddToSegmentBatch'],
         'data' => $addToGroup,
-        'description' => 'Batch adding ' . count($addToGroup) . 'contacts to segment ' . $this->segment_id . ' on Mautic',
+        'description' => 'Batch adding ' . count($addToGroup) . ' contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['removeFromSegment'] = [
-        'callback' => [$this, 'processRemoveFromSegmentBatch'],
+        'callback' => ['CRM_Mautic_Sync', 'processRemoveFromSegmentBatch'],
         'data' => $removals,
-        'description' => 'Batch removing ' . count($removals) . 'contacts from segment ' . $this->segment_id . ' on Mautic',
+        'description' => 'Batch removing ' . count($removals) . ' contacts from segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['create'] = [
-        'callback' => [$this, 'processCreateBatch'],
+        'callback' => ['CRM_Mautic_Sync', 'processCreateBatch'],
         'data' => $create,
-        'description' => 'Batch creating ' . count($create) . 'contacts on Mautic',
+        'description' => 'Batch creating ' . count($create) . ' contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       foreach ($operations as $operation) {
-        $cacheKey = "mautic.{$operation['callback'][1]}";
+        $cacheKey = "mautic.{$this->segment_id}.{$operation['callback'][1]}";
         \Civi::cache('long')->set($cacheKey, $operation['data']);
         $ctx->queue->createItem(new CRM_Queue_Task(
           ['CRM_Mautic_Sync', 'batchAPIOperation'],
-          [$cacheKey, $operation['callback']],
+          [$operation['callback'], $this->segment_id, $cacheKey],
           $operation['description']
         ));
       }
@@ -689,63 +689,19 @@ class CRM_Mautic_Sync {
     ];
   }
 
-  protected function processEditBatch($data) {
-    U::checkDebug('editBatch', $data);
-    $api = $this->getApi('contacts');
-    // Mautic API will either patch or put.
-    // We want to patch since we are not sending
-    // the complete set of fields.
-    $createIfNotExists = FALSE;
-    $result = $api->editBatch($data, FALSE);
-    U::checkDebug('editBatchResult', $result);
-  }
-
-  protected function processAddToSegmentBatch($data) {
-    U::checkDebug(__FUNCTION__, ['segment_id' => $this->segment_id, 'ids' => $data]);
-    $api = $this->getApi('segments');
-    // Data should be array of contact ids.
-    $data = array_filter($data, 'is_numeric');
-    // return;
-    if ($data && $this->segment_id) {
-      $result = $api->addContacts($this->segment_id, ['ids' => $data]);
-      if (!empty($result['errors'])) {
-        U::checkDebug(__FUNCTION__ . ': ErrorAddingBatchContacts', $result);
-      }
-      else {
-        U::checkDebug(__FUNCTION__ . ': AddedContacts', $result);
-      }
-    }
-    else {
-      U::checkDebug(__FUNCTION__ . ': Invalid data', $data);
-    }
-  }
-
-  protected function processRemoveFromSegmentBatch($data) {
+  /**
+   * @param int $segmentID
+   * @param array $data
+   *
+   * @throws \CRM_Mautic_Exception_NetworkErrorException
+   */
+  public static function processCreateBatch($segmentID, $data) {
     U::checkDebug(__FUNCTION__, $data);
-    $api = $this->getApi('segments');
-    $data = array_filter($data, 'is_numeric');
-    if ($data && $this->segment_id) {
-      // Segment API doesn't have a batch operation for removing contacts.
-      foreach ($data as $id) {
-        $api->removeContact($this->segment_id, $id);
-      }
-      if (!empty($result['errors'])) {
-        U::checkDebug(__FUNCTION__ . 'resultError.', [$result, $api->getResponseInfo()]);
-      }
-      else {
-        U::checkDebug(__FUNCTION__ . ': RemovedContacts', $result);
-      }
-    }
-    else {
-      U::checkDebug(__FUNCTION__ . ': Invalid data', $data);
-    }
-  }
-
-  protected function processCreateBatch($data) {
-    U::checkDebug(__FUNCTION__, $data);
-    $api = $this->getApi('contacts');
+    $api = MC::singleton()->newApi('contacts');
     $batchResult = $api->createBatch($data);
-
+    if (!empty($batchResult['errors'])) {
+      throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ' ' . print_r($batchResult, TRUE));
+    }
     $ids = [];
     foreach ($batchResult['contacts'] as $created) {
       if (!empty($created['id'])) {
@@ -753,7 +709,73 @@ class CRM_Mautic_Sync {
       }
     }
     if ($ids) {
-      $this->processAddToSegmentBatch($ids);
+      self::processAddToSegmentBatch($segmentID, $ids);
+    }
+  }
+
+  /**
+   * @param array $data
+   *
+   * @throws \CRM_Mautic_Exception_NetworkErrorException
+   */
+  public static function processEditBatch($segmentID, $data) {
+    U::checkDebug('editBatch', $data);
+    $api = MC::singleton()->newApi('contacts');
+    // Mautic API will either patch or put.
+    // We want to patch since we are not sending
+    // the complete set of fields.
+    $batchResult = $api->editBatch($data, FALSE);
+    if (!empty($batchResult['errors'])) {
+      throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ' ' . print_r($batchResult, TRUE));
+    }
+  }
+
+  /**
+   * @param int $segmentID
+   * @param array $data
+   */
+  public static function processAddToSegmentBatch($segmentID, $data) {
+    U::checkDebug(__FUNCTION__, ['segment_id' => $segmentID, 'ids' => $data]);
+    $api = MC::singleton()->newApi('segments');
+    // Data should be array of contact ids.
+    $data = array_filter($data, 'is_numeric');
+    // return;
+    if ($data && $segmentID) {
+      $result = $api->addContacts($segmentID, ['ids' => $data]);
+      if (!empty($result['errors'])) {
+        throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ': ErrorAddingBatchContacts: ' . print_r($result, TRUE));
+      }
+      else {
+        U::checkDebug(__FUNCTION__ . ': AddedContacts', $result);
+      }
+    }
+    else {
+      throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ': Invalid data: ' . print_r($data, TRUE));
+    }
+  }
+
+  /**
+   * @param int $segmentID
+   * @param array $data
+   */
+  public static function processRemoveFromSegmentBatch($segmentID, $data) {
+    U::checkDebug(__FUNCTION__, $data);
+    $api = MC::singleton()->newApi('segments');
+    $data = array_filter($data, 'is_numeric');
+    if ($data && $segmentID) {
+      // Segment API doesn't have a batch operation for removing contacts.
+      foreach ($data as $id) {
+        $result = $api->removeContact($segmentID, $id);
+      }
+      if (!empty($result['errors'])) {
+        throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ': resultError: ' . print_r($result, TRUE) . ' responseInfo: ' . print_r($api->getResponseInfo(), TRUE));
+      }
+      else {
+        U::checkDebug(__FUNCTION__ . ': RemovedContacts', $result);
+      }
+    }
+    else {
+      throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ': Invalid data: ' . print_r($data, TRUE));
     }
   }
 
@@ -761,20 +783,21 @@ class CRM_Mautic_Sync {
    * Perform an operation in batches.
    *
    * @param \CRM_Queue_TaskContext $ctx
-   * @param string $cacheKey
    * @param callable $function
+   * @param int $segmentID
+   * @param string $cacheKey
    * @param int $batchSize
    *
    * @return int
    */
-  public static function batchAPIOperation(CRM_Queue_TaskContext $ctx, $cacheKey, $function, $batchSize = self::MAUTIC_PUSH_BATCH_SIZE) {
+  public static function batchAPIOperation(CRM_Queue_TaskContext $ctx, $function, $segmentID, $cacheKey, $batchSize = self::MAUTIC_PUSH_BATCH_SIZE) {
     $data = \Civi::cache('long')->get($cacheKey);
     \Civi::cache('long')->delete($cacheKey);
     if ($data && is_array($data)) {
       $batches = array_chunk($data, $batchSize, TRUE);
       CRM_Mautic_Utils::checkDebug("Batching " . count($data) . " operations into " . count($batches) . " batches.");
       foreach ($batches as &$batch) {
-        call_user_func($function, $batch);
+        call_user_func($function, $segmentID, $batch);
       }
       unset($batch);
     }
