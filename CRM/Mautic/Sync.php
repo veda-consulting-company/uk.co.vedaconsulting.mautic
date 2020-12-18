@@ -11,7 +11,7 @@ class CRM_Mautic_Sync {
 
 
   protected const MAUTIC_FETCH_BATCH_SIZE = 100;
-  protected const MAUTIC_PUSH_BATCH_SIZE = 500;
+  protected const MAUTIC_PUSH_BATCH_SIZE = 200;
 
   /**
    * Holds the Mautic List ID.
@@ -914,7 +914,6 @@ class CRM_Mautic_Sync {
   public function updateMauticFromCiviSingleContact($contact_id) {
     // @todo: implement.
     return;
-
 
     // Get all the groups related to this segment that the contact is currently in.
     // We have to use this dodgy API that concatenates the titles of the groups
