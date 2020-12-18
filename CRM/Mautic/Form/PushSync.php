@@ -140,7 +140,6 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     CRM_Mautic_Utils::checkDebug('CRM_Mautic_Form_PushSync getRunner $groups= ', $groups);
 
     // Each segment is a task.
-    $segmentCount = 0;
     foreach ($groups as $group_id => $details) {
       if (empty($details['segment_name'])) {
         // This segment has been deleted at Mautic, or for some other reason we
@@ -157,7 +156,7 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
         'unsubscribes' => 0,
       ];
 
-      $identifier = "Segment " . $segmentCount++ . " " . $details['civigroup_title'];
+      $identifier = "Segment {$details['segment_id']} {$details['civigroup_title']}";
 
       $task  = new CRM_Queue_Task(
         ['CRM_Mautic_Form_PushSync', 'syncPushSegment'],
