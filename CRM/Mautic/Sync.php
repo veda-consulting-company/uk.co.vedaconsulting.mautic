@@ -743,6 +743,7 @@ class CRM_Mautic_Sync {
     U::checkDebug(__FUNCTION__, $data);
     $api = $this->getApi('contacts');
     $batchResult = $api->createBatch($data);
+
     $ids = [];
     foreach ($batchResult['contacts'] as $created) {
       if (!empty($created['id'])) {

@@ -108,7 +108,9 @@ class CRM_Mautic_Connection {
     if ($context && $this->api) {
       $auth = $this->getAuth();
       if ($auth) {
-        return $this->api->newApi($context, $auth, $this->getBaseUrl());
+        $api = $this->api->newApi($context, $auth, $this->getBaseUrl());
+        $api->setLogger(\Civi::log());
+        return $api;
       }
     }
   }
