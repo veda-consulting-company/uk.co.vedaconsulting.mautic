@@ -17,7 +17,7 @@ class CRM_Mautic_BAO_MauticWebHook extends CRM_Mautic_DAO_MauticWebHook {
     CRM_Utils_Hook::pre($hook, $entityName, CRM_Utils_Array::value('id', $params), $params);
     // Serialize data. API calls may need to serialize beforehand.
     if (!empty($params['data']) && !is_string($params['data'])) {
-      $params['data'] = json_encode($params['data']);      
+      $params['data'] = json_encode($params['data']);
     }
     $instance = new $className();
     $instance->copyValues($params);
@@ -25,39 +25,21 @@ class CRM_Mautic_BAO_MauticWebHook extends CRM_Mautic_DAO_MauticWebHook {
     CRM_Utils_Hook::post($hook, $entityName, $instance->id, $instance);
     return $instance;
   }
- 
+
   /**
    * Gets an entity from the webhook.
-   * 
+   *
    * @param string $mauticEntityType
-   * @param array $params
+   * @param string $webhookData
    *  API MauticWebHook data.
-   * @return Object|mixed.
+   *
+   * @return []
    */
-  public static function getProvidedData($mauticEntityType, $params) {
-    $data = self::unpackData($params);
-    if (!empty($data->{$mauticEntityType})) {
-      return $data->{$mauticEntityType};
+  public static function getProvidedData($mauticEntityType, $webhookData) {
+    $data = json_decode($webhookData, TRUE);;
+    if (!empty($data[$mauticEntityType])) {
+      return $data[$mauticEntityType];
     }
-  }
- 
-  /**
-   * Unserializes the webhook data.
-   * 
-   * @param array $webhook
-   * @return NULL|unknown|mixed
-   */
-  public static function unpackData($webhook) {
-    $mauticData = NULL;
-    if (isset($webhook['data'])) {
-      if (is_string($webhook['data'])) {
-        $mauticData = json_decode($webhook['data']);
-      }
-      else {
-        $mauticData = $webhook['data'];
-      }
-    }
-    return $mauticData;
   }
 
 }

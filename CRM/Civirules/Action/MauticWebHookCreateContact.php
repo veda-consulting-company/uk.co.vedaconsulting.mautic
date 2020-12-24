@@ -42,14 +42,14 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     }
 
     // Get the contact data from the webhook.
-    $mauticData = CRM_Mautic_BAO_MauticWebHook::unpackData($webhook);
-    $mauticContact = !empty($mauticData->contact) ? $mauticData->contact : $mauticData->lead;
+    $mauticData = json_decode($webhook['data'], TRUE);
+    $mauticContact = !empty($mauticData['contact']) ? $mauticData['contact'] : $mauticData['lead'];
     // If payload is from a subscription change event, copy data to the contact.
     // Then we can let the fieldMapping class handle how this can be converted.
-    if ($mauticContact && !empty($mauticData->channel)) {
+    if ($mauticContact && !empty($mauticData['channel'])) {
       foreach (['channel', 'old_status', 'new_status'] as $commsPrefField) {
-        if (isset($mauticData->{$commsPrefField})) {
-          $mauticContact->{$commsPrefField} = $mauticData->{$commsPrefField};
+        if (isset($mauticData[$commsPrefField])) {
+          $mauticContact[$commsPrefField] = $mauticData[$commsPrefField];
         }
       }
 

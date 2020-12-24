@@ -64,18 +64,13 @@ class CRM_Mautic_Contact_ContactMatch {
   /**
    * Gets a civicrm contact id set from mautic contact data.
    *
-   * @param unknown $mauticContact
+   * @param [] $mauticContact
    * @return NULL|int
    */
   public static function getContactReferenceFromMautic($mauticContact) {
     U::checkDebug('looking for civi reference field in mautic contact.');
     $fieldName = self::MAUTIC_ID_FIELD_ALIAS;
-    if (is_array($mauticContact)) {
-      return !empty($mauticContact['fields']['core'][$fieldName]) ? $mauticContact['fields']['core'][$fieldName] : NULL;
-    }
-    elseif (is_object($mauticContact)) {
-      $id = !empty($mauticContact->fields->core->{$fieldName}->value) ? $mauticContact->fields->core->{$fieldName}->value : NULL;
-    }
+    return !empty($mauticContact['fields']['core'][$fieldName]) ? $mauticContact['fields']['core'][$fieldName]['value'] : NULL;
   }
 
   /**

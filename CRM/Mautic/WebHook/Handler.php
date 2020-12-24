@@ -15,7 +15,9 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   /**
    * Get corresponding CiviCRM contact from Mautic contact.
    *
-   * @param Object $mauticContact
+   * @param [] $mauticContact
+   *
+   * @return int|NULL
    */
   public function identifyContact($mauticContact) {
     return CRM_Mautic_Contact_ContactMatch::getCiviFromMauticContact($mauticContact);
@@ -48,22 +50,22 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       }
     }
 
-    $civicrmContact = $this->identifyContact($contact);
+    $civicrmContactID = $this->identifyContact($contact);
     $activityId = NULL;
     // We have extracted enough information for an action.
-    if ($civicrmContact) {
+    if ($civicrmContactID) {
       // Create an activity for this contact.
       // @todo Should this be a setting?
       // Then we let users choose whether to create one by default or in a civi rule.
       //
-      $activityId = $this->createActivity($webhook['webhook_trigger_type'], $civicrmContact['id']);
+      $activityId = $this->createActivity($webhook['webhook_trigger_type'], $civicrmContactID);
     }
     else {
       U::checkDebug("Webhook: no matching contact found for trigger: " . $webhook['webhook_trigger_type']);
     }
     $params = [
       'id' => $webhook['id'],
-      'contact_id' => $civicrmContact['id'],
+      'contact_id' => $civicrmContactID,
       'activity_id' => $activityId,
       'processed_date' => date('YmdHis'),
     ];
