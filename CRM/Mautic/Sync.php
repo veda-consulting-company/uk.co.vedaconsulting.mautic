@@ -663,6 +663,10 @@ class CRM_Mautic_Sync {
         'description' => 'Batch creating ' . count($create) . ' contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       foreach ($operations as $operation) {
+        if (count($operation['data']) === 0) {
+          // No need to run a task when there is no data to sync
+          continue;
+        }
         $cacheKey = "mautic.{$this->segment_id}.{$operation['callback'][1]}";
         \Civi::cache('long')->set($cacheKey, $operation['data']);
         $ctx->queue->createItem(new CRM_Queue_Task(
