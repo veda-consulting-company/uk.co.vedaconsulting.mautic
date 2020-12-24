@@ -174,6 +174,7 @@ abstract class AbstractAuth implements AuthInterface
         //Make CURL request
         $curl = curl_init();
         curl_setopt_array($curl, $options);
+
         $response = new Response(curl_exec($curl), curl_getinfo($curl));
 
         $this->_httpResponseHeaders = $response->getHeaders();
