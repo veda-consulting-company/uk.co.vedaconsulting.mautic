@@ -1,15 +1,15 @@
 <?php
 use CRM_Mautic_Utils as U;
+use CRM_Mautic_ExtensionUtil as E;
 
 /**
  * CiviRules action to create contact from Mautic Webhook.
  */
-
 class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Action {
 
-  protected $ruleAction = array();
+  protected $ruleAction = [];
 
-  protected $action = array();
+  protected $action = [];
 
   /**
    * Process the action
@@ -87,10 +87,10 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       }
       // Update the Mautic Contact with a reference to the CiviCRM Contact.
       if (!$isPartialContact && $contactId && $contactId != CRM_Mautic_Contact_ContactMatch::getContactReferenceFromMautic($mauticContact)) {
-         $mautic = CRM_Mautic_Connection::singleton()->newApi('contacts');
-         $editParams = [CRM_Mautic_Contact_ContactMatch::MAUTIC_ID_FIELD_ALIAS => $contactId];
-         $mautic->edit($mauticContact->id, $editParams, FALSE);
-         U::checkDebug("Updating Mautic Contact  with CiviCRM Contact id", [$mauticContact->id, $editParams]);
+        $mautic = CRM_Mautic_Connection::singleton()->newApi('contacts');
+        $editParams = [CRM_Mautic_Contact_ContactMatch::MAUTIC_ID_FIELD_ALIAS => $contactId];
+        $mautic->edit($mauticContact->id, $editParams, FALSE);
+        U::checkDebug("Updating Mautic Contact  with CiviCRM Contact id", [$mauticContact->id, $editParams]);
       }
     }
     catch(Exception $e) {
@@ -100,5 +100,16 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
 
   public function getExtraDataInputUrl($ruleActionId) {
     return CRM_Utils_System::url('civicrm/admin/mautic/civirules/action/mauticwebhookcreatecontact', 'rule_action_id=' . $ruleActionId);
+  }
+
+  /**
+   * Returns a user friendly text explaining the condition params
+   * e.g. 'Older than 65'
+   *
+   * @return string
+   */
+  public function userFriendlyConditionParams() {
+    $params = $this->getActionParameters();
+    return E::ts("If a matching CiviCRM contact is found: {$params['if_matching_civicrm_contact']}");
   }
 }
