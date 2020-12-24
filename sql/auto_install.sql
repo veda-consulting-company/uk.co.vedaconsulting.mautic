@@ -36,12 +36,11 @@ SET FOREIGN_KEY_CHECKS=1;
 CREATE TABLE `civicrm_mauticwebhook` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique MauticWebHook ID',
   `data` text COMMENT 'JSON serialized data received from the webhook',
-  `webhook_trigger_type` VARCHAR(255) COMMENT 'Mautic Webhook trigger event type.',
-  `activity_id` int unsigned UNIQUE COMMENT 'FK to Contact',
+  `webhook_trigger_type` varchar(255) COMMENT 'Mautic Webhook trigger event type.',
+  `activity_id` int unsigned COMMENT 'FK to Contact',
   `contact_id` int unsigned COMMENT 'FK to Contact',
-  `processed` tinyint unsigned DEFAULT 0 COMMENT 'Has this webhook been processed in CiviCRM',
+  `processed_date` timestamp NULL DEFAULT NULL COMMENT 'Has this webhook been processed in CiviCRM',
   PRIMARY KEY (`id`),
   CONSTRAINT FK_civicrm_mauticwebhook_contact_id FOREIGN KEY (`contact_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE,
   CONSTRAINT FK_civicrm_mauticwebhook_activity_id FOREIGN KEY (`activity_id`) REFERENCES `civicrm_activity`(`id`) ON DELETE CASCADE
 );
-

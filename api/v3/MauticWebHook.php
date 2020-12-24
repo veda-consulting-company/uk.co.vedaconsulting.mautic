@@ -66,4 +66,5 @@ function civicrm_api3_mautic_web_hook_process($params) {
   foreach ($webhooks as $webhook) {
     $mauticWebhookHandler->processEvent($webhook);
   }
+  return civicrm_api3_create_success(count($webhooks), $params, 'MauticWebHook', 'process');
 }
