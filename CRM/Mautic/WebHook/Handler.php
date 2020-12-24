@@ -90,7 +90,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
         foreach ($data[$trigger] as $item) {
           // Don't process webhooks immediately because Mautic waits for the webhook to complete before continuing
           //   and this makes most batch actions hang quickly.
-          civicrm_api3('MauticWebhook', 'create', [
+          civicrm_api3('MauticWebHook', 'create', [
             'data' => json_encode($item),
             'webhook_trigger_type' => $trigger,
             'processed' => 0,
