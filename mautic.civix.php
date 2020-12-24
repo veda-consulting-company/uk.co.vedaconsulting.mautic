@@ -7,9 +7,9 @@
  * extension.
  */
 class CRM_Mautic_ExtensionUtil {
-  const SHORT_NAME = "mautic";
-  const LONG_NAME = "uk.co.vedaconsulting.mautic";
-  const CLASS_PREFIX = "CRM_Mautic";
+  const SHORT_NAME = 'mautic';
+  const LONG_NAME = 'uk.co.vedaconsulting.mautic';
+  const CLASS_PREFIX = 'CRM_Mautic';
 
   /**
    * Translate a string using the extension's domain.
