@@ -181,7 +181,7 @@ return [
     'group_name' => 'Mautic Settings',
     'group' => 'mautic',
     'name' => 'mautic_webhook_trigger_events',
-    'type' => 'checkboxes',
+    'type' => 'array',
     'add' => '5.0',
     'is_domain' => 1,
     'is_contact' => 0,
