@@ -951,7 +951,7 @@ class CRM_Mautic_Sync {
           ['status' => 'unsubscribed']);
       }
       catch (CRM_Mautic_Exception_RequestErrorException $e) {
-        if ($e->response->http_code == 404) {
+        if ($e->getResponse()->http_code == 404) {
           // OK. Mautic didn't know about them anyway. Fine.
         }
         else {

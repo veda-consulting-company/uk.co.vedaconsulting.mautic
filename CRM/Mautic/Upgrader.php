@@ -26,8 +26,10 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
       'is_active' => '1'
     ];
     $this->createIfNotExists('OptionValue', $params, ['name', 'option_group_id']);
+    $this->createPushSyncJob();
+    $this->enableCiviRules();
   }
-  
+
   protected function createIfNotExists($entity, $params, $lookupKeys = ['name']) {
     try {
       $lookupParams = array_intersect_key($params, array_flip($lookupKeys));
@@ -42,10 +44,30 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     }
     catch (Exception $e) {
       // Let Civi Handle it.
-      throw($e); 
+      throw($e);
     }
   }
 
+  protected function createPushSyncJob() {
+    // Create a cron job to do sync data between CiviCRM and Mautic.
+    $params =[
+      'name'          => 'Mautic Push Sync',
+      'description'   => 'Sync contacts between CiviCRM and Mautic, assuming CiviCRM to be correct. Please understand the implications before using this.',
+      'run_frequency' => 'Daily',
+      'api_entity'    => 'Mautic',
+      'api_action'    => 'pushsync',
+      'is_active'     => 0,
+    ];
+    $this->createIfNotExists('Job', $params);
+  }
+
+  protected function enableCiviRules() {
+    if (class_exists('CRM_Civirules_Utils_Upgrader')) {
+      CRM_Civirules_Utils_Upgrader::insertTriggersFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/triggers.json');
+      CRM_Civirules_Utils_Upgrader::insertConditionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/conditions.json');
+      CRM_Civirules_Utils_Upgrader::insertActionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/actions.json');
+    }
+  }
   /**
    * Example: Work with entities usually not available during the install step.
    *
@@ -61,47 +83,14 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
   }
 
   /**
-   * Example: Run an external SQL script when the module is uninstalled.
-   *
-  public function uninstall() {
-   $this->executeSqlFile('sql/myuninstall.sql');
-  }
-
-  /**
-   * Example: Run a simple query when a module is enabled.
-   *
-  public function enable() {
-    CRM_Core_DAO::executeQuery('UPDATE foo SET is_active = 1 WHERE bar = "whiz"');
-  }
-
-  /**
-   * Example: Run a simple query when a module is disabled.
-   *
-  public function disable() {
-    CRM_Core_DAO::executeQuery('UPDATE foo SET is_active = 0 WHERE bar = "whiz"');
-  }
-
-  /**
    * Example: Run a couple simple queries.
    *
    * @return TRUE on success
    * @throws Exception
    */
   public function upgrade_4200() {
-    // Create a cron job to do sync data between CiviCRM and Mautic.
-    $params = array(
-      'sequential' => 1,
-      'name'          => 'Mautic Push Sync',
-      'description'   => 'Sync contacts between CiviCRM and Mautic, assuming CiviCRM to be correct. Please understand the implications before using this.',
-      'run_frequency' => 'Daily',
-      'api_entity'    => 'Mautic',
-      'api_action'    => 'pushsync',
-      'is_active'     => 0,
-    );
-    $result = $this->createIfNotExists('Job', $params);
-    // $result = civicrm_api3('job', 'create', $params);
-    
-    
+    $this->createPushSyncJob();
+
     // Create Pull Sync job.
     /**
      * Not implemented yet, so don't expose it as a job.
@@ -116,8 +105,8 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     );
     $result = civicrm_api3('job', 'create', $params);
     **/
-    return !empty($result); 
-  } // */
+    return TRUE;
+  }
 
 
   /**
@@ -127,63 +116,18 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
    * @throws Exception
    **/
   public function upgrade_4201() {
-    $this->ctx->log->info('Applying update 4201');
-    if (class_exists('CRM_Civirules_Utils_Upgrader')) {
-      CRM_Civirules_Utils_Upgrader::insertTriggersFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/triggers.json');
-      CRM_Civirules_Utils_Upgrader::insertConditionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/conditions.json');
-      CRM_Civirules_Utils_Upgrader::insertActionsFromJson($this->extensionDir . DIRECTORY_SEPARATOR . 'sql/civirules/actions.json');
-    }
-    return TRUE;
-  } // */
-
-
-  /**
-   * Example: Run a slow upgrade process by breaking it up into smaller chunk.
-   *
-   * @return TRUE on success
-   * @throws Exception
-  public function upgrade_4202() {
-    $this->ctx->log->info('Planning update 4202'); // PEAR Log interface
-
-    $this->addTask(E::ts('Process first step'), 'processPart1', $arg1, $arg2);
-    $this->addTask(E::ts('Process second step'), 'processPart2', $arg3, $arg4);
-    $this->addTask(E::ts('Process second step'), 'processPart3', $arg5);
+    $this->ctx->log->info('Enabling CiviRules triggers/conditions/actions');
+    $this->enableCiviRules();
     return TRUE;
   }
-  public function processPart1($arg1, $arg2) { sleep(10); return TRUE; }
-  public function processPart2($arg3, $arg4) { sleep(10); return TRUE; }
-  public function processPart3($arg5) { sleep(10); return TRUE; }
-  // */
 
-
-  /**
-   * Example: Run an upgrade with a query that touches many (potentially
-   * millions) of records by breaking it up into smaller chunks.
-   *
-   * @return TRUE on success
-   * @throws Exception
-  public function upgrade_4203() {
-    $this->ctx->log->info('Planning update 4203'); // PEAR Log interface
-
-    $minId = CRM_Core_DAO::singleValueQuery('SELECT coalesce(min(id),0) FROM civicrm_contribution');
-    $maxId = CRM_Core_DAO::singleValueQuery('SELECT coalesce(max(id),0) FROM civicrm_contribution');
-    for ($startId = $minId; $startId <= $maxId; $startId += self::BATCH_SIZE) {
-      $endId = $startId + self::BATCH_SIZE - 1;
-      $title = E::ts('Upgrade Batch (%1 => %2)', array(
-        1 => $startId,
-        2 => $endId,
-      ));
-      $sql = '
-        UPDATE civicrm_contribution SET foobar = whiz(wonky()+wanker)
-        WHERE id BETWEEN %1 and %2
-      ';
-      $params = array(
-        1 => array($startId, 'Integer'),
-        2 => array($endId, 'Integer'),
-      );
-      $this->addTask($title, 'executeSql', $sql, $params);
+  public function upgrade_4202() {
+    $this->ctx->log->info('Updating civicrm_mauticwebhook table');
+    if (!CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civicrm_mauticwebhook', 'processed', FALSE)) {
+      CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_mauticwebhook` ADD COLUMN `processed_date` timestamp NULL DEFAULT NULL COMMENT 'Date this webhook was processed in CiviCRM'");
     }
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_mauticwebhook` MODIFY `webhook_trigger_type` VARCHAR(255)");
     return TRUE;
-  } // */
+  }
 
 }

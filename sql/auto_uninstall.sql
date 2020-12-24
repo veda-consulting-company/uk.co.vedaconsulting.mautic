@@ -1,5 +1,3 @@
-
-
 -- drop custom set and their fields
 DELETE FROM `civicrm_custom_group` WHERE table_name in (
 'civicrm_value_mautic_webhook', 'civicrm_value_mautic_settings', 'civicrm_value_mautic_contact');

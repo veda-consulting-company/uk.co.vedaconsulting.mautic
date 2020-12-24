@@ -16,10 +16,8 @@ class CRM_Mautic_Page_WebHook extends CRM_Core_Page {
     }
     // Process.
     $rawData = file_get_contents("php://input");
-    $data = json_decode($rawData);
-    CRM_Mautic_Utils::checkDebug('webhookReceived', $data);
     $handler = new CRM_Mautic_WebHook_Handler();
-    $handler->process($data);
+    $handler->process($rawData);
     // Filter out
   }
 

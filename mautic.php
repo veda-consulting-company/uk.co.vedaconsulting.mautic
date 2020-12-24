@@ -260,3 +260,12 @@ function mautic_civicrm_merge($type, $data, $mainId, $otherId, $tables) {
 function mautic_civicrm_entityTypes(&$entityTypes) {
   _mautic_civix_civicrm_entityTypes($entityTypes);
 }
+
+/**
+ * Implements hook_civicrm_alterLogTables().
+ *
+ * Exclude tables from logging tables since they hold mostly temp data.
+ */
+function mautic_civicrm_alterLogTables(&$logTableSpec) {
+  unset($logTableSpec['civicrm_mauticwebhook']);
+}
