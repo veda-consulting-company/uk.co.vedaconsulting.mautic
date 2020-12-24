@@ -125,6 +125,8 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     $this->ctx->log->info('Updating civicrm_mauticwebhook table');
     if (!CRM_Core_BAO_SchemaHandler::checkIfFieldExists('civicrm_mauticwebhook', 'processed', FALSE)) {
       CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_mauticwebhook` ADD COLUMN `processed_date` timestamp NULL DEFAULT NULL COMMENT 'Date this webhook was processed in CiviCRM'");
+      // Set existing ones to an old date so we don't process again
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_mauticwebhook SET processed_date = '20000101000000' WHERE processed_date IS NULL");
     }
     CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_mauticwebhook` MODIFY `webhook_trigger_type` VARCHAR(255)");
     return TRUE;
