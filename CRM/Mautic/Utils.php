@@ -26,7 +26,7 @@ class CRM_Mautic_Utils {
       if ($result) {
         // Key by name for easier lookup.
         foreach ($result as $field) {
-          $fieldInfo[$field['name']] = $field;
+          \Civi::$statics[__FUNCTION__]['fieldInfo'][$field['name']] = $field;
         }
       }
     }

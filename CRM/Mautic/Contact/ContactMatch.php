@@ -119,7 +119,7 @@ class CRM_Mautic_Contact_ContactMatch {
       return $contactId;
     }
     // Are there any contacts referencing this mautic contact via custom field?
-    $contactId = self::lookupMauticContactReference($mauticContact->id);
+    $contactId = self::lookupMauticContactReference($mauticContact['id']);
     if ($contactId) {
       U::checkDebug('found mautic contact id from civicontact');
       return $contactId;

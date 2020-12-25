@@ -44,7 +44,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     $ignoreTriggersIfCiviModified = ['mautic.lead_post_save_new', 'mautic.lead_post_save_update'];
     if (in_array($webhook['webhook_trigger_type'], $ignoreTriggersIfCiviModified)) {
       $connectedUserId = MC::singleton()->getConnectedUser()['id'] ?? NULL;
-      if ($connectedUserId == $contact->id || $connectedUserId == $modifiedBy) {
+      if ($connectedUserId == $contact['id'] || $connectedUserId == $modifiedBy) {
         U::checkDebug("WebHook: " . $webhook['webhook_trigger_type'] ." - Mautic Contact last modified by CiviCRM - no further processing required." );
         return;
       }
