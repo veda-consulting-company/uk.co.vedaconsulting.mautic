@@ -1,6 +1,4 @@
-uk.co.vedaconsulting.mautic
-==============================
-This is an Alpha release. It is not recommended to use it in a production environment.
+# uk.co.vedaconsulting.mautic
 
 ## Introduction
 
@@ -34,7 +32,6 @@ You may also need filesystem access on the Mautic installation to clear the Maut
 2. Unzip / untar the package and place it in your configured extensions directory.
 3. When you reload the Manage Extensions page the “Mautic Integration” extension should be listed with an Install link.
 4. Proceed with install.
-
 
 For development/testing, a [Mautic Docker image](https://hub.docker.com/r/mautic/mautic/) is available with a sample Docker compose file.
 
@@ -127,7 +124,7 @@ Webhooks allow CiviCRM to act on changes on Mautic.
 You can check the status of the webhook from the CiviCRM installation at: *Administer -> Mautic -> Connection*.
 You should see the webhook from the Mautic installation at: *Settings -> Webhooks*.
 
-A (CiviRules)[https://docs.civicrm.org/civirules/en/latest/ "CiviRules Documentation"] trigger is available to process these events.
+A [CiviRules](https://docs.civicrm.org/civirules/en/latest) trigger is available to process these events.
 Typically, you'd create one or more rules with the *Mautic WebHook processed* trigger and the *Create Contact from Mautic WebHook Data* to sync contacts into CiviCRM from Mautic, using conditions according to your case.
 
 Note, if you install CiviRules after the Mautic extension, go to *Administer > Mautic -> Connection* where you'll be able to register the Trigger, Condition and Action types.

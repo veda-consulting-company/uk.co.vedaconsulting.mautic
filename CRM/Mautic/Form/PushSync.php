@@ -98,11 +98,6 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     $this->assign('summary', $msg);
   }
 
-  public function setDefaultValues() {
-    $defaults['mautic_dry_run'] = TRUE;
-    return $defaults;
-  }
-
   /**
    * {@inheritdoc}
    */
