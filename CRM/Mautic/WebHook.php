@@ -31,9 +31,7 @@ class CRM_Mautic_WebHook {
    * @return array
    */
   public static function getEnabledTriggers() {
-    $triggers = CRM_Mautic_Setting::get('mautic_webhook_trigger_events');
-    sort($triggers);
-    return $triggers;
+    return \Civi::settings()->get('mautic_webhook_trigger_events');
   }
 
   public static function getTriggerLabel($trigger) {
@@ -203,7 +201,7 @@ class CRM_Mautic_WebHook {
    * @return mixed|NULL
    */
   public static function getKey() {
-    return CRM_Mautic_Setting::get('mautic_webhook_security_key');
+    return \Civi::settings()->get('mautic_webhook_security_key');
   }
 
   /**

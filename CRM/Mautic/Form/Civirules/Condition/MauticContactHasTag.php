@@ -9,17 +9,17 @@ use CRM_Mautic_Connection as MC;
  * @see https://wiki.civicrm.org/confluence/display/CRMDOC/QuickForm+Reference
  */
 class CRM_Mautic_Form_Civirules_Condition_MauticContactHasTag extends CRM_CivirulesConditions_Form_Form {
+
   public function getMauticTags() {
-    static $tags = [];
-    if (!$tags) {
+    if (!isset(\Civi::$statics[__FUNCTION__]['tags'])) {
       $api = MC::singleton()->newApi('tags');
       $res = $api->getList();
-      $tags = [];
+      \Civi::$statics[__FUNCTION__]['tags'] = [];
       foreach ($res['tags'] as $id => $tag) {
-        $tags[] = ['id' => $tag['tag'], 'text' => $tag['tag']];
+        \Civi::$statics[__FUNCTION__]['tags'][] = ['id' => $tag['tag'], 'text' => $tag['tag']];
       }
     }
-    return $tags;
+    return \Civi::$statics[__FUNCTION__]['tags'];
   }
 
   public function buildQuickForm() {
@@ -39,7 +39,7 @@ class CRM_Mautic_Form_Civirules_Condition_MauticContactHasTag extends CRM_Civiru
     $this->assign('elementNames', $this->getRenderableElementNames());
     parent::buildQuickForm();
   }
-  
+
   /**
    * Overridden parent method to set default values
    *
@@ -50,11 +50,11 @@ class CRM_Mautic_Form_Civirules_Condition_MauticContactHasTag extends CRM_Civiru
     $defaultValues = parent::setDefaultValues();
     $data = unserialize($this->ruleCondition->condition_params);
     if ($data) {
-      $defaultValues += $data; 
+      $defaultValues += $data;
     }
     return $defaultValues;
   }
-  
+
   /**
    * Overridden parent method to process form data after submission
    *
@@ -69,7 +69,7 @@ class CRM_Mautic_Form_Civirules_Condition_MauticContactHasTag extends CRM_Civiru
     $this->ruleCondition->save();
     parent::postProcess();
   }
-  
+
   /**
    * Get the fields/elements defined in this form.
    *

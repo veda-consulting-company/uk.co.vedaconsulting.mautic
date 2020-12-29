@@ -72,7 +72,7 @@ class CRM_Mautic_Connection {
    *
    * @return CRM_Mautic_Connection
    */
-  public function singleton($params = []) {
+  public static function singleton($params = []) {
     if (!static::$singleton) {
       static::$singleton = new CRM_Mautic_Connection($params);
     }
@@ -108,7 +108,11 @@ class CRM_Mautic_Connection {
     if ($context && $this->api) {
       $auth = $this->getAuth();
       if ($auth) {
-        return $this->api->newApi($context, $auth, $this->getBaseUrl());
+        $api = $this->api->newApi($context, $auth, $this->getBaseUrl());
+        if ((bool)\Civi::settings()->get('mautic_enable_debugging_api')) {
+          $api->setLogger(\Civi::log());
+        }
+        return $api;
       }
     }
   }
@@ -254,7 +258,7 @@ class CRM_Mautic_Connection {
       TRUE
     );
     // Mautic stores callback uri with filtered special chars.
-    // eg. '&' is replaced with '&#38;' 
+    // eg. '&' is replaced with '&#38;'
     // This results in urls not matching when they contain a querystring.
     return filter_var($url, FILTER_SANITIZE_SPECIAL_CHARS);
   }

@@ -12,21 +12,26 @@ class CRM_Mautic_Utils {
    */
   public static $skipUpdatesToMautic = FALSE;
 
-  public static function getContactCustomFieldInfo($fieldName = NULL) {
-    static $fieldInfo = [];
-    $groupName = 'Mautic_Contact';
-    if (!$fieldInfo) {
+  /**
+   * @param string $fieldName
+   *
+   * @return array|mixed|null
+   */
+  public static function getContactCustomFieldInfo($fieldName) {
+    if (!isset(\Civi::$statics[__FUNCTION__]['fieldInfo'])) {
+      $groupName = 'Mautic_Contact';
       $result = self::civiApi('CustomField', 'get', [
         'custom_group_id' => $groupName,
-      ]);
-      if ($result['values']) {
+      ])['values'];
+      if ($result) {
         // Key by name for easier lookup.
-        foreach ($result['values'] as $field) {
-          $fieldInfo[$field['name']] = $field;
+        foreach ($result as $field) {
+          \Civi::$statics[__FUNCTION__]['fieldInfo'][$field['name']] = $field;
         }
       }
     }
-    return $fieldName ? CRM_Utils_Array::value($fieldName, $fieldInfo) : $fieldInfo;
+
+    return \Civi::$statics[__FUNCTION__]['fieldInfo'][$fieldName];
   }
 
   /**
@@ -160,7 +165,6 @@ class CRM_Mautic_Utils {
    * @return array keyed by CiviCRM group id whose values are arrays of details
    */
   public static function getGroupsToSync($groupIDs = [], $mauticSegmentId = NULL) {
-
     $params = $groups = $temp = [];
     $groupIDs = array_filter(array_map('intval',$groupIDs));
 
@@ -208,18 +212,20 @@ class CRM_Mautic_Utils {
    * Log a message and optionally a variable, if debugging is enabled.
    */
   public static function checkDebug($description, $variable='VARIABLE_NOT_PROVIDED') {
-    $debugging = CRM_Mautic_Setting::get('mautic_enable_debugging');
+    if (!isset(\Civi::$statics[__FUNCTION__]['mautic_enable_debugging'])) {
+      \Civi::$statics[__FUNCTION__]['mautic_enable_debugging'] = (bool) \Civi::settings()->get('mautic_enable_debugging');
+    }
 
-    if ($debugging == 1) {
+    if (\Civi::$statics[__FUNCTION__]['mautic_enable_debugging']) {
       if ($variable === 'VARIABLE_NOT_PROVIDED') {
         // Simple log message.
-        CRM_Core_Error::debug_log_message($description, FALSE, 'mautic');
+        CRM_Core_Error::debug_log_message($description, FALSE, 'mautic', PEAR_LOG_DEBUG);
       }
       else {
         // Log a variable.
         CRM_Core_Error::debug_log_message(
             $description . "\n" . var_export($variable,1)
-            , FALSE, 'mautic');
+            , FALSE, 'mautic', PEAR_LOG_DEBUG);
       }
     }
   }
@@ -227,9 +233,10 @@ class CRM_Mautic_Utils {
   /**
    * Wraps civiCRM api.
    *
-   * @param unknown $entity
-   * @param unknown $method
-   * @param unknown $params
+   * @param string $entity
+   * @param string $method
+   * @param array $params
+   *
    * @return array
    */
   public static function civiApi($entity, $method, $params) {

@@ -71,7 +71,6 @@ return [
     'title' => 'Password.',
     'help_text' => '',
     'html_type' => 'password',
-    'quick_form_type' => 'Element',
     'html_attributes' => [
       'size' => 50,
     ],
@@ -92,7 +91,6 @@ return [
     'html_attributes' => [
       'size' => 50,
     ],
-    'quick_form_type' => 'Element',
   ],
   // OAuth 1.0 mautic (Consumer) Secret
   'mautic_oauth1_consumer_secret' => [
@@ -107,11 +105,9 @@ return [
     'title' => 'Consumer Secret',
     'help_text' => '',
     'html_type' => 'password',
-    'quick_form_type' => 'element',
     'html_attributes' => [
       'size' => 50,
     ],
-    'quick_form_type' => 'Element',
   ],
   // End OAuth 1 settings.
   // OAuth 2.0 Settings.
@@ -130,7 +126,6 @@ return [
     'html_attributes' => [
       'size' => 50,
     ],
-    'quick_form_type' => 'Element',
   ],
   // OAuth 2.0 mautic (Client) Secret
   'mautic_oauth2_client_secret' => [
@@ -145,11 +140,9 @@ return [
     'title' => 'Client Secret',
     'help_text' => '',
     'html_type' => 'password',
-    'quick_form_type' => 'element',
     'html_attributes' => [
       'size' => 50,
     ],
-    'quick_form_type' => 'Element',
   ],
   'mautic_enable_debugging' => [
     'group_name' => 'Mautic Settings',
@@ -163,17 +156,32 @@ return [
     'title' => 'Enable Debugging',
     'help_text' => '',
     'html_type' => 'checkbox',
-    'quick_form_type' => 'element',
     'html_attributes' => [
       'size' => 50,
     ],
-    'quick_form_type' => 'Element',
+  ],
+  'mautic_enable_debugging_api' => [
+    'group_name' => 'Mautic Settings',
+    'group' => 'mautic',
+    'name' => 'mautic_enable_debugging_api',
+    'type' => 'Boolean',
+    'add' => '5.0',
+    'is_domain' => 1,
+    'is_contact' => 0,
+    'default' => FALSE,
+    'description' => 'Enables the Mautic API debug logging to the main CiviCRM log file. This outputs a lot of data and should not normally be enabled.',
+    'title' => 'Enable API Debugging',
+    'help_text' => '',
+    'html_type' => 'checkbox',
+    'html_attributes' => [
+      'size' => 50,
+    ],
   ],
   'mautic_webhook_trigger_events' => [
     'group_name' => 'Mautic Settings',
     'group' => 'mautic',
     'name' => 'mautic_webhook_trigger_events',
-    'type' => 'checkboxes',
+    'type' => 'array',
     'add' => '5.0',
     'is_domain' => 1,
     'is_contact' => 0,
@@ -183,7 +191,6 @@ return [
     'html_type' => 'checkboxes',
     'is_multiple' => TRUE,
     'multiple' => TRUE,
-    'quick_form_type' => 'element',
     'html_attributes' => [
       'size' => 50,
     ],
@@ -197,8 +204,6 @@ return [
       // Contact Updated Event.
       'mautic.lead_post_save_update',
     ],
-    'quick_form_type' => 'Element',
-
   ],
   'mautic_sync_tag_method' => [
     'group_name' => 'Mautic Settings',
@@ -212,7 +217,6 @@ return [
     'title' => 'Tag synchronization',
     'help_text' => '',
     'html_type' => 'radio',
-    'quick_form_type' => 'element',
     'html_attributes' => [
       'size' => 50,
     ],
@@ -221,7 +225,6 @@ return [
       'sync_tag_children' => ts('Restrict tag synchronization to a tag-set'),
       'no_remove' => ts('Push and pull without removing any tags'),
     ],
-    'quick_form_type' => 'Element',
   ],
   'mautic_sync_tag_parent' => [
     'group_name' => 'Mautic Settings',
@@ -235,10 +238,8 @@ return [
     'title' => ts('Parent Tag'),
     'help_text' => '',
     'html_type' => 'entity_reference',
-    'quick_form_type' => 'element',
     'html_attributes' => [
     ],
-    'quick_form_type' => 'Element',
     'entity_reference_options' => [
       'entity' => 'Tag',
       'multiple' => false,
@@ -309,7 +310,6 @@ return [
     'title' => 'Webhook Dedupe Fallback Rule',
     'pseudoconstant' => ['callback' => 'CRM_Mautic_Contact_ContactMatch::getDedupeRules'],
     'html_type' => 'select',
-    'quick_form_type' => 'Element',
     'help_text' => '',
   ],
   'mautic_push_stats' => [

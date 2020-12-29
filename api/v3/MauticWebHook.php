@@ -45,3 +45,26 @@ function civicrm_api3_mautic_web_hook_delete($params) {
 function civicrm_api3_mautic_web_hook_get($params) {
   return _civicrm_api3_basic_get(_civicrm_api3_get_BAO(__FUNCTION__), $params);
 }
+
+function _civicrm_api3_mautic_web_hook_process_spec($params) {
+  $params['id'] = [
+    'api.required' => 0,
+    'name' => 'ID of webhook in database',
+    'description' => 'Optionally specify the ID to process a single webhook',
+  ];
+}
+
+/**
+ * @param array $params
+ */
+function civicrm_api3_mautic_web_hook_process($params) {
+  if (!isset($params['processed_date'])) {
+    $params['processed_date'] = ['IS NULL' => 1];
+  }
+  $webhooks = civicrm_api3('MauticWebHook', 'Get', $params)['values'];
+  $mauticWebhookHandler = new CRM_Mautic_WebHook_Handler();
+  foreach ($webhooks as $webhook) {
+    $mauticWebhookHandler->processEvent($webhook);
+  }
+  return civicrm_api3_create_success(count($webhooks), $params, 'MauticWebHook', 'process');
+}

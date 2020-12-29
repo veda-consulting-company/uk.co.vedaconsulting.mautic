@@ -11,7 +11,7 @@ class CRM_Mautic_Sync {
 
 
   protected const MAUTIC_FETCH_BATCH_SIZE = 100;
-  protected const MAUTIC_PUSH_BATCH_SIZE = 500;
+  protected const MAUTIC_PUSH_BATCH_SIZE = 200;
 
   /**
    * Holds the Mautic List ID.
@@ -127,12 +127,9 @@ class CRM_Mautic_Sync {
     }
     $dao = static::createTemporaryTableForMautic();
 
-    // Access the database directly to obtain a prepared statement.
-    $db = $dao->getDatabaseConnection();
-    $insert = $db->prepare('INSERT INTO tmp_mautic_push_m
+    $insert = 'INSERT INTO tmp_mautic_push_m
              (email, first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id, civicrm_contact_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
-
+      VALUES (%0, %1, %2, %3, %4, %5, %6, %7)';
 
     CRM_Mautic_Utils::checkDebug('CRM_Mautic_Form_Sync syncCollectMautic: ', $this->interest_group_details);
     //
@@ -158,27 +155,22 @@ class CRM_Mautic_Sync {
 
         $hash = md5($first_name . $last_name . $email . $groupInfo);
         $contact_serialized = serialize($member);
-        // run insert prepared statement
-        $result = $db->execute($insert, [
-          $email,
-          $first_name,
-          $last_name,
-          $hash,
-          $groupInfo,
-          $contact_serialized,
-          $mautic_contact_id,
-          $civicrm_contact_id
-        ]);
-        if ($result instanceof DB_Error) {
-          throw new Exception ($result->message . "\n" . $result->userinfo);
-        }
+        $queryParams = [
+          [$email, 'String'],
+          [$first_name, 'String'],
+          [$last_name, 'String'],
+          [$hash, 'String'],
+          [$groupInfo, 'String'],
+          [$contact_serialized, 'String'],
+          [$mautic_contact_id, 'Positive'],
+          [$civicrm_contact_id, 'Positive'],
+        ];
+        CRM_Core_DAO::executeQuery($insert, $queryParams);
         $collected++;
       }
       CRM_Mautic_Utils::checkDebug('collectMautic took ' . round(microtime(TRUE) - $start,2) . 's to copy ' . count($members) . ' mautic Members to tmp table.');
     }
 
-    // Tidy up.
-    $db->freePrepared($insert);
     return $collected;
   }
 
@@ -205,9 +197,7 @@ class CRM_Mautic_Sync {
     if (!in_array($mode, ['pull', 'push'])) {
       throw new InvalidArgumentException(__FUNCTION__ . " expects push/pull but called with '$mode'.");
     }
-    // Cheekily access the database directly to obtain a prepared statement.
     $dao = static::createTemporaryTableForCiviCRM();
-    $db = $dao->getDatabaseConnection();
 
     // There used to be a distinction between the handling of 'normal' groups
     // and smart groups. But now the API will take care of this but this
@@ -267,10 +257,9 @@ class CRM_Mautic_Sync {
     $start = microtime(TRUE);
 
     $collected = 0;
-    $insert = $db->prepare('INSERT IGNORE INTO tmp_mautic_push_c
-   (contact_id, email,
-      first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id)
-    VALUES(?, ?, ?, ?, ?, ?, ?, ?)');
+    $insert = 'INSERT IGNORE INTO tmp_mautic_push_c
+   (contact_id, email, first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id)
+    VALUES(%0, %1, %2, %3, %4, %5, %6, %7)';
 
     // Loop contacts:
     foreach ($result['values'] as $id => $contact) {
@@ -305,33 +294,19 @@ class CRM_Mautic_Sync {
       $mautic_contact_id = 0;
 
       $contact_serialized = serialize($contact);
-      // run insert prepared statement
-      try {
-        $db->execute($insert, array(
-          $contact['id'],
-          trim($email),
-          $contact['first_name'],
-          $contact['last_name'],
-          $hash,
-          $info,
-          $contact_serialized,
-          $mautic_contact_id
-        ));
-      }
-      catch (PEAR_Exception $e) {
-        if (get_class($e->getCause()) == 'DB_Error') {
-          CRM_Mautic_Utils::checkDebug("Database error for {$contact['first_name']} {$contact['last_name']} ({$email}), segment ID: {$this->segment_id}.");
-        }
-        else {
-          // Something else. Rethrow.
-          throw $e;
-        }
-      }
+      $queryParams = [
+        [$contact['id'], 'Positive'],
+        [trim($email), 'String'],
+        [$contact['first_name'], 'String'],
+        [$contact['last_name'], 'String'],
+        [$hash, 'String'],
+        [$info, 'String'],
+        [$contact_serialized, 'String'],
+        [$mautic_contact_id, 'Positive']
+      ];
+      CRM_Core_DAO::executeQuery($insert, $queryParams);
       $collected++;
     }
-
-    // Tidy up.
-    $db->freePrepared($insert);
 
     return $collected;
   }
@@ -404,9 +379,8 @@ class CRM_Mautic_Sync {
 **/
     // Now slow match the rest.
     $dao = CRM_Core_DAO::executeQuery( "SELECT * FROM tmp_mautic_push_m m WHERE cid_guess IS NULL;");
-    $db = $dao->getDatabaseConnection();
-    $update = $db->prepare('UPDATE tmp_mautic_push_m
-      SET cid_guess = ? WHERE email = ? AND hash = ?');
+    $update = 'UPDATE tmp_mautic_push_m
+      SET cid_guess = %1 WHERE email = %2 AND hash = %3';
     $failures = $new = 0;
     while ($dao->fetch()) {
       try {
@@ -427,17 +401,14 @@ class CRM_Mautic_Sync {
       }
       if ($contact_id !== NULL) {
         // Contact found, or a zero (create needed).
-        $result = $db->execute($update, [
-          $contact_id,
-          $dao->email,
-          $dao->hash,
-        ]);
-        if ($result instanceof DB_Error) {
-          throw new Exception ($result->message . "\n" . $result->userinfo);
-        }
+        $queryParams = [
+          1 => [$contact_id, 'Positive'],
+          2 => [$dao->email, 'String'],
+          3 => [$dao->hash, 'String'],
+        ];
+        CRM_Core_DAO::executeQuery($update, $queryParams);
       }
     }
-    $db->freePrepared($update);
 
     $took = microtime(TRUE) - $start;
     $took = round($took, 2);
@@ -566,11 +537,9 @@ class CRM_Mautic_Sync {
    *
    * @return array ['updates' => INT, 'unsubscribes' => INT]
    */
-  public function updateMauticFromCivi() {
+  public function updateMauticFromCivi(CRM_Queue_TaskContext $ctx) {
     CRM_Mautic_Utils::checkDebug("updateMauticFromCivi for group #$this->membership_group_id");
     $operations = [];
-    $contactApi = self::getApi('contacts');
-    $segmentApi = self::getApi('segments');
 
     $dao = CRM_Core_DAO::executeQuery(
       "SELECT
@@ -582,7 +551,6 @@ class CRM_Mautic_Sync {
       FROM tmp_mautic_push_c c
       LEFT JOIN tmp_mautic_push_m m ON c.contact_id = m.cid_guess");
 
-    $changes = $additions = 0;
     $no_change = 0;
     // Field values for batch edit, including id.
     $edit = [];
@@ -590,8 +558,7 @@ class CRM_Mautic_Sync {
     $create = [];
     // Contact ids to add to segment.
     $addToGroup = [];
-    // Contact ids to remove from segment.
-    $removals = [];
+
     while ($dao->fetch()) {
       $baseFields = [
         'email',
@@ -642,10 +609,15 @@ class CRM_Mautic_Sync {
 
       if ($this->dry_run) {
         // Log the operation description.
-        $_ = "Would " . ($dao->m_email ? 'update' : 'create')
-          . " mautic member: $dao->m_email";
+        if ($dao->m_email) {
+          $_ = "Would update mautic member: {$dao->m_email}";
+        }
+        else {
+          $_ = "Would create mautic member: {$params['email']}";
+        }
+        // @fixme I only see this in updateMauticFromCiviSingleContact() which is not implemented
         if (key_exists('email_address', $params)) {
-          $_ .= " change email to '$params[email]'";
+          $_ .= " change email to {$params['email']}";
         }
         CRM_Mautic_Utils::checkDebug($_);
       }
@@ -657,7 +629,7 @@ class CRM_Mautic_Sync {
     if ($this->dry_run) {
       // Just log.
       if ($removals) {
-        CRM_Mautic_Utils::checkDebug("Would unsubscribe " . count($removals) . " Mautic members: " . implode(', ', $removals));
+        CRM_Mautic_Utils::checkDebug("Would unsubscribe " . count($removals) . " Mautic contact IDs: " . implode(', ', $removals));
       }
       else {
         CRM_Mautic_Utils::checkDebug("No Mautic members would be unsubscribed.");
@@ -665,29 +637,43 @@ class CRM_Mautic_Sync {
     }
 
     if (!$this->dry_run) {
+      // Add the Mautic changes
       // Don't print_r all operations in the debug, because deserializing
       // allocates way too much memory if you have thousands of operations.
       // Also split batches in blocks of $batchSize to
       // avoid memory limit problems.
-      $batchSize = self::MAUTIC_PUSH_BATCH_SIZE;
       $operations['edit'] = [
-        'callback' => [$this, 'processEditBatch'],
+        'callback' => ['CRM_Mautic_Sync', 'processEditBatch'],
         'data' => $edit,
+        'description' => 'Batch editing ' . count($edit) . ' contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['addToSegment'] = [
-        'callback' => [$this, 'processAddToSegmentBatch'],
+        'callback' => ['CRM_Mautic_Sync', 'processAddToSegmentBatch'],
         'data' => $addToGroup,
+        'description' => 'Batch adding ' . count($addToGroup) . ' contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['removeFromSegment'] = [
-        'callback' => [$this, 'processRemoveFromSegmentBatch'],
+        'callback' => ['CRM_Mautic_Sync', 'processRemoveFromSegmentBatch'],
         'data' => $removals,
+        'description' => 'Batch removing ' . count($removals) . ' contacts from segment ' . $this->segment_id . ' on Mautic',
       ];
       $operations['create'] = [
-        'callback' => [$this, 'processCreateBatch'],
+        'callback' => ['CRM_Mautic_Sync', 'processCreateBatch'],
         'data' => $create,
+        'description' => 'Batch creating ' . count($create) . ' contacts to segment ' . $this->segment_id . ' on Mautic',
       ];
       foreach ($operations as $operation) {
-        $this->batchAPIOperation($batchSize, $operation['data'], $operation['callback']);
+        if (count($operation['data']) === 0) {
+          // No need to run a task when there is no data to sync
+          continue;
+        }
+        $cacheKey = "mautic.{$this->segment_id}.{$operation['callback'][1]}";
+        \Civi::cache('long')->set($cacheKey, $operation['data']);
+        $ctx->queue->createItem(new CRM_Queue_Task(
+          ['CRM_Mautic_Sync', 'batchAPIOperation'],
+          [$operation['callback'], $this->segment_id, $cacheKey],
+          $operation['description']
+        ));
       }
     }
 
@@ -696,7 +682,7 @@ class CRM_Mautic_Sync {
     // U::checkDebug('sessiondump', $_SESSION);
 
     // Get in sync stats that were discovered via db.
-    $stats = CRM_Mautic_Setting::get('mautic_push_stats');
+    $stats = \Civi::settings()->get('mautic_push_stats');
     $in_sync = $stats[$this->segment_id]['in_sync'];
     $in_sync = $in_sync ? $in_sync + $no_change : $no_change;
     return [
@@ -706,92 +692,120 @@ class CRM_Mautic_Sync {
       'in_sync' => $in_sync,
     ];
   }
-  // @todo refactor to own class.
 
-  protected function processEditBatch($data) {
+  /**
+   * @param int $segmentID
+   * @param array $data
+   *
+   * @throws \CRM_Mautic_Exception_NetworkErrorException
+   */
+  public static function processCreateBatch($segmentID, $data) {
+    U::checkDebug(__FUNCTION__, $data);
+    $api = MC::singleton()->newApi('contacts');
+    $batchResult = $api->createBatch($data);
+    if (!empty($batchResult['errors'])) {
+      throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ' ' . print_r($batchResult, TRUE));
+    }
+    $ids = [];
+    foreach ($batchResult['contacts'] as $created) {
+      if (!empty($created['id'])) {
+        $ids[] = $created['id'];
+      }
+    }
+    if ($ids) {
+      self::processAddToSegmentBatch($segmentID, $ids);
+    }
+  }
+
+  /**
+   * @param array $data
+   *
+   * @throws \CRM_Mautic_Exception_NetworkErrorException
+   */
+  public static function processEditBatch($segmentID, $data) {
     U::checkDebug('editBatch', $data);
-    $api = $this->getApi('contacts');
+    $api = MC::singleton()->newApi('contacts');
     // Mautic API will either patch or put.
     // We want to patch since we are not sending
     // the complete set of fields.
-    $createIfNotExists = FALSE;
-    $result = $api->editBatch($data, FALSE);
-    U::checkDebug('editBatchResult', $result);
+    $batchResult = $api->editBatch($data, FALSE);
+    if (!empty($batchResult['errors'])) {
+      throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ' ' . print_r($batchResult, TRUE));
+    }
   }
 
-  protected function processAddToSegmentBatch($data) {
-    U::checkDebug(__FUNCTION__, ['segment_id' => $this->segment_id, 'ids' => $data]);
-    $api = $this->getApi('segments');
+  /**
+   * @param int $segmentID
+   * @param array $data
+   */
+  public static function processAddToSegmentBatch($segmentID, $data) {
+    U::checkDebug(__FUNCTION__, ['segment_id' => $segmentID, 'ids' => $data]);
+    $api = MC::singleton()->newApi('segments');
     // Data should be array of contact ids.
     $data = array_filter($data, 'is_numeric');
     // return;
-    if ($data && $this->segment_id) {
-      $result = $api->addContacts($this->segment_id, ['ids' => $data]);
+    if ($data && $segmentID) {
+      $result = $api->addContacts($segmentID, ['ids' => $data]);
       if (!empty($result['errors'])) {
-        U::checkDebug(__FUNCTION__ . ': ErrorAddingBatchContacts', $result);
+        throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ': ErrorAddingBatchContacts: ' . print_r($result, TRUE));
       }
       else {
         U::checkDebug(__FUNCTION__ . ': AddedContacts', $result);
       }
     }
     else {
-      U::checkDebug(__FUNCTION__ . ': Invalid data', $data);
+      throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ': Invalid data: ' . print_r($data, TRUE));
     }
   }
 
-  protected function processRemoveFromSegmentBatch($data) {
+  /**
+   * @param int $segmentID
+   * @param array $data
+   */
+  public static function processRemoveFromSegmentBatch($segmentID, $data) {
     U::checkDebug(__FUNCTION__, $data);
-    $api = $this->getApi('segments');
+    $api = MC::singleton()->newApi('segments');
     $data = array_filter($data, 'is_numeric');
-    if ($data && $this->segment_id) {
+    if ($data && $segmentID) {
       // Segment API doesn't have a batch operation for removing contacts.
       foreach ($data as $id) {
-        $api->removeContact($this->segment_id, $id);
+        $result = $api->removeContact($segmentID, $id);
       }
       if (!empty($result['errors'])) {
-        U::checkDebug(__FUNCTION__ . 'resultError.', [$result, $api->getResponseInfo()]);
+        throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ': resultError: ' . print_r($result, TRUE) . ' responseInfo: ' . print_r($api->getResponseInfo(), TRUE));
       }
       else {
         U::checkDebug(__FUNCTION__ . ': RemovedContacts', $result);
       }
     }
     else {
-      U::checkDebug(__FUNCTION__ . ': Invalid data', $data);
+      throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ': Invalid data: ' . print_r($data, TRUE));
     }
   }
-
-  protected function processCreateBatch($data) {
-    U::checkDebug(__FUNCTION__, $data);
-    $api = $this->getApi('contacts');
-    $result = $api->createBatch($data);
-    $ids = [];
-    foreach ($result['contacts'] as $created) {
-      if (!empty($created['id'])) {
-        $ids[] = $created['id'];
-      }
-    }
-    if ($ids) {
-      $this->processAddToSegmentBatch($ids);
-    }
-  }
-
 
   /**
    * Perform an operation in batches.
    *
-   * @param int $batchSize
-   * @param array $data
+   * @param \CRM_Queue_TaskContext $ctx
    * @param callable $function
+   * @param int $segmentID
+   * @param string $cacheKey
+   * @param int $batchSize
+   *
+   * @return int
    */
-  protected function batchAPIOperation($batchSize, $data, $function) {
+  public static function batchAPIOperation(CRM_Queue_TaskContext $ctx, $function, $segmentID, $cacheKey, $batchSize = self::MAUTIC_PUSH_BATCH_SIZE) {
+    $data = \Civi::cache('long')->get($cacheKey);
+    \Civi::cache('long')->delete($cacheKey);
     if ($data && is_array($data)) {
       $batches = array_chunk($data, $batchSize, TRUE);
       CRM_Mautic_Utils::checkDebug("Batching " . count($data) . " operations into " . count($batches) . " batches.");
       foreach ($batches as &$batch) {
-        call_user_func($function, $batch);
+        call_user_func($function, $segmentID, $batch);
       }
       unset($batch);
     }
+    return CRM_Queue_Task::TASK_SUCCESS;
   }
 
   /**
@@ -905,7 +919,6 @@ class CRM_Mautic_Sync {
     // @todo: implement.
     return;
 
-
     // Get all the groups related to this segment that the contact is currently in.
     // We have to use this dodgy API that concatenates the titles of the groups
     // with a comma (making it unsplittable if a group title has a comma in it).
@@ -938,7 +951,7 @@ class CRM_Mautic_Sync {
           ['status' => 'unsubscribed']);
       }
       catch (CRM_Mautic_Exception_RequestErrorException $e) {
-        if ($e->response->http_code == 404) {
+        if ($e->getResponse()->http_code == 404) {
           // OK. Mautic didn't know about them anyway. Fine.
         }
         else {
@@ -1312,7 +1325,7 @@ class CRM_Mautic_Sync {
         PRIMARY KEY (email, hash),
         KEY (cid_guess)
         )
-        ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;");
+        ENGINE=InnoDB;");
 
     // Convenience in collectMautic.
     return $dao;
@@ -1337,7 +1350,7 @@ class CRM_Mautic_Sync {
         PRIMARY KEY (email, hash),
         KEY (contact_id)
         )
-        ENGINE=InnoDB DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;");
+        ENGINE=InnoDB;");
     return $dao;
   }
   /**

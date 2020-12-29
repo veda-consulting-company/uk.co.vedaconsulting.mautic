@@ -38,7 +38,7 @@ class CRM_Mautic_Contact_ContactMatch {
 
   public static function getMauticContactReferenceFieldId() {
     $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
-    return CRM_Utils_Array::value('id', $mautic_field_info);
+    return $mautic_field_info['id'] ?? NULL;
   }
 
   /**
@@ -64,18 +64,13 @@ class CRM_Mautic_Contact_ContactMatch {
   /**
    * Gets a civicrm contact id set from mautic contact data.
    *
-   * @param unknown $mauticContact
+   * @param [] $mauticContact
    * @return NULL|int
    */
   public static function getContactReferenceFromMautic($mauticContact) {
     U::checkDebug('looking for civi reference field in mautic contact.');
     $fieldName = self::MAUTIC_ID_FIELD_ALIAS;
-    if (is_array($mauticContact)) {
-      return !empty($mauticContact['fields']['core'][$fieldName]) ? $mauticContact['fields']['core'][$fieldName] : NULL;
-    }
-    elseif (is_object($mauticContact)) {
-      $id = !empty($mauticContact->fields->core->{$fieldName}->value) ? $mauticContact->fields->core->{$fieldName}->value : NULL;
-    }
+    return !empty($mauticContact['fields']['core'][$fieldName]) ? $mauticContact['fields']['core'][$fieldName]['value'] : NULL;
   }
 
   /**
@@ -85,7 +80,7 @@ class CRM_Mautic_Contact_ContactMatch {
    * @return NULL
    */
   public static function dedupeFromMauticContact($mauticContact) {
-    $ruleId = CRM_Mautic_Setting::get('mautic_webhook_dedupe_rule');
+    $ruleId = \Civi::settings()->get('mautic_webhook_dedupe_rule');
     if (!$ruleId) {
       U::checkDebug("No dedupe rule selected. Skipping.");
       return;
@@ -124,7 +119,7 @@ class CRM_Mautic_Contact_ContactMatch {
       return $contactId;
     }
     // Are there any contacts referencing this mautic contact via custom field?
-    $contactId = self::lookupMauticContactReference($mauticContact->id);
+    $contactId = self::lookupMauticContactReference($mauticContact['id']);
     if ($contactId) {
       U::checkDebug('found mautic contact id from civicontact');
       return $contactId;
@@ -138,23 +133,24 @@ class CRM_Mautic_Contact_ContactMatch {
    * Attempt to find a Mautic Contact Id for a CiviCRM Contact.
    *
    * @param array $contact
-   * @return int|NULL
+   * @return int|void
    */
   public static function getMauticFromCiviContact($contact) {
-    static $cidMapCache = [];
     if (empty($contact['id'])) {
       return;
     }
     $cid = $contact['id'];
-    if (!isset($cidMapCache[$cid])) {
-      $cidMapCache[$cid] = 0;
+    if (!isset(\Civi::$statics[__FUNCTION__]['cidMapCache'][$cid])) {
+      \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid] = 0;
       // Use custom field value.
       U::checkDebug("Looking for mautic contact reference in contact.");
-      $key = 'custom_' . static::getMauticContactReferenceFieldId();
+      $key = 'custom_' . self::getMauticContactReferenceFieldId();
       $mauticContactId = CRM_Utils_Array::value($key, $contact);
       if ($mauticContactId) {
+        \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid] = $mauticContactId;
         return $mauticContactId;
       }
+      /* @fixme: MJW Why would we ever have a contact in Mautic with a CiviCRM ID that is not already recorded in CiviCRM?
       $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
       $result = $api->getList(static::MAUTIC_ID_FIELD_ALIAS . ':' . $contact['id'],
           $start = 0,
@@ -167,10 +163,10 @@ class CRM_Mautic_Contact_ContactMatch {
       if (!empty($result['contacts'])) {
         U::checkDebug("Fetched mautic contact for civi contact.");
         $mcontact = reset($result['contacts']);
-        $cidMapCache[$cid] = $mcontact['id'];
-      }
+        \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid] = $mcontact['id'];
+      }*/
     }
-    return $cidMapCache[$cid];
+    return \Civi::$statics[__FUNCTION__]['cidMapCache'][$cid];
   }
 
 }
