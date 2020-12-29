@@ -39,7 +39,7 @@ class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition 
     $negate = $this->conditionParams['operator'];
     $type = $webhook['webhook_trigger_type'];
     CRM_Mautic_Utils::checkDebug("Checking for $type against", $this->getSelectedTypes());
-    $isType = $type && in_array(str_replace('mautic.', '', $type), $this->getSelectedTypes());
+    $isType = $type && in_array($type, $this->getSelectedTypes());
     return $negate ? !$isType : $isType;
   }
 
@@ -62,7 +62,7 @@ class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition 
     foreach ($this->getSelectedTypes() as $type) {
       $typeLabels[] = $labels['mautic.' . $type];
     }
-    return "Type " . $operator . ": " . implode(', ', $typeLabels);
+    return "Type is " . $operator .": " . implode(', ', $typeLabels);
   }
 
   protected function getSelectedTypes() {

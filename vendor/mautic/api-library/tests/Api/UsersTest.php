@@ -14,7 +14,7 @@ class UsersTest extends MauticApiTestCase
 {
     protected $skipPayloadAssertion = ['plainPassword', 'role'];
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('users');
         $this->testPayload = $this->getUniqueUser();

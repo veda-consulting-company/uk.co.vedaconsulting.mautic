@@ -262,7 +262,7 @@ EOF;
     $key = CRM_Mautic_WebHook::getKey();
     if (!$key) {
       $key = CRM_Mautic_WebHook::generateKey();
-      \Civi::settings()->set('mautic_webhook_security_key', $key);
+      CRM_Mautic_Setting::set('mautic_webhook_security_key', $key);
     }
     // Key info.
     $section['content'] .= '<div class="crm-section webhook-key">
@@ -317,7 +317,7 @@ EOF;
       // Retrieve the connected user as a test.
       $this->apiUser = $testApi->getSelf();
       $responseInfo = $auth->getResponseInfo();
-      $this->mauticVersion = $testApi->getResponseHeaders()['mautic-version'] ?? 'Unknown';
+      $this->mauticVersion = $testApi->getMauticVersion();
       return 200 == $responseInfo['http_code'];
     }
     return FALSE;

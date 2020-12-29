@@ -14,7 +14,7 @@ class WebhooksTest extends MauticApiTestCase
 {
     protected $skipPayloadAssertion = ['dateModified', 'modifiedBy', 'modifiedByUser'];
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('webhooks');
         $this->testPayload = [

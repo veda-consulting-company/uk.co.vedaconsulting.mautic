@@ -11,7 +11,6 @@
 namespace Mautic\Tests\Api\Auth;
 
 use Mautic\Auth\ApiAuth;
-use Mautic\Exception\RequiredParameterMissingException;
 use Mautic\MauticApi;
 use Mautic\Tests\Api\MauticApiTestCase;
 
@@ -19,7 +18,7 @@ class BasicAuthTest extends MauticApiTestCase
 {
     protected $configFile = '';
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->configFile = __DIR__.'/../../local.config.php';
     }
@@ -27,12 +26,12 @@ class BasicAuthTest extends MauticApiTestCase
     /**
      * Verify that the error handling in setup method is working
      * - No Username.
+     *
+     * @expectedException \Mautic\Exception\RequiredParameterMissingException
+     * @expectedExceptionCode 500
      */
     public function testParameterExceptionErrorNoUserName()
     {
-        $this->expectException(RequiredParameterMissingException::class);
-        $this->expectExceptionCode(500);
-
         // This should throw an error becuse the userName is missing
         $apiAuth = new ApiAuth();
         $auth    = $apiAuth->newAuth(['password'=>'********'], 'BasicAuth');
@@ -41,12 +40,12 @@ class BasicAuthTest extends MauticApiTestCase
     /**
      * Verify that the error handling in setup method is working
      * - No Password.
+     *
+     * @expectedException \Mautic\Exception\RequiredParameterMissingException
+     * @expectedExceptionCode 500
      */
     public function testParameterExceptionErrorNoPassword()
     {
-        $this->expectException(RequiredParameterMissingException::class);
-        $this->expectExceptionCode(500);
-
         // This should throw an error becuse the password is missing
         $api  = new ApiAuth();
         $auth = $api->newAuth(['userName'=>'anyolduser'], 'BasicAuth');
@@ -55,12 +54,12 @@ class BasicAuthTest extends MauticApiTestCase
     /**
      * Verify that the error handling in setup method is working
      * - Empty Username.
+     *
+     * @expectedException \Mautic\Exception\RequiredParameterMissingException
+     * @expectedExceptionCode 500
      */
     public function testParameterExceptionErrorEmptyUserName()
     {
-        $this->expectException(RequiredParameterMissingException::class);
-        $this->expectExceptionCode(500);
-
         // This should throw an error becuse the userName is empty - test blanks
         $apiAuth = new ApiAuth();
         $auth    = $apiAuth->newAuth(['userName'=>' ', 'password'=>'********'], 'BasicAuth');
@@ -69,12 +68,12 @@ class BasicAuthTest extends MauticApiTestCase
     /**
      * Verify that the error handling in setup method is working
      * - Empty password.
+     *
+     * @expectedException \Mautic\Exception\RequiredParameterMissingException
+     * @expectedExceptionCode 500
      */
     public function testParameterExceptionErrorEmptyPassword()
     {
-        $this->expectException(RequiredParameterMissingException::class);
-        $this->expectExceptionCode(500);
-
         // This should throw an error because the password is empty - test blanks
         $apiAuth = new ApiAuth();
         $auth    = $apiAuth->newAuth(['userName'=>'admin', 'password'=>' '], 'BasicAuth');

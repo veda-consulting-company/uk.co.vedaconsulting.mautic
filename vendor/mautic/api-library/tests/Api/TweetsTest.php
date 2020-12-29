@@ -12,7 +12,7 @@ namespace Mautic\Tests\Api;
 
 class TweetsTest extends MauticApiTestCase
 {
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('tweets');
         $this->testPayload = [

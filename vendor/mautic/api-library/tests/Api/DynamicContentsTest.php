@@ -12,7 +12,7 @@ namespace Mautic\Tests\Api;
 
 class DynamicContentsTest extends MauticApiTestCase
 {
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('dynamicContents');
         $this->testPayload = [

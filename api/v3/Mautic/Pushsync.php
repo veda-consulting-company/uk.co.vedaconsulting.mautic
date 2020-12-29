@@ -27,14 +27,14 @@ function civicrm_api3_mautic_Pushsync($params) {
   $runner = CRM_Mautic_Form_PushSync::getRunner($skipEndUrl = TRUE, $dry_run);
   if ($runner) {
     $result = $runner->runAll();
-  }
+  } 
   if (empty($result['is_error'])) {
     $log = '';
-    $stats = \Civi::settings()->get('mautic_push_stats');
+    $stats = CRM_Mautic_Setting::get('mautic_push_stats');
     foreach ($stats as $sid => $info) {
       $log .= "\n\n Segment: $sid; \n";
       foreach ($info as $k => $v) {
-        $log .= "$k: $v;\n";
+        $log .= "$k: $v;\n"; 
       }
     }
     return civicrm_api3_create_success($log);

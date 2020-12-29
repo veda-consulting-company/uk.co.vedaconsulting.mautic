@@ -73,7 +73,7 @@ class DataTest extends MauticApiTestCase
         ],
     ];
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->api = $this->getContext('data');
     }

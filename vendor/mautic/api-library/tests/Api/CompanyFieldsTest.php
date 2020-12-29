@@ -16,7 +16,7 @@ class CompanyFieldTest extends ContactFieldsTest
 {
     protected $prefix = 'Company ';
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('companyFields');
         $this->testPayload = [

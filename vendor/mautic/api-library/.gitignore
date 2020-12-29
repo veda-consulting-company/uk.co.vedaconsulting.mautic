@@ -3,6 +3,7 @@
 /.project
 /.settings
 /.phpintel
+/composer.lock
 /phpunit.xml
 /tests/local.config.php
 /tests/local.config.php_*
@@ -11,4 +12,3 @@
 /vendor
 .DS_Store
 /.ddev
-.phpunit.result.cache

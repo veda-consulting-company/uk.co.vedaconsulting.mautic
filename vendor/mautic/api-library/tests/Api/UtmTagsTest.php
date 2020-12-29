@@ -26,7 +26,7 @@ class UtmTagsTest extends MauticApiTestCase
         'utm_term'     => 'utmTerm',
     ];
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->api = $this->getContext('contacts');
 
@@ -50,7 +50,7 @@ class UtmTagsTest extends MauticApiTestCase
         $this->testPayload['lead'] = $response[$contactApi->itemName()]['id'];
     }
 
-    public function tearDown(): void
+    public function tearDown()
     {
         // Delete a contact from test
         $this->api = $this->getContext('contacts');

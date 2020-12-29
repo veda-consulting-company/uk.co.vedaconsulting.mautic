@@ -12,7 +12,7 @@ namespace Mautic\Tests\Api;
 
 class StatsTest extends MauticApiTestCase
 {
-    public function setUp(): void
+    public function setUp()
     {
         $this->api = $this->getContext('stats');
     }
@@ -69,7 +69,6 @@ class StatsTest extends MauticApiTestCase
             'companies_leads',
             'dynamic_content_lead_data',
             'dynamic_content_stats',
-            'email_stat_replies',
             'email_stats',
             'email_stats_devices',
             'focus_stats',

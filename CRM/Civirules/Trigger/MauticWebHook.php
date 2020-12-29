@@ -1,7 +1,5 @@
 <?php
 
-use CRM_Mautic_ExtensionUtil as E;
-
 class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
   /**
    * This is a pseudo entity.
@@ -27,6 +25,11 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
     return 'CRM_Mautic_DAO_MauticWebHook';
   }
 
+  public function checkTrigger($objectName, $objectId, $op, $objectRef) {
+    CRM_Core_Error::debug_var(__FUNCTION__, func_get_args());
+    return $objectName == $this->objectName;
+  }
+
   /**
    * Returns a redirect url to extra data input from the user after adding a trigger
    *
@@ -34,18 +37,22 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
    *
    * @param int $ruleId
    * @return bool|string
+   * @access public
+   * @abstract
    */
   public function getExtraDataInputUrl($ruleId) {
-    return FALSE;
+    return false;
   }
 
   /**
    * Returns a description of this trigger
    *
    * @return string
+   * @access public
+   * @abstract
    */
   public function getTriggerDescription() {
-    return E::ts('Mautic WebHook processed');
+    return 'Mautic WebHook Recieved.';
   }
 
   /**
@@ -54,19 +61,18 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
    * @param \CRM_Civirules_TriggerData_TriggerData $triggerData
    */
   public function alterTriggerData(CRM_Civirules_TriggerData_TriggerData &$triggerData) {
+
     $hook_invoker = CRM_Civirules_Utils_HookInvoker::singleton();
     $hook_invoker->hook_civirules_alterTriggerData($triggerData);
     // Set the trigger contact id to the WebHook data.
     // The contact is discovered when the webhook is initially processed.
-
-    $webhook = $triggerData->getEntityData('mauticwebhook');
-    $oldData = $triggerData->getOriginalData();
-    $triggerData->setEntityData('mauticwebhook', array_merge($oldData, $webhook));
     if (!$triggerData->getContactId()) {
+      $webhook = $triggerData->getEntityData('mauticwebhook');
       if (!empty($webhook['contact_id'])) {
         $triggerData->setContactId($webhook['contact_id']);
       }
     }
   }
+
 
 }

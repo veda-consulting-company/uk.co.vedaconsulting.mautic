@@ -12,7 +12,7 @@ namespace Mautic\Tests\Api;
 
 class CategoriesTest extends MauticApiTestCase
 {
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('categories');
         $this->testPayload = [
@@ -69,7 +69,7 @@ class CategoriesTest extends MauticApiTestCase
 
         // Expect an error when assigning a non existing category when creating a new asset
         $assetResponse = $assetApi->create($assetPayload);
-        $this->assertStringContainsString("Category $categoryId does not exist", $assetResponse['errors'][0]['message']);
+        $this->assertContains("Category $categoryId does not exist", $assetResponse['errors'][0]['message']);
     }
 
     public function testEditPatch()

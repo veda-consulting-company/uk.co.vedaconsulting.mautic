@@ -12,7 +12,7 @@ namespace Mautic\Tests\Api;
 
 class CompaniesTest extends AbstractCustomFieldsTest
 {
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('companies');
         $this->testPayload = [

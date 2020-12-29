@@ -12,7 +12,7 @@ namespace Mautic\Tests\Api;
 
 class FilesTest extends MauticApiTestCase
 {
-    public function setUp(): void
+    public function setUp()
     {
         $this->api                 = $this->getContext('files');
         $this->testPayload['file'] = dirname(__DIR__).'/'.'mauticlogo.png';

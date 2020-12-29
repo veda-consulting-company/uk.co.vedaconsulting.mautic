@@ -14,7 +14,7 @@ class EmailsTest extends MauticApiTestCase
 {
     protected $skipPayloadAssertion = ['lists'];
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('emails');
         $this->testPayload = [

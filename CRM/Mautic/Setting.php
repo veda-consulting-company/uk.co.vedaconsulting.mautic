@@ -2,15 +2,15 @@
 use CRM_Mautic_ExtensionUtil as E;
 /**
  * @class
- *
+ * 
  * Provides utility functions for getting extension settings.
  *
  */
 class CRM_Mautic_Setting {
-
+  
   /**
    * Get metaData for the settings defined by this extension.
-   *
+   * 
    * @return array
    */
   public static function getSettingMetaData() {
@@ -25,10 +25,10 @@ class CRM_Mautic_Setting {
     }
     return $settingMeta;
   }
-
+  
   /**
    * Get all extension settings.
-   *
+   * 
    * @return array
    */
   public static function getAll() {
@@ -40,17 +40,29 @@ class CRM_Mautic_Setting {
     }
     return $settings;
   }
-
+  
+  /**
+   * Gets a setting value.
+   */
+  public static function get($name) {
+    return Civi::settings()->get($name);
+  }
+  
+  public static function set($name, $value) {
+    Civi::settings()->set($name, $value);
+    return $value;
+  }
+  
   /**
    * Get the human-readable label for a setting or setting option.
-   *
+   * 
    * @param string $name
    * The setting name.
-   *
+   * 
    * @param string $optionValue
-   * If passed, the label of the option will be
+   * If passed, the label of the option will be 
    * returned instead of the setting title.
-   *
+   * 
    */
   public static function getLabel($name, $optionValue = NULL) {
     $meta = CRM_Utils_Array::value($name, self::getSettingMetaData(), []);
@@ -59,10 +71,10 @@ class CRM_Mautic_Setting {
     }
     return CRM_Utils_Array::value('title', $meta);
   }
-
+  
   /**
    * Checks for missing Setting values.
-   *
+   * 
    * @param [] $settingValues
    */
   public static function validate($settingValues, &$invalid, $required = []) {
@@ -74,5 +86,5 @@ class CRM_Mautic_Setting {
       }
     }
     return empty($invalid);
-  }
+  } 
 }

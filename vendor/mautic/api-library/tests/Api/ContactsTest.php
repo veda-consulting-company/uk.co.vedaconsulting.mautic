@@ -21,7 +21,7 @@ class ContactsTest extends AbstractCustomFieldsTest
      */
     protected $api;
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('contacts');
         $this->testPayload = [

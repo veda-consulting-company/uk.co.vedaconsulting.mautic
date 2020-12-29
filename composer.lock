@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "mautic/api-library",
-            "version": "3.0.0",
+            "version": "3.0-beta",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mautic/api-library.git",
-                "reference": "557ce71ca1603324a781270f73334852fce10d0e"
+                "reference": "36eac9e3b6d53a20fd5484b760b71c86c15255c9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mautic/api-library/zipball/557ce71ca1603324a781270f73334852fce10d0e",
-                "reference": "557ce71ca1603324a781270f73334852fce10d0e",
+                "url": "https://api.github.com/repos/mautic/api-library/zipball/36eac9e3b6d53a20fd5484b760b71c86c15255c9",
+                "reference": "36eac9e3b6d53a20fd5484b760b71c86c15255c9",
                 "shasum": ""
             },
             "require": {
@@ -28,7 +28,7 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "~2.16.1",
-                "phpunit/phpunit": "~9.4.0",
+                "phpunit/phpunit": "~7.5.0",
                 "raveren/kint": "~0.9"
             },
             "type": "library",
@@ -42,7 +42,7 @@
                 "MIT"
             ],
             "description": "Mautic API Connector Library",
-            "time": "2020-10-17T14:04:17+00:00"
+            "time": "2020-04-24T14:24:11+00:00"
         }
     ],
     "packages-dev": [],

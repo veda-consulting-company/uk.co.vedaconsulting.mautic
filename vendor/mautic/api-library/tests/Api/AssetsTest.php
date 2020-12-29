@@ -14,7 +14,7 @@ class AssetsTest extends MauticApiTestCase
 {
     protected $skipPayloadAssertion = ['file'];
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->api         = $this->getContext('assets');
         $this->testPayload = [

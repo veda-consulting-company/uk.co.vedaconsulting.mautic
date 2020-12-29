@@ -36,16 +36,16 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     $field_name = $this->conditionParams['field_name'];
     $searchValue = $this->conditionParams[$field_name];
-    $webhook = $triggerData->getEntityData('mauticwebhook');
-    if ($searchValue && $webhook) {
-      $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook);
-      if (!empty($contact['fields']['core'][$field_name])) {
-        return $contact['fields']['core'][$field_name]['value'] == $searchValue;
+    $webHook = $triggerData->getEntityData('mauticwebhook');
+    if ($searchValue && $webHook) {
+      $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webHook);
+      if (!empty($contact->fields->core->{$field_name})) {
+        return $contact->fields->core->{$field_name}->value == $searchValue;
       }
     }
     return false;
   }
-
+  
   /**
    * Returns a user friendly text explaining the condition params
    *
@@ -59,7 +59,7 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
       '%2' => $params[$params['field_name']]
     ]);
   }
-
+  
   /**
    * This function validates whether this condition works with the selected trigger.
    *

@@ -50,9 +50,9 @@ class CRM_Mautic_Tag {
    * Optionally set object state to use instead of retrieving contact data.
    */
   public function setData($civicrmContact = [], $mauticContact = []) {
-    if (!empty($civicrmContact['id'])) {
-      $this->contactData[$civicrmContact['id']] = [
-        'civicrm_contact' => $civicrmContact,
+    if (!empty($contact['id'])) {
+      $this->contactData[$contact['id']] = [
+        'civicrm_contact' => $contact,
         'mautic_contact' => $mauticContact,
       ];
     }
@@ -126,6 +126,7 @@ class CRM_Mautic_Tag {
    *  Array of tag names, keyed by tag Id or entity tag Id.
    */
   private function getContactTags($contactId, $parentId = NULL, $keyByEntityTagId = FALSE) {
+
     $params = [
       'entity_id' => $contactId,
       'entity_table' => 'civicrm_contact',
@@ -166,7 +167,7 @@ class CRM_Mautic_Tag {
         $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
         $mauticContactResult = $api->get($mauticId);
         $mauticContact = CRM_Utils_Array::value('contact', $mauticContactResult, []);
-        U::checkDebug(__FUNCTION__ . 'mauticContactResult', $mauticContactResult);
+        U::checkDebug(__FUNCTION__ . 'maucicContactResult', $mauticContactResult);
         $this->setData(NULL, $mauticContact);
         $tags = CRM_Utils_Array::value('tags', $mauticContact);
       }

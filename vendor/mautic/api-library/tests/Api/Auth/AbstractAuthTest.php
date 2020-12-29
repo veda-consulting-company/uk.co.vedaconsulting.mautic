@@ -18,7 +18,7 @@ class AbstractAuthTest extends TestCase
 {
     protected $config;
 
-    public function setUp(): void
+    public function setUp()
     {
         $this->config = include __DIR__.'/../../local.config.php';
     }
