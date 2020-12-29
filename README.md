@@ -1,5 +1,7 @@
 # uk.co.vedaconsulting.mautic
 
+Development co-funded by [The Vitiligo Society](https://vitiligosociety.org)
+
 ## Introduction
 
 This extension integrates CiviCRM with [Mautic](https://www.mautic.org), the Open-Source Marketing Automation software.
