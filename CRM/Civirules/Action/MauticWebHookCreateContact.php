@@ -91,8 +91,8 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       CRM_Mautic_Contact_ContactMatch::getContactReferenceFromMautic($mauticContact))) {
         $mautic = CRM_Mautic_Connection::singleton()->newApi('contacts');
         $editParams = [CRM_Mautic_Contact_ContactMatch::MAUTIC_ID_FIELD_ALIAS => $contactId];
-        $mautic->edit($mauticContact->id, $editParams, FALSE);
-        U::checkDebug("Updating Mautic Contact with CiviCRM Contact id", [$mauticContact->id, $editParams]);
+        $mautic->edit($mauticContact['id'], $editParams, FALSE);
+        U::checkDebug("Updating Mautic Contact with CiviCRM Contact id", [$mauticContact['id'], $editParams]);
       }
     }
     catch(Exception $e) {
