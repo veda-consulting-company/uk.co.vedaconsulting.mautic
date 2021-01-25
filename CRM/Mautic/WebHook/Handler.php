@@ -30,10 +30,16 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     $data = json_decode($webhook['data'], TRUE);
     // Data may include lead and contact properties - they appear to be the same.
     $contact = $data['contact'] ?? NULL;
-    U::checkDebug("webhook trigger", $webhook['webhook_trigger_type']);
+    U::checkDebug("webhook trigger", ['id' => $webhook['id'], 'type' => $webhook['webhook_trigger_type']]);
     if (!$webhook['webhook_trigger_type'] || !$contact) {
       U::checkDebug("Processing Mautic webhook: trigger or contact not found exiting.");
-      $this->recordWebhookProcessed($webhook['id'], NULL, NULL);
+      // Use a direct SQL query to bypass hooks (as we don't want to trigger civirules)
+      $query = 'UPDATE civicrm_mauticwebhook SET processed_date=%1 WHERE id=%2';
+      $queryParams = [
+        1 => [date('YmdHis'), 'Timestamp'],
+        2 => [$webhook['id'], 'Integer'],
+      ];
+      CRM_Core_DAO::executeQuery($query, $queryParams);
       return;
     }
 
@@ -45,8 +51,15 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       $connectedUserId = MC::singleton()->getConnectedUser()['id'] ?? NULL;
       if ($connectedUserId == $contact['id'] || $connectedUserId == $modifiedBy) {
         U::checkDebug("WebHook: " . $webhook['webhook_trigger_type'] . " - Mautic Contact last modified by CiviCRM - no further processing required." );
-        $civicrmContactID = CRM_Mautic_Contact_FieldMapping::getValue($contact, 'civicrm_contact_id', NULL);
-        $this->recordWebhookProcessed($webhook['id'], $civicrmContactID, NULL);
+        $civicrmContactID = CRM_Mautic_Contact_FieldMapping::lookupMauticValue('civicrm_contact_id', $contact);
+        // Use a direct SQL query to bypass hooks (as we don't want to trigger civirules)
+        $query = 'UPDATE civicrm_mauticwebhook SET processed_date=%1,contact_id=%3 WHERE id=%2';
+        $queryParams = [
+          1 => [date('YmdHis'), 'Timestamp'],
+          2 => [$webhook['id'], 'Integer'],
+          3 => [$civicrmContactID, 'Integer']
+        ];
+        CRM_Core_DAO::executeQuery($query, $queryParams);
         return;
       }
     }
@@ -64,25 +77,14 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     else {
       U::checkDebug("Webhook: no matching contact found for trigger: " . $webhook['webhook_trigger_type']);
     }
-    $this->recordWebhookProcessed($webhook['id'], $civicrmContactID, $activityID);
-  }
-
-  /**
-   * @param int $webhookID
-   * @param int $civicrmContactID
-   * @param int $activityID
-   *
-   * @throws \CiviCRM_API3_Exception
-   */
-  private function recordWebhookProcessed($webhookID, $civicrmContactID, $activityID) {
     $params = [
-      'id' => $webhookID,
+      'id' => $webhook['id'],
       'contact_id' => $civicrmContactID,
       'activity_id' => $activityID,
       'processed_date' => date('YmdHis'),
     ];
     // Update the WebHook entity to store the data.
-    // This may be processed by CiviRules.
+    // This will trigger the MauticWebhook in CiviRules.
     civicrm_api3('MauticWebHook', 'create', $params);
   }
 

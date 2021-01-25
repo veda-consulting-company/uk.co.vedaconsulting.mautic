@@ -49,6 +49,22 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
   }
 
   /**
+   * Trigger a rule for this trigger
+   *
+   * @param $op
+   * @param $objectName
+   * @param $objectId
+   * @param $objectRef
+   */
+  public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
+    $triggerData = $this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
+    if (isset($triggerData->getEntityData('mauticwebhook')['civirules_do_not_process'])) {
+      return;
+    }
+    CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
+  }
+
+  /**
    * Alter the trigger data with extra data
    *
    * @param \CRM_Civirules_TriggerData_TriggerData $triggerData
@@ -68,7 +84,7 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
     // Set contact ID from mautic data
     if (!$triggerData->getContactId()) {
       $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook['data']);
-      $triggerData->setContactId(CRM_Mautic_Contact_FieldMapping::getValue($contact, 'civicrm_contact_id', NULL));
+      $triggerData->setContactId(CRM_Mautic_Contact_FieldMapping::lookupMauticValue('civicrm_contact_id', $contact));
     }
   }
 

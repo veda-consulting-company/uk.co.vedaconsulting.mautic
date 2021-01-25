@@ -41,7 +41,7 @@ class CRM_Mautic_Contact_FieldMapping {
    * @return mixed|string
    */
   public static function getValue($data, $civiFieldName, $default = '') {
-    $values = !empty($data['fields']['all']) ? $data['fields']['all'] : [];
+    $values = $data['fields']['all'] ?? [];
     $mapping = self::$defaultFieldMapping;
     $key = !empty($mapping[$civiFieldName]) ? $mapping[$civiFieldName] : '';
     return $key && isset($values[$key]) ? $values[$key] : $default;
@@ -99,7 +99,7 @@ class CRM_Mautic_Contact_FieldMapping {
    *
    * @return mixed
    */
-  protected static function lookupMauticValue($key, $data) {
+  public static function lookupMauticValue($key, $data) {
     if (isset($data[$key])) {
       return $data[$key];
     }
