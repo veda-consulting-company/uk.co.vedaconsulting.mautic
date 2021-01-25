@@ -33,6 +33,13 @@ class CRM_Mautic_Contact_FieldMapping {
     return $mapping;
   }
 
+  /**
+   * @param $data
+   * @param string $civiFieldName
+   * @param string $default
+   *
+   * @return mixed|string
+   */
   public static function getValue($data, $civiFieldName, $default = '') {
     $values = !empty($data['fields']['all']) ? $data['fields']['all'] : [];
     $mapping = self::$defaultFieldMapping;
@@ -93,21 +100,11 @@ class CRM_Mautic_Contact_FieldMapping {
    * @return mixed
    */
   protected static function lookupMauticValue($key, $data) {
-    if (is_array($data)) {
-      if (isset($data[$key])) {
-        return $data[$key];
-      }
-      if (isset($data['fields']['core'][$key]['value'])) {
-        return $data['fields']['core'][$key]['value'];
-      }
+    if (isset($data[$key])) {
+      return $data[$key];
     }
-    elseif (is_object($data)) {
-      if (isset($data->fields->core->{$key}->value)) {
-        return $data->fields->core->{$key}->value;
-      }
-      if (isset($data->{$key})) {
-        return $data->{$key};
-      }
+    if (isset($data['fields']['core'][$key]['value'])) {
+      return $data['fields']['core'][$key]['value'];
     }
   }
 
@@ -141,7 +138,7 @@ class CRM_Mautic_Contact_FieldMapping {
   }
 
   /**
-   * @param array $contact
+   * @param array[] $contact
    *   CiviCRM contact
    * @param bool $includeTags
    *

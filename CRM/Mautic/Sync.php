@@ -4,11 +4,9 @@ use CRM_Mautic_Connection as MC;
 use CRM_Mautic_Utils as U;
 
 /**
- * @file
  * This class holds all the sync logic for a particular segment.
  */
 class CRM_Mautic_Sync {
-
 
   protected const MAUTIC_FETCH_BATCH_SIZE = 100;
   protected const MAUTIC_PUSH_BATCH_SIZE = 200;
@@ -28,17 +26,19 @@ class CRM_Mautic_Sync {
 
   /**
    * Cache of details from CRM_Mautic_Utils::getGroupsToSync.
-   ▾ $this->group_details['61'] = (array [12])
-     ⬦ $this->group_details['61']['segment_id']
-     ⬦ $this->group_details['61']['segment_name']
-     ⬦ $this->group_details['61']['civigroup_title'] = (string [28]) `mautic_integration_test_1`
-     ⬦ $this->group_details['61']['civigroup_uses_cache'] = (bool) 0
+  ▾ $this->group_details['61'] = (array [12])
+  ⬦ $this->group_details['61']['segment_id']
+  ⬦ $this->group_details['61']['segment_name']
+  ⬦ $this->group_details['61']['civigroup_title'] = (string [28]) `mautic_integration_test_1`
+  ⬦ $this->group_details['61']['civigroup_uses_cache'] = (bool) 0
    */
   protected $group_details;
+
   /**
    * As above but without membership group.
    */
   protected $interest_group_details;
+
   /**
    * The CiviCRM group id responsible for membership at Mautic.
    */
@@ -63,6 +63,11 @@ class CRM_Mautic_Sync {
     return [$this->membership_group_id => $this->segment_id];
   }
 
+  /**
+   * CRM_Mautic_Sync constructor.
+   *
+   * @param int $segment_id
+   */
   public function __construct($segment_id) {
     $this->segment_id = $segment_id;
     $this->segment_alias = U::getMauticSegment($segment_id, 'alias');
@@ -79,27 +84,34 @@ class CRM_Mautic_Sync {
     $this->interest_group_details = $this->group_details;
     unset($this->interest_group_details[$this->membership_group_id]);
   }
+
   /**
-   * Getter.
+   * @param string $property
+   *
+   * @return mixed
    */
   public function __get($property) {
     switch ($property) {
-    case 'segment_id':
-    case 'membership_group_id':
-    case 'group_details':
-    case 'interest_group_details':
-    case 'dry_run':
-      return $this->$property;
+      case 'segment_id':
+      case 'membership_group_id':
+      case 'group_details':
+      case 'interest_group_details':
+      case 'dry_run':
+        return $this->$property;
     }
     throw new InvalidArgumentException("'$property' property inaccessible or unknown");
   }
+
   /**
-   * Setter.
+   * @param string $property
+   * @param mixed $value
+   *
+   * @return bool
    */
   public function __set($property, $value) {
     switch ($property) {
-    case 'dry_run':
-      return $this->$property = (bool) $value;
+      case 'dry_run':
+        return $this->$property = (bool) $value;
     }
     throw new InvalidArgumentException("'$property' property inaccessible or unknown");
   }
@@ -125,24 +137,23 @@ class CRM_Mautic_Sync {
     if (!in_array($mode, ['pull', 'push'])) {
       throw new InvalidArgumentException(__FUNCTION__ . " expects push/pull but called with '$mode'.");
     }
-    $dao = static::createTemporaryTableForMautic();
+    self::createTemporaryTableForMautic();
 
     $insert = 'INSERT INTO tmp_mautic_push_m
              (email, first_name, last_name, hash, group_info, contact_serialized, mautic_contact_id, civicrm_contact_id)
       VALUES (%0, %1, %2, %3, %4, %5, %6, %7)';
 
     CRM_Mautic_Utils::checkDebug('CRM_Mautic_Form_Sync syncCollectMautic: ', $this->interest_group_details);
-    //
+
     // Main loop of all the records.
     $collected = 0;
     $batchAPI = new CRM_Mautic_APIBatchList('contacts',
-        self::MAUTIC_FETCH_BATCH_SIZE,
-        ['search' => 'segment:' . $this->segment_alias]
-        );
+      self::MAUTIC_FETCH_BATCH_SIZE,
+      ['search' => 'segment:' . $this->segment_alias]
+    );
 
     // All mautic contacts are in the current segment.
     while ($members = $batchAPI->fetchBatch()) {
-      $start = microtime(TRUE);
       foreach ($members as $member) {
         $first_name = CRM_Mautic_Contact_FieldMapping::getValue($member, 'first_name');
         $last_name = CRM_Mautic_Contact_FieldMapping::getValue($member, 'last_name');
@@ -152,7 +163,6 @@ class CRM_Mautic_Sync {
         $civicrm_contact_id = CRM_Mautic_Contact_FieldMapping::getValue($member, 'civicrm_contact_id', 0);
         $mautic_contact_id = $member['id'];
         // for comparison with the hash created from the CiviCRM data (elsewhere).
-
         $hash = md5($first_name . $last_name . $email . $groupInfo);
         $contact_serialized = serialize($member);
         $queryParams = [
@@ -168,7 +178,6 @@ class CRM_Mautic_Sync {
         CRM_Core_DAO::executeQuery($insert, $queryParams);
         $collected++;
       }
-      CRM_Mautic_Utils::checkDebug('collectMautic took ' . round(microtime(TRUE) - $start,2) . 's to copy ' . count($members) . ' mautic Members to tmp table.');
     }
 
     return $collected;
@@ -197,7 +206,7 @@ class CRM_Mautic_Sync {
     if (!in_array($mode, ['pull', 'push'])) {
       throw new InvalidArgumentException(__FUNCTION__ . " expects push/pull but called with '$mode'.");
     }
-    $dao = static::createTemporaryTableForCiviCRM();
+    self::createTemporaryTableForCiviCRM();
 
     // There used to be a distinction between the handling of 'normal' groups
     // and smart groups. But now the API will take care of this but this
@@ -332,7 +341,7 @@ class CRM_Mautic_Sync {
    */
   public function matchMauticMembersToContacts() {
     // Ensure we have the mautic_log table.
-    $dao = CRM_Core_DAO::executeQuery(
+    CRM_Core_DAO::executeQuery(
       "CREATE TABLE IF NOT EXISTS mautic_log (
         id int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
         group_id int(20),
@@ -366,17 +375,7 @@ class CRM_Mautic_Sync {
     $stats['byMauticReference'] = static::guessContactIdsByMauticReference();
     CRM_Mautic_Utils::checkDebug('guessContactIdsByMauticReference took ' . round(microtime(TRUE) - $start, 2) . 's');
     $start = microtime(TRUE);
-    /**
-    $stats['bySubscribers'] = static::guessContactIdsBySubscribers();
-    CRM_Mautic_Utils::checkDebug('guessContactIdsBySubscribers took ' . round(microtime(TRUE) - $start, 2) . 's');
-    $start = microtime(TRUE);
-    $stats['byUniqueEmail'] = static::guessContactIdsByUniqueEmail();
-    CRM_Mautic_Utils::checkDebug('guessContactIdsByUniqueEmail took ' . round(microtime(TRUE) - $start, 2) . 's');
-    $start = microtime(TRUE);
-    $stats['byNameEmail'] = static::guessContactIdsByNameAndEmail();
-    CRM_Mautic_Utils::checkDebug('guessContactIdsByNameAndEmail took ' . round(microtime(TRUE) - $start, 2) . 's');
-    $start = microtime(TRUE);
-**/
+
     // Now slow match the rest.
     $dao = CRM_Core_DAO::executeQuery( "SELECT * FROM tmp_mautic_push_m m WHERE cid_guess IS NULL;");
     $update = 'UPDATE tmp_mautic_push_m
@@ -395,7 +394,7 @@ class CRM_Mautic_Sync {
           $stats['bySingle']++;
         }
       }
-      catch (CRM_Mautic_DuplicateContactsException $e) {
+      catch (CRM_Mautic_Exception_DuplicateContactsException $e) {
         $contact_id = NULL;
         $failures++;
       }
@@ -409,13 +408,6 @@ class CRM_Mautic_Sync {
         CRM_Core_DAO::executeQuery($update, $queryParams);
       }
     }
-
-    $took = microtime(TRUE) - $start;
-    $took = round($took, 2);
-    $secs_per_rec = $stats['bySingle'] ?
-      round($took / $stats['bySingle'],2) : 0;
-    CRM_Mautic_Utils::checkDebug("guessContactIdSingle took {$took} sec " .
-      "for {$stats['bySingle']} records ({$secs_per_rec} s/record)");
 
     $stats['totalMatched'] = array_sum($stats);
     $stats['newContacts'] = $new;
@@ -431,7 +423,7 @@ class CRM_Mautic_Sync {
           'titanic' message
          FROM tmp_mautic_push_m
          WHERE cid_guess IS NULL;",
-      [1 => [$this->membership_group_id, 'Integer']]);
+        [1 => [$this->membership_group_id, 'Integer']]);
     }
 
     return $stats;
@@ -439,7 +431,7 @@ class CRM_Mautic_Sync {
 
   /**
    * For matched civi contacts, update the custom fields that reference a mautic contact.
-   * @return []
+   * @return array[]
    */
   public function updateContactReferenceFields() {
     $stats = ['updatedContactReferenceFields' => 0];
@@ -495,7 +487,6 @@ class CRM_Mautic_Sync {
    * @return int
    */
   public function removeInSync($mode) {
-
     // In push mode, delete duplicate CiviCRM contacts.
     $doubles = 0;
     if ($mode == 'push') {
@@ -861,7 +852,6 @@ class CRM_Mautic_Sync {
     // Not implemented.
   }
 
-
   /**
    * Get contacts to remove from mautic segment.
    *
@@ -890,6 +880,7 @@ class CRM_Mautic_Sync {
     U::checkDebug('removals', $return);
     return $return;
   }
+
   /**
    * Return a count of the members on Mautic from the tmp_mautic_push_m
    * table.
@@ -926,7 +917,7 @@ class CRM_Mautic_Sync {
       'contact_id' => $contact_id,
       'return' => ['first_name', 'last_name', 'email_id', 'email', 'group'],
       'sequential' => 1
-      ]);
+    ]);
 
     $in_groups = CRM_Mautic_Utils::getGroupIds($contact['groups'], $this->group_details);
     $currently_a_member = in_array($this->membership_group_id, $in_groups);
@@ -974,7 +965,7 @@ class CRM_Mautic_Sync {
       'merge_fields' => [
         'FNAME' => $contact['first_name'],
         'LNAME' => $contact['last_name'],
-        ],
+      ],
     ];
     // Do interest groups.
     if (empty($data['interests'])) {
@@ -991,6 +982,7 @@ class CRM_Mautic_Sync {
     }
 
   }
+
   /**
    * Identify a contact who is expected to be subscribed to this segment.
    *
@@ -1040,15 +1032,14 @@ class CRM_Mautic_Sync {
    * @return int|null Contact Id if found.
    */
   public function guessContactIdSingle($email, $first_name=NULL, $last_name=NULL, $must_be_on_segment=FALSE) {
-
     // API call returns all matching emails, and all contacts attached to those
     // emails IF the contact is in our group.
     $result = civicrm_api3('Email', 'get', [
       'sequential'      => 1,
       'email'           => $email,
       'api.Contact.get' => [
-              'is_deleted' => 0,
-              'return'     => "first_name,last_name"],
+        'is_deleted' => 0,
+        'return'     => "first_name,last_name"],
     ]);
 
     // Candidates are any emails that belong to a not-deleted contact.
@@ -1077,7 +1068,7 @@ class CRM_Mautic_Sync {
       'on_hold' => 0,
       'is_deceased' => 0,
       'return' => 'contact_id',
-      ]);
+    ]);
     $in_group = $result['values'];
 
     // If must be on the membership segment, then reduce the candidates to just
@@ -1174,7 +1165,7 @@ class CRM_Mautic_Sync {
    */
   public static function guessContactIdsBySubscribers() {
     return static::runSqlReturnAffectedRows(
-       "UPDATE tmp_mautic_push_m m
+      "UPDATE tmp_mautic_push_m m
         INNER JOIN tmp_mautic_push_c c ON m.email = c.email
         SET m.cid_guess = c.contact_id
         WHERE m.cid_guess IS NULL");
@@ -1185,7 +1176,7 @@ class CRM_Mautic_Sync {
    */
   public static function guessContactIdsByCiviReference() {
     return static::runSqlReturnAffectedRows(
-        "UPDATE tmp_mautic_push_m m
+      "UPDATE tmp_mautic_push_m m
         INNER JOIN civicrm_contact c ON c.id = m.civicrm_contact_id AND c.is_deleted = 0
         SET m.cid_guess =  m.civicrm_contact_id
         WHERE m.cid_guess IS NULL
@@ -1196,9 +1187,8 @@ class CRM_Mautic_Sync {
    * Matches contacts from a reference to the Mautic contact id on a CiviCRM contact.
    */
   public static function guessContactIdsByMauticReference() {
-
     return static::runSqlReturnAffectedRows(
-        "UPDATE tmp_mautic_push_m m
+      "UPDATE tmp_mautic_push_m m
         INNER JOIN civicrm_value_mautic_contact cm ON cm.mautic_contact_id = m.mautic_contact_id
         SET m.cid_guess =  cm.entity_id
         WHERE m.cid_guess IS NULL
@@ -1218,7 +1208,7 @@ class CRM_Mautic_Sync {
   public static function guessContactIdsByUniqueEmail() {
     // If an address is unique, that's the one we need.
     return static::runSqlReturnAffectedRows(
-        "UPDATE tmp_mautic_push_m m
+      "UPDATE tmp_mautic_push_m m
         INNER JOIN (
           SELECT email, c.id AS contact_id
           FROM civicrm_email e
@@ -1231,6 +1221,7 @@ class CRM_Mautic_Sync {
         WHERE m.cid_guess IS NULL
         ");
   }
+
   /**
    * Guess the contact id for contacts whose only email matches.
    *
@@ -1248,7 +1239,7 @@ class CRM_Mautic_Sync {
 
     // look for email and names that match where there's only one match.
     return static::runSqlReturnAffectedRows(
-        "UPDATE tmp_mautic_push_m m
+      "UPDATE tmp_mautic_push_m m
         INNER JOIN (
           SELECT email, first_name, last_name, c.id AS contact_id
           FROM civicrm_email e
@@ -1261,6 +1252,7 @@ class CRM_Mautic_Sync {
         WHERE m.first_name != '' AND m.last_name != ''  AND m.cid_guess IS NULL
         ");
   }
+
   /**
    * Drop tmp_mautic_push_m and tmp_mautic_push_c, if they exist.
    *
@@ -1272,6 +1264,7 @@ class CRM_Mautic_Sync {
     CRM_Core_DAO::executeQuery("DROP TABLE IF EXISTS tmp_mautic_push_m;");
     CRM_Core_DAO::executeQuery("DROP TABLE IF EXISTS tmp_mautic_push_c;");
   }
+
   /**
    * Drop mautic_log table if it exists.
    *
@@ -1282,6 +1275,7 @@ class CRM_Mautic_Sync {
   public static function dropLogTable() {
     CRM_Core_DAO::executeQuery("DROP TABLE IF EXISTS mautic_log;");
   }
+
   /**
    * Create new tmp_mautic_push_m.
    *
@@ -1311,7 +1305,7 @@ class CRM_Mautic_Sync {
    */
   public static function createTemporaryTableForMautic() {
     CRM_Core_DAO::executeQuery( "DROP TABLE IF EXISTS tmp_mautic_push_m;");
-    $dao = CRM_Core_DAO::executeQuery(
+    CRM_Core_DAO::executeQuery(
       "CREATE TABLE tmp_mautic_push_m (
         email VARCHAR(200) NOT NULL,
         first_name VARCHAR(100) NOT NULL DEFAULT '',
@@ -1326,10 +1320,8 @@ class CRM_Mautic_Sync {
         KEY (cid_guess)
         )
         ENGINE=InnoDB;");
-
-    // Convenience in collectMautic.
-    return $dao;
   }
+
   /**
    * Create new tmp_mautic_push_c.
    *
@@ -1338,7 +1330,7 @@ class CRM_Mautic_Sync {
    */
   public static function createTemporaryTableForCiviCRM() {
     CRM_Core_DAO::executeQuery( "DROP TABLE IF EXISTS tmp_mautic_push_c;");
-    $dao = CRM_Core_DAO::executeQuery("CREATE TABLE tmp_mautic_push_c (
+    CRM_Core_DAO::executeQuery("CREATE TABLE tmp_mautic_push_c (
         contact_id INT(10) UNSIGNED NOT NULL,
         email VARCHAR(200) NOT NULL,
         first_name VARCHAR(100) NOT NULL DEFAULT '',
@@ -1351,8 +1343,8 @@ class CRM_Mautic_Sync {
         KEY (contact_id)
         )
         ENGINE=InnoDB;");
-    return $dao;
   }
+
   /**
    * Logic to determine update needed.
    *
@@ -1447,5 +1439,5 @@ class CRM_Mautic_Sync {
     $dao->free();
     return $result;
   }
-}
 
+}

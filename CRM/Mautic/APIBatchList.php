@@ -5,20 +5,20 @@
  */
 class CRM_Mautic_APIBatchList {
   /**
-   * 
+   *
    * @var int.
    */
   protected $batchSize = 0;
-  
+
   protected $offset = 0;
-  
+
   protected $total = NULL;
-  
+
   protected $context = '';
-  
+
   protected $data = [];
-  
- 
+
+
   /*
    * Parameters for the list call.
    */
@@ -29,19 +29,19 @@ class CRM_Mautic_APIBatchList {
     'publishedOnly' => TRUE,
     'minimal' => FALSE,
   ];
-  
+
   /**
-   * 
+   *
    * @var Mautic\Api\Api
    */
   protected $api = NULL;
-  
+
   public function getAPI() {
     return $this->api;
   }
-  
+
   /**
-   * 
+   *
    * @param string $context
    * @param int $batchSize
    * @param [] $params
@@ -52,7 +52,7 @@ class CRM_Mautic_APIBatchList {
     $this->context = $context;
     $this->params = array_merge($this->params, $params);
   }
-  
+
   public function fetchBatch() {
     $start = $this->offset;
     $limit = $this->batchSize;
@@ -60,7 +60,7 @@ class CRM_Mautic_APIBatchList {
     if (isset($this->total) && $start >= $this->total) {
       return;
     }
-    
+
     $items = $this->api->getList(
         $params['search'],
         $start,
@@ -76,8 +76,8 @@ class CRM_Mautic_APIBatchList {
     }
     if (isset($items[$key])) {
       $this->offset += count($items[$key]);
-      return  $items[$key];
+      return $items[$key];
     }
   }
-  
+
 }
