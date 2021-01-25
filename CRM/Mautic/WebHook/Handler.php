@@ -4,8 +4,6 @@ use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Utils as U;
 
 /**
- * @class
- * /
  * Functionality for processing Mautic Webhooks.
  *
  * For each individual trigger event, tries to Match to a contact and creates a webhook entity and/or activity.
@@ -15,7 +13,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   /**
    * Get corresponding CiviCRM contact from Mautic contact.
    *
-   * @param [] $mauticContact
+   * @param array[] $mauticContact
    *
    * @return int|NULL
    */
@@ -24,17 +22,18 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   }
 
   /**
-   * @param [] $webhook
+   * @param array[] $webhook
    *
    * @throws \CiviCRM_API3_Exception
    */
   public function processEvent($webhook) {
     $data = json_decode($webhook['data'], TRUE);
     // Data may include lead and contact properties - they appear to be the same.
-    $contact = !empty($data['contact']) ? $data['contact'] : NULL;
+    $contact = $data['contact'] ?? NULL;
     U::checkDebug("webhook trigger", $webhook['webhook_trigger_type']);
     if (!$webhook['webhook_trigger_type'] || !$contact) {
       U::checkDebug("Processing Mautic webhook: trigger or contact not found exiting.");
+      $this->recordWebhookProcessed($webhook['id'], NULL, NULL);
       return;
     }
 
@@ -45,28 +44,41 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     if (in_array($webhook['webhook_trigger_type'], $ignoreTriggersIfCiviModified)) {
       $connectedUserId = MC::singleton()->getConnectedUser()['id'] ?? NULL;
       if ($connectedUserId == $contact['id'] || $connectedUserId == $modifiedBy) {
-        U::checkDebug("WebHook: " . $webhook['webhook_trigger_type'] ." - Mautic Contact last modified by CiviCRM - no further processing required." );
+        U::checkDebug("WebHook: " . $webhook['webhook_trigger_type'] . " - Mautic Contact last modified by CiviCRM - no further processing required." );
+        $civicrmContactID = CRM_Mautic_Contact_FieldMapping::getValue($contact, 'civicrm_contact_id', NULL);
+        $this->recordWebhookProcessed($webhook['id'], $civicrmContactID, NULL);
         return;
       }
     }
 
     $civicrmContactID = $this->identifyContact($contact);
-    $activityId = NULL;
+    $activityID = NULL;
     // We have extracted enough information for an action.
     if ($civicrmContactID) {
       // Create an activity for this contact.
       // @todo Should this be a setting?
       // Then we let users choose whether to create one by default or in a civi rule.
       //
-      $activityId = $this->createActivity($webhook['webhook_trigger_type'], $civicrmContactID);
+      $activityID = $this->createActivity($webhook['webhook_trigger_type'], $civicrmContactID);
     }
     else {
       U::checkDebug("Webhook: no matching contact found for trigger: " . $webhook['webhook_trigger_type']);
     }
+    $this->recordWebhookProcessed($webhook['id'], $civicrmContactID, $activityID);
+  }
+
+  /**
+   * @param int $webhookID
+   * @param int $civicrmContactID
+   * @param int $activityID
+   *
+   * @throws \CiviCRM_API3_Exception
+   */
+  private function recordWebhookProcessed($webhookID, $civicrmContactID, $activityID) {
     $params = [
-      'id' => $webhook['id'],
+      'id' => $webhookID,
       'contact_id' => $civicrmContactID,
-      'activity_id' => $activityId,
+      'activity_id' => $activityID,
       'processed_date' => date('YmdHis'),
     ];
     // Update the WebHook entity to store the data.
@@ -76,7 +88,10 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
 
   /**
    * Process incoming webhook.
-   * @param [] $data
+   *
+   * @param string $rawData
+   *
+   * @throws \CiviCRM_API3_Exception
    */
   public function process($rawData) {
     $data = json_decode($rawData, TRUE);
@@ -103,12 +118,10 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   }
 
   /**
-   * @param $trigger
-   * @param $mauticContact
-   * @param $cid
-   * @param null $data
+   * @param string $trigger
+   * @param int $cid
    *
-   * @return mixed|null
+   * @return int|null
    * @throws \CiviCRM_API3_Exception
    */
   public function createActivity($trigger, $cid) {
@@ -130,6 +143,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     ];
     $result = civicrm_api3('Activity', 'create', $params);
     U::checkDebug('Created mautic webhook activity');
-    return !empty($result['id']) ? $result['id'] : NULL;
+    return $result['id'] ?? NULL;
   }
+
 }

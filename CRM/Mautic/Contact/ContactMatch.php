@@ -4,7 +4,6 @@ use CRM_Mautic_Utils as U;
 
 /**
  * Matches Mautic Contacts with CiviCRM contacts.
- *
  */
 class CRM_Mautic_Contact_ContactMatch {
 
@@ -13,11 +12,10 @@ class CRM_Mautic_Contact_ContactMatch {
    */
   public const MAUTIC_ID_FIELD_ALIAS = 'civicrm_contact_id';
 
-
   /**
    * Retrieve available dedupe rule options for settings form.
    *
-   * @return array
+   * @return array[]
    */
   public static function getDedupeRules() {
     $dao = CRM_Core_DAO::executeQuery("
@@ -36,6 +34,9 @@ class CRM_Mautic_Contact_ContactMatch {
     return $rules;
   }
 
+  /**
+   * @return int|null
+   */
   public static function getMauticContactReferenceFieldId() {
     $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
     return $mautic_field_info['id'] ?? NULL;
@@ -45,6 +46,8 @@ class CRM_Mautic_Contact_ContactMatch {
    * Find a contact with a reference to a Mautic Contact.
    *
    * @param int $mauticContactId
+   *
+   * @return mixed|void|NULL
    */
   public static function lookupMauticContactReference($mauticContactId) {
     if (!intval($mauticContactId)) {
@@ -77,7 +80,9 @@ class CRM_Mautic_Contact_ContactMatch {
    * Apply deduping rules to find a civicrm contact id from Mautic contact data.
    *
    * @param array[] $mauticContact
-   * @return NULL
+   *
+   * @return mixed|void|null
+   * @throws \CRM_Core_Exception
    */
   public static function dedupeFromMauticContact($mauticContact) {
     $ruleId = \Civi::settings()->get('mautic_webhook_dedupe_rule');
@@ -93,7 +98,7 @@ class CRM_Mautic_Contact_ContactMatch {
     $params['check_permission'] = FALSE;
     $dupes = CRM_Dedupe_Finder::dupesByParams($params, $contactType, $ruleType, [], $ruleId);
     if ($dupes) {
-      return !empty($dupes[0]) ? $dupes[0] : NULL;
+      return $dupes[0] ?? NULL;
     }
   }
 
@@ -105,7 +110,7 @@ class CRM_Mautic_Contact_ContactMatch {
    *  2. Field referencing the mautic contact on CiviCRM Contacts.
    *  3. Application of dedupe rules from contact values.
    *
-   * @param [] $mauticContact
+   * @param array[] $mauticContact
    *
    * @return int|NULL
    *  Id of a CiviCRM contact.
@@ -126,13 +131,13 @@ class CRM_Mautic_Contact_ContactMatch {
     }
     U::checkDebug("Looking for matching contact via dedupe rule.");
     return self::dedupeFromMauticContact($mauticContact);
-
   }
 
   /**
    * Attempt to find a Mautic Contact Id for a CiviCRM Contact.
    *
-   * @param array $contact
+   * @param array[] $contact
+   *
    * @return int|void
    */
   public static function getMauticFromCiviContact($contact) {
