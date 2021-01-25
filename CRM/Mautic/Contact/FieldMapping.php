@@ -177,13 +177,13 @@ class CRM_Mautic_Contact_FieldMapping {
 
   /**
    * Saves tags from a Mautic to a CiviCRM contact.
-   * @param mixed $mauticContact
+   * @param array[] $mauticContact
    * @param int $contactId
    */
   public static function saveMauticTagsToCiviContact($mauticContact, $contactId) {
     // Get the tags in the mautic contact.
     $tags = self::lookupMauticValue('tags', $mauticContact);
-    $tagNames = $tags ? array_map(function($t) { return $t->tag;}, $tags) : [];
+    $tagNames = $tags ? array_map(function($t) { return $t['tag'];}, $tags) : [];
     $tagHelper = new CRM_Mautic_Tag();
     $tagHelper->saveContactTags($tagNames, $contactId);
   }
