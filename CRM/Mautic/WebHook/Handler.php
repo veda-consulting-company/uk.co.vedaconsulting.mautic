@@ -110,7 +110,6 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
           civicrm_api3('MauticWebHook', 'create', [
             'data' => json_encode($item),
             'webhook_trigger_type' => $trigger,
-            'processed' => 0,
           ]);
         }
       }

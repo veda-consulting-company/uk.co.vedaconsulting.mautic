@@ -27,10 +27,10 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     $contactParams = [
       'contact_type' => 'Individual',
     ];
-    if (!empty($webhook['contact_id'])) {
+    if (!empty($triggerData->getContactId())) {
       if ($updateContact) {
         // Update with the ID.
-        $contactParams['id'] = $webhook['contact_id'];
+        $contactParams['id'] = $triggerData->getContactId();
       }
       else {
         // Skip. Do nothing.
@@ -42,8 +42,8 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     }
 
     // Get the contact data from the webhook.
-    $mauticData = json_decode($webhook['data'], TRUE);
-    $mauticContact = !empty($mauticData['contact']) ? $mauticData['contact'] : $mauticData['lead'];
+    $mauticData = $webhook['data'];
+    $mauticContact = $mauticData['contact'] ?? $mauticData['lead'];
     // If payload is from a subscription change event, copy data to the contact.
     // Then we can let the fieldMapping class handle how this can be converted.
     if ($mauticContact && !empty($mauticData['channel'])) {

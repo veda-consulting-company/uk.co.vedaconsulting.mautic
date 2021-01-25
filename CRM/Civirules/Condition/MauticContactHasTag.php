@@ -34,17 +34,15 @@ class CRM_Civirules_Condition_MauticContactHasTag extends CRM_Civirules_Conditio
    * @access public
    */
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    $webHook = $triggerData->getEntityData('mauticwebhook');
-    $mauticContact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webHook);
+    $webhook = $triggerData->getEntityData('mauticwebhook');
+    $mauticContact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook['data']);
     if (empty($mauticContact['tags'])) {
       return FALSE;
     }
     $searchTags = $this->getSelectedTags();
     $op = $this->conditionParams['operator'];
     // Normalize to just an array of tag names. We don't match IDs.
-    $contactTags = array_map(function($val) {
-      return $val['tag'];
-    }, $mauticContact['tags']);
+    $contactTags = array_map(function($val) { return $val['tag']; }, $mauticContact['tags']);
     return $op == 'all' ? empty(array_diff($searchTags, $contactTags)) : !empty(array_intersect($searchTags, $contactTags));
   }
 
