@@ -76,7 +76,7 @@ class CRM_Mautic_Contact_ContactMatch {
   /**
    * Apply deduping rules to find a civicrm contact id from Mautic contact data.
    *
-   * @param unknown $mauticContact
+   * @param array[] $mauticContact
    * @return NULL
    */
   public static function dedupeFromMauticContact($mauticContact) {

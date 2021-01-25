@@ -60,7 +60,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       return;
     }
     // Does the Webhook payload provide only a partial contact eg. from a subscription change trigger event?
-    $isPartialContact = empty($mauticContact->fields);
+    $isPartialContact = empty($mauticContact['fields']);
 
     // Convert from Mautic to Civi contact fields.
     $convertedData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact);
@@ -74,23 +74,25 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     try {
       $contactParams = array_filter($contactParams, function($val) { return !is_null($val);});
       $result = civicrm_api3('Contact', 'create', $contactParams);
-      U::checkDebug('Update contact', $contactParams);
+      U::checkDebug($contactParams['id'] ? 'Update contact' : 'Create contact', $contactParams);
 
+      $contactId = $result['id'];
       // Set the contact id for other rule actions.
-      if (!empty($result['id']) && !$triggerData->getContactId()) {
-        $triggerData->setContactId($result['id']);
+      if (!empty($contactId) && !$triggerData->getContactId()) {
+        $triggerData->setContactId($contactId);
       }
-      $contactId = !empty($result['id']) ? $result['id'] : NULL;
+
       // Update the contact tags.
       if (!$isPartialContact) {
         CRM_Mautic_Contact_FieldMapping::saveMauticTagsToCiviContact($mauticContact, $contactId);
       }
       // Update the Mautic Contact with a reference to the CiviCRM Contact.
-      if (!$isPartialContact && $contactId && $contactId != CRM_Mautic_Contact_ContactMatch::getContactReferenceFromMautic($mauticContact)) {
+      if (!$isPartialContact && $contactId && ($contactId !=
+      CRM_Mautic_Contact_ContactMatch::getContactReferenceFromMautic($mauticContact))) {
         $mautic = CRM_Mautic_Connection::singleton()->newApi('contacts');
         $editParams = [CRM_Mautic_Contact_ContactMatch::MAUTIC_ID_FIELD_ALIAS => $contactId];
         $mautic->edit($mauticContact->id, $editParams, FALSE);
-        U::checkDebug("Updating Mautic Contact  with CiviCRM Contact id", [$mauticContact->id, $editParams]);
+        U::checkDebug("Updating Mautic Contact with CiviCRM Contact id", [$mauticContact->id, $editParams]);
       }
     }
     catch(Exception $e) {

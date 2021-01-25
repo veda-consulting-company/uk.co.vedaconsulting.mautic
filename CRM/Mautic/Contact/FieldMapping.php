@@ -42,8 +42,9 @@ class CRM_Mautic_Contact_FieldMapping {
 
   /**
    * Alter the converted contact communication prefs to include  subscription changes on Mautic.
-   * @param stdClass $mauticContact
-   * @param array $contact
+   *
+   * @param array[] $mauticContact
+   * @param array[] $contact
    */
   public static function commsPrefsMauticToCivi($mauticContact, &$contact) {
     // The doNotContact field appears to have an empty array when false and a nested empty array when true.
@@ -65,8 +66,8 @@ class CRM_Mautic_Contact_FieldMapping {
   /**
    * Sets doNotContact when Converting to a Mautic contact.
    *
-   * @param [] $civiContact
-   * @param [] $mauticContact
+   * @param array[] $civiContact
+   * @param array[] $mauticContact
    */
   public static function commsPrefsCiviToMautic($civiContact, &$mauticContact) {
     if (!empty($civiContact['is_opt_out']) || !empty($civiContact['do_not_email'])) {
@@ -87,11 +88,11 @@ class CRM_Mautic_Contact_FieldMapping {
    * look in the first level of properties then in the fields.
    *
    * @param string $key
-   * @param string $data
+   * @param array[] $data
+   *
    * @return mixed
    */
   protected static function lookupMauticValue($key, $data) {
-
     if (is_array($data)) {
       if (isset($data[$key])) {
         return $data[$key];
@@ -113,13 +114,14 @@ class CRM_Mautic_Contact_FieldMapping {
   /**
    * Converts between Mautic and CiviCRM values.
    *
-   * @param mixed $contactData
+   * @param array[] $contactData
    * @param boolean $civiToMautic
-   * @return mixed[]|array[]|string[]
+   *
+   * @return array[]
    */
   protected static function convertContact($contactData, $civiToMautic = TRUE) {
     $mapping = static::getMapping();
-    CRM_Mautic_Utils::checkDebug(__FUNCTION__, [$contactData, $mapping]);
+    CRM_Mautic_Utils::checkDebug(__FUNCTION__, ['contactData' => $contactData, 'fieldMapping' => $mapping]);
     if (!$civiToMautic) {
       $mapping = array_flip($mapping);
     }
@@ -138,6 +140,13 @@ class CRM_Mautic_Contact_FieldMapping {
     return $convertedContact;
   }
 
+  /**
+   * @param array $contact
+   *   CiviCRM contact
+   * @param bool $includeTags
+   *
+   * @return array[]
+   */
   public static function convertToMauticContact($contact, $includeTags = FALSE) {
     $mauticContact = static::convertContact($contact, TRUE);
     if ($includeTags) {
@@ -154,8 +163,10 @@ class CRM_Mautic_Contact_FieldMapping {
   /**
    * Converts mautic contact data to values for a civicrm contact.
    *
-   * @param mixed $mauticContact
-   * @return mixed[]|array|string[]
+   * @param array[] $mauticContact
+   * @param bool $includeTags
+   *
+   * @return array[]
    */
   public static function convertToCiviContact($mauticContact, $includeTags = FALSE) {
     $contact = static::convertContact($mauticContact, FALSE);
