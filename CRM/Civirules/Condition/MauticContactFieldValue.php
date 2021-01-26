@@ -38,7 +38,7 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
     $searchValue = $this->conditionParams[$field_name];
     $webhook = $triggerData->getEntityData('mauticwebhook');
     if ($searchValue && $webhook) {
-      $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook);
+      $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook['data']);
       if (!empty($contact['fields']['core'][$field_name])) {
         return $contact['fields']['core'][$field_name]['value'] == $searchValue;
       }

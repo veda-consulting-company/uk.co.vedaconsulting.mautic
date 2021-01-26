@@ -30,15 +30,14 @@ class CRM_Mautic_BAO_MauticWebHook extends CRM_Mautic_DAO_MauticWebHook {
    * Gets an entity from the webhook.
    *
    * @param string $mauticEntityType
-   * @param string $webhookData
+   * @param array[] $webhookData
    *  API MauticWebHook data.
    *
    * @return []
    */
   public static function getProvidedData($mauticEntityType, $webhookData) {
-    $data = json_decode($webhookData, TRUE);;
-    if (!empty($data[$mauticEntityType])) {
-      return $data[$mauticEntityType];
+    if (!empty($webhookData[$mauticEntityType])) {
+      return $webhookData[$mauticEntityType];
     }
   }
 
