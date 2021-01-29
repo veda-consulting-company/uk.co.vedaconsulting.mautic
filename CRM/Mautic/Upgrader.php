@@ -90,21 +90,6 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
    */
   public function upgrade_4200() {
     $this->createPushSyncJob();
-
-    // Create Pull Sync job.
-    /**
-     * Not implemented yet, so don't expose it as a job.
-    $params = array(
-      'sequential' => 1,
-      'name'          => 'Mautic Pull Sync',
-      'description'   => 'Sync contacts between CiviCRM and Mautic, assuming Mautic to be correct. Please understand the implications before using this.',
-      'run_frequency' => 'Daily',
-      'api_entity'    => 'Mautic',
-      'api_action'    => 'pullsync',
-      'is_active'     => 0,
-    );
-    $result = civicrm_api3('job', 'create', $params);
-    **/
     return TRUE;
   }
 
