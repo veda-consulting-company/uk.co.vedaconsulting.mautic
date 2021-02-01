@@ -64,7 +64,17 @@ function civicrm_api3_mautic_web_hook_process($params) {
   $webhooks = civicrm_api3('MauticWebHook', 'get', $params)['values'];
   $mauticWebhookHandler = new CRM_Mautic_WebHook_Handler();
   foreach ($webhooks as $webhook) {
-    $mauticWebhookHandler->processEvent($webhook);
+    // Process each webhook. If processing fails record the error and continue processing.
+    try {
+      $mauticWebhookHandler->processEvent($webhook);
+    }
+    catch (Exception $e) {
+      // If a contact is deleted in CiviCRM createActivity will fail with "source_contact_id is not valid: XX"
+      $errors[] = 'Error: WebhookID: ' . $webhook['id'] . ' - ' . $e->getMessage();
+    }
+  }
+  if (!empty($errors)) {
+    return civicrm_api3_create_error(PHP_EOL . implode(PHP_EOL, $errors), []);
   }
   return civicrm_api3_create_success(count($webhooks), $params, 'MauticWebHook', 'process');
 }

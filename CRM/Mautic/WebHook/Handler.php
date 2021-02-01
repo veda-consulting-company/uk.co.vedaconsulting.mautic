@@ -13,7 +13,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   /**
    * Get corresponding CiviCRM contact from Mautic contact.
    *
-   * @param array[] $mauticContact
+   * @param array $mauticContact
    *
    * @return int|NULL
    */
@@ -22,7 +22,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   }
 
   /**
-   * @param array[] $webhook
+   * @param array $webhook
    *
    * @throws \CiviCRM_API3_Exception
    */
@@ -71,7 +71,6 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       // Create an activity for this contact.
       // @todo Should this be a setting?
       // Then we let users choose whether to create one by default or in a civi rule.
-      //
       $activityID = $this->createActivity($webhook['webhook_trigger_type'], $civicrmContactID);
     }
     else {
