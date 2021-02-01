@@ -61,6 +61,9 @@ function civicrm_api3_mautic_web_hook_process($params) {
   if (!isset($params['processed_date'])) {
     $params['processed_date'] = ['IS NULL' => 1];
   }
+  if (empty($params['options'])) {
+    $params['options'] = ['limit' => 0];
+  }
   $webhooks = civicrm_api3('MauticWebHook', 'get', $params)['values'];
   $mauticWebhookHandler = new CRM_Mautic_WebHook_Handler();
   foreach ($webhooks as $webhook) {
