@@ -39,6 +39,7 @@ CREATE TABLE `civicrm_mauticwebhook` (
   `webhook_trigger_type` varchar(255) COMMENT 'Mautic Webhook trigger event type.',
   `activity_id` int unsigned COMMENT 'FK to Contact',
   `contact_id` int unsigned COMMENT 'FK to Contact',
+  `created_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When the webhook was first received by CiviCRM',
   `processed_date` timestamp NULL DEFAULT NULL COMMENT 'Has this webhook been processed in CiviCRM',
   PRIMARY KEY (`id`),
   CONSTRAINT FK_civicrm_mauticwebhook_contact_id FOREIGN KEY (`contact_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE,
