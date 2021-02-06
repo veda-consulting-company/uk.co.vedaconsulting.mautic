@@ -53,19 +53,4 @@
     <comment>Has this webhook been processed in CiviCRM</comment>
   </field>
 
-  <foreignKey>
-    <name>contact_id</name>
-    <table>civicrm_contact</table>
-    <key>id</key>
-    <add>4.4</add>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
-  <foreignKey>
-    <name>activity_id</name>
-    <table>civicrm_activity</table>
-    <key>id</key>
-    <add>4.4</add>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
-
 </table>

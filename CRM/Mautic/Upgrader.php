@@ -125,4 +125,11 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     return TRUE;
   }
 
+  public function upgrade4204() {
+    $this->ctx->log->info('Remove foreign key constraints on civicrm_mauticwebhook table');
+    CRM_Core_BAO_SchemaHandler::safeRemoveFK('civicrm_mauticwebhook', 'FK_civicrm_mauticwebhook_activity_id');
+    CRM_Core_BAO_SchemaHandler::safeRemoveFK('civicrm_mauticwebhook', 'FK_civicrm_mauticwebhook_contact_id');
+    return TRUE;
+  }
+
 }
