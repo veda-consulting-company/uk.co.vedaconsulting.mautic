@@ -353,7 +353,8 @@ class CRM_Mautic_Sync {
     // Clear out any old errors to do with this segment.
     CRM_Core_DAO::executeQuery(
       "DELETE FROM mautic_log WHERE group_id = %1;",
-      [1 => [$this->membership_group_id, 'Integer' ]]);
+      [1 => [$this->membership_group_id, 'Integer' ]]
+    );
 
     $stats = [
       'byCiviReference' => 0,
@@ -368,13 +369,8 @@ class CRM_Mautic_Sync {
     ];
 
     // Do the fast SQL identification against CiviCRM contacts.
-    $start = microtime(TRUE);
     $stats['byCiviReference'] = static::guessContactIdsByCiviReference();
-    CRM_Mautic_Utils::checkDebug('guessContactIdsByCiviReference took ' . round(microtime(TRUE) - $start, 2) . 's');
-    $start = microtime(TRUE);
     $stats['byMauticReference'] = static::guessContactIdsByMauticReference();
-    CRM_Mautic_Utils::checkDebug('guessContactIdsByMauticReference took ' . round(microtime(TRUE) - $start, 2) . 's');
-    $start = microtime(TRUE);
 
     // Now slow match the rest.
     $dao = CRM_Core_DAO::executeQuery( "SELECT * FROM tmp_mautic_push_m m WHERE cid_guess IS NULL;");
