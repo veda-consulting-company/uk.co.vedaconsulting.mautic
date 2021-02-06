@@ -433,11 +433,18 @@ class CRM_Mautic_Sync {
     $stats = ['updatedContactReferenceFields' => 0];
     $count = 0;
     CRM_Mautic_Utils::checkDebug(__FUNCTION__ . " for group #$this->membership_group_id");
-    $query = '
-           SELECT m.cid_guess, m.mautic_contact_id
-           FROM tmp_mautic_push_m m
-            WHERE m.cid_guess IS NOT NULL AND m.mautic_contact_id IS NOT NULL
+
+    // If contact has been deleted in CiviCRM but not in Mautic we still have a contact ID in mautic.
+    // @fixme: We should clear the civicrm contact id from the mautic contact and maybe delete the mautic contact?
+    $selectClause = 'SELECT m.cid_guess, m.mautic_contact_id';
+    $fromWhereClause = '
+      FROM tmp_mautic_push_m m
+      LEFT JOIN civicrm_contact cc ON cc.id = m.civicrm_contact_id
+      WHERE m.cid_guess IS NOT NULL
+        AND m.mautic_contact_id IS NOT NULL
+        AND cc.id IS NOT NULL
     ';
+
     if (!$this->dry_run) {
       // Avoid  Cannot use ON DUPLICATE KEY UPDATE so we replace.
       $updateQuery = "
@@ -445,19 +452,46 @@ class CRM_Mautic_Sync {
         INNER JOIN tmp_mautic_push_m m ON m.cid_guess = cf.entity_id AND m.mautic_contact_id != cf.mautic_contact_id
         SET cf.mautic_contact_id = m.mautic_contact_id
         ";
-      $count += static::runSqlReturnAffectedRows($updateQuery);
-      $insertQuery = "
-       INSERT INTO civicrm_value_mautic_contact (entity_id, mautic_contact_id)
-        $query
-        AND m.cid_guess NOT IN (SELECT entity_id FROM civicrm_value_mautic_contact)";
-      $count += static::runSqlReturnAffectedRows($insertQuery);
+      $dao = CRM_Core_DAO::executeQuery($updateQuery);
+      $count += count($dao->fetchAll());
+
+      $notInQuery = 'AND m.cid_guess NOT IN (SELECT entity_id FROM civicrm_value_mautic_contact)';
+      $dao = CRM_Core_DAO::executeQuery("{$selectClause} {$fromWhereClause} {$notInQuery}");
+      while ($dao->fetch()) {
+        $insertValues[] = "({$dao->cid_guess}, {$dao->mautic_contact_id})";
+      }
+      if (isset($insertValues)) {
+        $insertQuery = "
+          INSERT INTO civicrm_value_mautic_contact (entity_id, mautic_contact_id)
+          VALUES " . implode(',', $insertValues);
+        CRM_Core_DAO::executeQuery($insertQuery);
+        $count += count($insertValues);
+      }
     }
     else {
-      $dao = CRM_Core_DAO::executeQuery($query);
+      // Dry run
+      $dao = CRM_Core_DAO::executeQuery("{$selectClause} {$fromWhereClause}");
       $count = count($dao->fetchAll());
     }
     $stats['updatedContactReferenceFields'] = $count;
     CRM_Mautic_Utils::checkDebug(__FUNCTION__ . " Affected rows: " . $count);
+
+    $deletedInCiviQuery = '
+      SELECT m.cid_guess, m.mautic_contact_id, m.civicrm_contact_id, cc.id
+      FROM tmp_mautic_push_m m
+      LEFT JOIN civicrm_contact cc ON cc.id = m.civicrm_contact_id
+      WHERE m.cid_guess IS NOT NULL
+        AND m.mautic_contact_id IS NOT NULL
+        AND cc.id IS NULL
+    ';
+    $deletedInCiviDao = CRM_Core_DAO::executeQuery($deletedInCiviQuery);
+    while ($deletedInCiviDao->fetch()) {
+      $deletedInCivi[] = "{$deletedInCiviDao->mautic_contact_id}:{$deletedInCiviDao->civicrm_contact_id}";
+    }
+    if (!empty($deletedInCivi)) {
+      \Civi::log()->warning('Contacts in Mautic with CiviCRM contact IDs that do not exist in CiviCRM: ' . implode(', ', $deletedInCivi));
+    }
+
     return $stats;
   }
 
