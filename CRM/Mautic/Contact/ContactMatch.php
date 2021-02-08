@@ -110,7 +110,7 @@ class CRM_Mautic_Contact_ContactMatch {
    *  2. Field referencing the mautic contact on CiviCRM Contacts.
    *  3. Application of dedupe rules from contact values.
    *
-   * @param array[] $mauticContact
+   * @param array $mauticContact
    *
    * @return int|NULL
    *  Id of a CiviCRM contact.
