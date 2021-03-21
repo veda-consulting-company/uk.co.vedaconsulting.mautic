@@ -24,7 +24,8 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
         return;
       }
       $output_stats = [];
-      $this->assign('dry_run', $stats['dry_run']);
+      $this->assign('dry_run', $stats['dry_run'] ?? NULL);
+      $this->assign('mauticDeletedInCivi', $stats['deletedInCivi'] ?? NULL);
       foreach ($groups as $group_id => $details) {
         if (empty($details['segment_name'])) {
           continue;

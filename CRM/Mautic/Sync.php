@@ -427,7 +427,7 @@ class CRM_Mautic_Sync {
 
   /**
    * For matched civi contacts, update the custom fields that reference a mautic contact.
-   * @return array[]
+   * @return array
    */
   public function updateContactReferenceFields() {
     $stats = ['updatedContactReferenceFields' => 0];
@@ -486,10 +486,15 @@ class CRM_Mautic_Sync {
     ';
     $deletedInCiviDao = CRM_Core_DAO::executeQuery($deletedInCiviQuery);
     while ($deletedInCiviDao->fetch()) {
-      $deletedInCivi[] = "{$deletedInCiviDao->mautic_contact_id}:{$deletedInCiviDao->civicrm_contact_id}";
+      $deletedInCivi[] = [
+        'mautic_cid' => $deletedInCiviDao->mautic_contact_id,
+        'civicrm_cid' => $deletedInCiviDao->civicrm_contact_id
+      ];
     }
     if (!empty($deletedInCivi)) {
-      \Civi::log()->warning('Contacts in Mautic with CiviCRM contact IDs that do not exist in CiviCRM: ' . implode(', ', $deletedInCivi));
+      $stats['deletedInCivi'] = $deletedInCivi;
+      \Civi::log()->warning('Contacts in Mautic with CiviCRM contact IDs that do not exist in CiviCRM: ' . print_r
+        ($deletedInCivi, TRUE));
     }
 
     return $stats;
