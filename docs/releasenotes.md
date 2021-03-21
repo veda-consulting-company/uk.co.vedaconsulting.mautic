@@ -9,6 +9,11 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.2
+
+* Display missing CiviCRM contacts on manual sync summary.
+* CiviRules (2.23) now enforces case sensitive for entities.
+
 ## Release 1.1
 
 * Catch errors and continue processing webhooks if one fails.
