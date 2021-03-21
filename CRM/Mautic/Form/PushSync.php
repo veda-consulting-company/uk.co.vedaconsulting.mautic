@@ -16,24 +16,24 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
    * @see CRM_Core_Form::preProcess()
    */
   function preProcess() {
-    $state = CRM_Utils_Request::retrieve('state', 'String', CRM_Core_DAO::$_nullObject, FALSE, 'tmp', 'GET');
+    $state = CRM_Utils_Request::retrieveValue('state', 'String', 'tmp', FALSE, 'GET');
     if ($state == 'done') {
       $stats = \Civi::settings()->get('mautic_push_stats');
       $groups = CRM_Mautic_Utils::getGroupsToSync();
       if (!$groups) {
         return;
       }
-      $output_stats = array();
+      $output_stats = [];
       $this->assign('dry_run', $stats['dry_run']);
       foreach ($groups as $group_id => $details) {
         if (empty($details['segment_name'])) {
           continue;
         }
         $segment_stats = $stats[$details['segment_id']];
-        $output_stats[] = array(
+        $output_stats[] = [
           'name' => $details['civigroup_title'],
           'stats' => $segment_stats,
-        );
+        ];
       }
       $this->assign('stats', $output_stats);
 
@@ -84,12 +84,12 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
         ts('Dry Run? (if ticked no changes will be made to CiviCRM or Mautic.)'));
 
       // Create the Submit Button.
-      $buttons = array(
-        array(
+      $buttons = [
+        [
           'type' => 'submit',
           'name' => ts('Sync Contacts'),
-        ),
-      );
+        ],
+      ];
       $this->addButtons($buttons);
     }
     if ($wont) {
@@ -120,11 +120,11 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
    */
   public static function getRunner($skipEndUrl = FALSE, $dry_run = FALSE) {
     // Setup the Queue
-    $queue = CRM_Queue_Service::singleton()->create(array(
+    $queue = CRM_Queue_Service::singleton()->create([
       'name'  => self::QUEUE_NAME,
       'type'  => 'Sql',
       'reset' => TRUE,
-    ));
+    ]);
 
     // reset push stats
     $stats = ['dry_run' => $dry_run];
@@ -168,12 +168,12 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     }
 
     // Setup the Runner
-    $runnerParams = array(
+    $runnerParams = [
       'title' => ($dry_run ? ts('Dry Run: ') : '') . ts('Mautic Push Sync: update Mautic from CiviCRM'),
       'queue' => $queue,
       'errorMode'=> CRM_Queue_Runner::ERROR_ABORT,
       'onEndUrl' => CRM_Utils_System::url(self::END_URL, self::END_PARAMS, TRUE, NULL, FALSE),
-    );
+    ];
     // Skip End URL to prevent redirect
     // if calling from cron job
     if ($skipEndUrl == TRUE) {
@@ -198,42 +198,42 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
     // It's important that this comes before the Mautic one, as some
     // fast contact matching SQL can run if it's done this way.
     $ctx->queue->createItem(new CRM_Queue_Task(
-      array('CRM_Mautic_Form_PushSync', 'syncPushCollectCiviCRM'),
-      array($segmentID),
+      ['CRM_Mautic_Form_PushSync', 'syncPushCollectCiviCRM'],
+      [$segmentID],
       "$identifier: Fetched data from CiviCRM, fetching from Mautic..."
     ));
 
     // Add the Mautic collect data task to the queue
     $ctx->queue->createItem(new CRM_Queue_Task(
-      array('CRM_Mautic_Form_PushSync', 'syncPushCollectMautic'),
-      array($segmentID),
+      ['CRM_Mautic_Form_PushSync', 'syncPushCollectMautic'],
+      [$segmentID],
       "$identifier: Fetched data from Mautic. Matching..."
     ));
 
     // Match contacts.
     $ctx->queue->createItem(new CRM_Queue_Task(
-      array('CRM_Mautic_Form_PushSync', 'syncPushMatchContacts'),
-      array($segmentID),
+      ['CRM_Mautic_Form_PushSync', 'syncPushMatchContacts'],
+      [$segmentID],
       "$identifier: Matched up contacts. Comparing..."
     ));
     // Populate CiviCRM contacts with the mautic contact reference.
     $ctx->queue->createItem(new CRM_Queue_Task(
-      array('CRM_Mautic_Form_PushSync', 'syncPushUpdateReferenceFields'),
-      array($segmentID, $dry_run),
+      ['CRM_Mautic_Form_PushSync', 'syncPushUpdateReferenceFields'],
+      [$segmentID, $dry_run],
       "$identifier: Updated contact reference fields."
     ));
 
     // Add the Mautic collect data task to the queue
     $ctx->queue->createItem(new CRM_Queue_Task(
-      array('CRM_Mautic_Form_PushSync', 'syncPushIgnoreInSync'),
-      array($segmentID),
+      ['CRM_Mautic_Form_PushSync', 'syncPushIgnoreInSync'],
+      [$segmentID],
       "$identifier: Ignored any in-sync already. Updating Mautic..."
     ));
 
     // Add the Mautic changes
     $ctx->queue->createItem(new CRM_Queue_Task(
-      array('CRM_Mautic_Form_PushSync', 'syncPushToMautic'),
-      array($segmentID, $dry_run),
+      ['CRM_Mautic_Form_PushSync', 'syncPushToMautic'],
+      [$segmentID, $dry_run],
       "$identifier: Completed additions/updates/unsubscribes."
     ));
 
@@ -333,7 +333,6 @@ class CRM_Mautic_Form_PushSync extends CRM_Core_Form {
 
     return CRM_Queue_Task::TASK_SUCCESS;
   }
-
 
   /**
    * Update the push stats setting.
