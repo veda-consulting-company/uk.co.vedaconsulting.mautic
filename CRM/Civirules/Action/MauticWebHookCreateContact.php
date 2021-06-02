@@ -23,7 +23,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     U::checkDebug(__CLASS__ . '::' . __FUNCTION__);
     $webhook = $triggerData->getEntityData('MauticWebHook');
     $params = $this->getActionParameters();
-    $updateContact = $params['if_matching_civicrm_contact'] == 'update';
+    $updateContact = ($params['if_matching_civicrm_contact'] === 'update');
     $contactParams = [
       'contact_type' => 'Individual',
     ];
