@@ -73,16 +73,22 @@ class CRM_Mautic_Contact_FieldMapping {
   /**
    * Sets doNotContact when Converting to a Mautic contact.
    *
-   * @param array[] $civiContact
-   * @param array[] $mauticContact
+   * @param array $civiContact
+   * @param array $mauticContact
    */
-  public static function commsPrefsCiviToMautic($civiContact, &$mauticContact) {
-    if (!empty($civiContact['is_opt_out']) || !empty($civiContact['do_not_email'])) {
+  public static function commsPrefsCiviToMautic($civiContact, $mauticContact) {
+    if (empty($civiContact['is_opt_out']) && empty($civiContact['do_not_email'])) {
+      // Set email channel to contactable in Mautic
+      $mauticContact['doNotContact'] = [];
+    }
+    elseif (!empty($civiContact['is_opt_out']) || !empty($civiContact['do_not_email'])) {
+      // Set email channel to do not contact: email
        $mauticContact['doNotContact'][] = [
          'channel' => 'email',
          'reason' => Mautic\Api\Contacts::MANUAL,
        ];
     }
+    return $mauticContact;
   }
 
   /**

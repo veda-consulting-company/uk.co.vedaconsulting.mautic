@@ -1401,11 +1401,8 @@ class CRM_Mautic_Sync {
       $params['tags'] = $tagHelper->getCiviTagsForMautic($civi_details['civicrm_contact_id'], TRUE);
     }
     // Comms Prefs.
-    CRM_Mautic_Contact_FieldMapping::commsPrefsCiviToMautic($civi_details['contact'], $params);
-    // I think possibly some installations don't have Multibyte String Functions
-    // installed?
-    $lower = function_exists('mb_strtolower') ? 'mb_strtolower' : 'strtolower';
-    //
+    $params = CRM_Mautic_Contact_FieldMapping::commsPrefsCiviToMautic($civi_details['contact'], $params);
+
     // The contact exists in mautic but is not a member of the group.
     // This will just need adding to the group.
     if (!empty($civi_details['mautic_contact_id']) && empty($mautic_details['mautic_contact_id'])) {
@@ -1416,7 +1413,7 @@ class CRM_Mautic_Sync {
       $params['civicrm_contact_id'] = $civi_details['civicrm_contact_id'];
     }
 
-    if ($civi_details['email'] && $lower($civi_details['email']) != $lower($mautic_details['email'])) {
+    if ($civi_details['email'] && mb_strtolower($civi_details['email']) != mb_strtolower($mautic_details['email'])) {
       // This is the case for additions; when we're adding someone new.
       $params['email'] = $civi_details['email'];
     }
