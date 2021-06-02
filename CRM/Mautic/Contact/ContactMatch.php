@@ -15,7 +15,7 @@ class CRM_Mautic_Contact_ContactMatch {
   /**
    * Retrieve available dedupe rule options for settings form.
    *
-   * @return array[]
+   * @return array
    */
   public static function getDedupeRules() {
     $dao = CRM_Core_DAO::executeQuery("
@@ -67,7 +67,7 @@ class CRM_Mautic_Contact_ContactMatch {
   /**
    * Gets a civicrm contact id set from mautic contact data.
    *
-   * @param [] $mauticContact
+   * @param array $mauticContact
    * @return NULL|int
    */
   public static function getContactReferenceFromMautic($mauticContact) {
@@ -79,7 +79,7 @@ class CRM_Mautic_Contact_ContactMatch {
   /**
    * Apply deduping rules to find a civicrm contact id from Mautic contact data.
    *
-   * @param array[] $mauticContact
+   * @param array $mauticContact
    *
    * @return mixed|void|null
    * @throws \CRM_Core_Exception

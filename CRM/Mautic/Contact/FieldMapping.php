@@ -50,8 +50,8 @@ class CRM_Mautic_Contact_FieldMapping {
   /**
    * Alter the converted contact communication prefs to include  subscription changes on Mautic.
    *
-   * @param array[] $mauticContact
-   * @param array[] $contact
+   * @param array $mauticContact
+   * @param array $contact
    */
   public static function commsPrefsMauticToCivi($mauticContact, &$contact) {
     // The doNotContact field appears to have an empty array when false and a nested empty array when true.
@@ -95,7 +95,7 @@ class CRM_Mautic_Contact_FieldMapping {
    * look in the first level of properties then in the fields.
    *
    * @param string $key
-   * @param array[] $data
+   * @param array $data
    *
    * @return mixed
    */
@@ -111,10 +111,10 @@ class CRM_Mautic_Contact_FieldMapping {
   /**
    * Converts between Mautic and CiviCRM values.
    *
-   * @param array[] $contactData
+   * @param array $contactData
    * @param boolean $civiToMautic
    *
-   * @return array[]
+   * @return array
    */
   protected static function convertContact($contactData, $civiToMautic = TRUE) {
     $mapping = static::getMapping();
@@ -138,11 +138,11 @@ class CRM_Mautic_Contact_FieldMapping {
   }
 
   /**
-   * @param array[] $contact
+   * @param array $contact
    *   CiviCRM contact
    * @param bool $includeTags
    *
-   * @return array[]
+   * @return array
    */
   public static function convertToMauticContact($contact, $includeTags = FALSE) {
     $mauticContact = static::convertContact($contact, TRUE);
@@ -153,17 +153,17 @@ class CRM_Mautic_Contact_FieldMapping {
         $mauticContact['tags'] = $tagHelper->getCiviTagsForMautic($contact['id']);
       }
     }
-    self::commsPrefsCiviToMautic($contact, $mauticContact);
+    $mauticContact = self::commsPrefsCiviToMautic($contact, $mauticContact);
     return $mauticContact;
   }
 
   /**
    * Converts mautic contact data to values for a civicrm contact.
    *
-   * @param array[] $mauticContact
+   * @param array $mauticContact
    * @param bool $includeTags
    *
-   * @return array[]
+   * @return array
    */
   public static function convertToCiviContact($mauticContact, $includeTags = FALSE) {
     $contact = static::convertContact($mauticContact, FALSE);
@@ -174,7 +174,7 @@ class CRM_Mautic_Contact_FieldMapping {
 
   /**
    * Saves tags from a Mautic to a CiviCRM contact.
-   * @param array[] $mauticContact
+   * @param array $mauticContact
    * @param int $contactId
    */
   public static function saveMauticTagsToCiviContact($mauticContact, $contactId) {
