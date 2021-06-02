@@ -83,7 +83,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       'processed_date' => date('YmdHis'),
     ];
     // Update the WebHook entity to store the data.
-    // This will trigger the MauticWebhook in CiviRules.
+    // This will trigger the MauticWebHook in CiviRules.
     civicrm_api3('MauticWebHook', 'create', $params);
   }
 
@@ -138,7 +138,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       'subject' => E::ts('Webhook: %1', [1 => static::getTriggerLabel($trigger)]),
       'source_contact_id' => $cid,
       'custom_' . $fieldInfo['Trigger_Event'] => str_replace('mautic.', '', $trigger),
-      // No need to store Payload data, it's saved to MauticWebhook entity.
+      // No need to store Payload data, it's saved to MauticWebHook entity.
       'custom_' . $fieldInfo['Data'] => '', //json_encode($mauticContact),
     ];
     $result = civicrm_api3('Activity', 'create', $params);

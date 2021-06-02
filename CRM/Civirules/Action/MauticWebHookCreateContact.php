@@ -28,6 +28,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       'contact_type' => 'Individual',
     ];
     if (!empty($triggerData->getContactId())) {
+      // This is an existing contact.
       if ($updateContact) {
         // Update with the ID.
         $contactParams['id'] = $triggerData->getContactId();
@@ -36,9 +37,6 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
         // Skip. Do nothing.
         return;
       }
-    }
-    else {
-      // This is a new contact.
     }
 
     // Get the contact data from the webhook.

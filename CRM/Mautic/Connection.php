@@ -92,9 +92,11 @@ class CRM_Mautic_Connection {
   public function getConnectedUser() {
     if (!$this->connectedUser) {
       $userApi = $this->newApi('users');
-      $this->connectedUser = $userApi->getSelf();
+      if ($userApi) {
+        $this->connectedUser = $userApi->getSelf();
+      }
     }
-    return $this->connectedUser;
+    return $this->connectedUser ?? NULL;
   }
 
   /**
