@@ -1,4 +1,10 @@
 <?php
+
+use Civi\Api4\Activity;
+use Civi\Api4\Contact;
+use CRM_Mautic_ExtensionUtil as E;
+use CRM_Mautic_Utils as U;
+
 class CRM_Mautic_Contact_FieldMapping {
 
   /**
@@ -16,6 +22,19 @@ class CRM_Mautic_Contact_FieldMapping {
     // We treat the civi contact id separately.
     'id' => 'civicrm_contact_id',
     'civicrm_contact_id' => 'civicrm_contact_id',
+  ];
+
+  /**
+   * @var string[]
+   *   The CiviCRM contact communication preferences fields
+   */
+  protected static $commsPrefFields = [
+    'do_not_email',
+    'do_not_phone',
+    'do_not_mail',
+    'do_not_sms',
+    'do_not_trade',
+    'is_opt_out'
   ];
 
   /**
@@ -53,21 +72,22 @@ class CRM_Mautic_Contact_FieldMapping {
    * @param array $mauticContact
    * @param array $contact
    */
-  public static function commsPrefsMauticToCivi($mauticContact, &$contact) {
+  public static function commsPrefsMauticToCivi($mauticContact, $contact) {
     // The doNotContact field appears to have an empty array when false and a nested empty array when true.
     // Not sure how to interpret this. So will use the channel and status property which is included
     // in the payload for webook mautic.lead_channel_subscription_changed.
     $channel = self::lookupMauticValue('channel', $mauticContact);
     if (!$channel) {
-      return;
+      return $contact;
     }
     $status = self::lookupMauticValue('new_status', $mauticContact);
     // Only make a change if channel is explicitly set.
-    if ($channel == 'email' && $status) {
+    if (($channel === 'email') && $status) {
       // Can be contactable|manual.
       $contact['is_opt_out'] = $status != 'contactable';
       // We wont set do_not_email here.
     }
+    return $contact;
   }
 
   /**
@@ -137,7 +157,7 @@ class CRM_Mautic_Contact_FieldMapping {
         if ($getKey == 'civicrm_contact_id') {
           $getKey = 'id';
         }
-        $convertedContact[$setKey] = CRM_Utils_Array::value($getKey, $contactData);
+        $convertedContact[$setKey] = $contactData[$getKey] ?? NULL;
       }
     }
     return $convertedContact;
@@ -173,7 +193,7 @@ class CRM_Mautic_Contact_FieldMapping {
    */
   public static function convertToCiviContact($mauticContact, $includeTags = FALSE) {
     $contact = static::convertContact($mauticContact, FALSE);
-    self::commsPrefsMauticToCivi($mauticContact, $contact);
+    $contact = self::commsPrefsMauticToCivi($mauticContact, $contact);
     unset($contact['civicrm_contact_id']);
     return $contact;
   }
@@ -190,4 +210,83 @@ class CRM_Mautic_Contact_FieldMapping {
     $tagHelper = new CRM_Mautic_Tag();
     $tagHelper->saveContactTags($tagNames, $contactId);
   }
+
+  /**
+   * Have any of the core contact communication preferences changed?
+   *
+   * @param array $contact
+   *
+   * @return bool
+   */
+  public static function hasCiviContactCommunicationPreferencesChanged($contact) {
+    foreach (self::$commsPrefFields as $key) {
+      if (array_key_exists($key, $contact)) {
+        $hasCommsPrefs = TRUE;
+        break;
+      }
+    }
+
+    if ($hasCommsPrefs && empty($contact['id'])) {
+      // We're creating a new contact which has comms preferences set.
+      return TRUE;
+    }
+
+    // Get the existing contact and check if any of the fields will change
+    $existingContact = Contact::get(FALSE)
+      ->addSelect(...self::$commsPrefFields)
+      ->addWhere('id', '=', $contact['id'])
+      ->execute()
+      ->first();
+    foreach (self::$commsPrefFields as $key) {
+      if (isset($contact[$key]) && ((bool) $existingContact[$key] !== (bool) $contact[$key])) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Create a "Update Communication Preferences" activity when preferences are changed via Mautic and updated in
+   * CiviCRM.
+   *
+   * @param array $civicrmContact
+   *   The CiviCRM contact params that were updated
+   * @param array $mauticContact
+   *   The Mautic contact params that were sent by Mautic
+   *
+   * @return int|null
+   * @throws \CiviCRM_API3_Exception
+   */
+  public static function createCommsPrefsActivity($civicrmContact, $mauticContact) {
+    foreach (self::$commsPrefFields as $key) {
+      if (isset($civicrmContact[$key])) {
+        $commsPrefs[$key] = $civicrmContact[$key];
+      }
+    }
+    if (empty($commsPrefs)) {
+      return NULL;
+    }
+
+    try {
+      $activity = Activity::create(FALSE)
+        ->addValue('subject', 'Mautic')
+        ->addValue('source_contact_id', $civicrmContact['id'])
+        ->addValue('target_contact_id', $civicrmContact['id'])
+        ->addValue('details', json_encode($commsPrefs, JSON_PRETTY_PRINT))
+        ->addValue('activity_date_time', $mauticContact['dateModified'] ?? date('YmdHis'))
+        ->addValue('status_id:name', 'Completed')
+        ->addValue('activity_type_id:name', 'Update_Communication_Preferences')
+        ->execute()
+        ->first();
+    }
+    catch (Exception $e) {
+      // Do nothing. If it fails we probably don't have GDPR extension installed so no "Update Communication
+      // Preferences" activity.
+    }
+
+    U::checkDebug('Created "Update Communication Preferences" activity ' . $activity['id']);
+    return $activity['id'] ?? NULL;
+  }
+
 }

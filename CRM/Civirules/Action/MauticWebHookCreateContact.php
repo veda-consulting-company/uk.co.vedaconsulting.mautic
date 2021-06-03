@@ -1,4 +1,6 @@
 <?php
+
+use Civi\Api4\Contact;
 use CRM_Mautic_Utils as U;
 use CRM_Mautic_ExtensionUtil as E;
 
@@ -71,10 +73,29 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     }
     try {
       $contactParams = array_filter($contactParams, function($val) { return !is_null($val);});
-      $result = civicrm_api3('Contact', 'create', $contactParams);
-      U::checkDebug($contactParams['id'] ? 'Update contact' : 'Create contact', $contactParams);
 
-      $contactId = $result['id'];
+      if (!empty($contactParams['id'])) {
+        $commsPrefsChanged = CRM_Mautic_Contact_FieldMapping::hasCiviContactCommunicationPreferencesChanged($contactParams);
+        $updatedContact = Contact::update(FALSE)
+          ->setValues($contactParams)
+          ->execute()
+          ->first();
+      }
+      else {
+        $commsPrefsChanged = TRUE;
+        $updatedContact = Contact::create(FALSE)
+          ->setValues($contactParams)
+          ->execute()
+          ->first();
+      }
+
+      U::checkDebug($contactParams['id'] ? 'Update contact' : 'Create contact', $contactParams);
+      // Create "Update Communication Preferences" activity if they changed
+      if ($commsPrefsChanged) {
+        CRM_Mautic_Contact_FieldMapping::createCommsPrefsActivity($contactParams, $mauticContact);
+      }
+
+      $contactId = $updatedContact['id'];
       // Set the contact id for other rule actions.
       if (!empty($contactId) && !$triggerData->getContactId()) {
         $triggerData->setContactId($contactId);
