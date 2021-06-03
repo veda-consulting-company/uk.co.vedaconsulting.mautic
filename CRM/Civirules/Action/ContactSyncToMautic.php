@@ -43,7 +43,7 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
     $commsPrefsChanged = CRM_Mautic_Contact_FieldMapping::hasCiviContactCommunicationPreferencesChanged(
       $civicrmContact, $triggerData->getOriginalData()
     );
-    $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($civicrmContact, TRUE);
+    $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($civicrmContact, TRUE, TRUE);
     $mauticContactId = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact($civicrmContact);
 
     if ($mauticContact) {

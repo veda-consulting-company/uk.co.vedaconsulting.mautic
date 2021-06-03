@@ -39,15 +39,22 @@ class CRM_Mautic_Contact_FieldMapping {
 
   /**
    * Gets a set of civi to mautic field names.
+   * @param bool $api4
+   *   Whether to return the mapping for custom fields in API4 or API3 format
    *
    * @return string|array|string[]
    */
-  public static function getMapping() {
+  public static function getMapping($api4 = TRUE) {
     $mapping = static::$defaultFieldMapping;
     // Map the custom field referencing the Mautic contact id.
-    $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
-    if (!empty($mautic_field_info['id'])) {
-      $mapping['custom_' . $mautic_field_info['id']] = 'id';
+    if ($api4) {
+      $mapping['Mautic_Contact.Mautic_Contact_ID'] = 'id';
+    }
+    else {
+      $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
+      if (!empty($mautic_field_info['id'])) {
+        $mapping['custom_' . $mautic_field_info['id']] = 'id';
+      }
     }
     return $mapping;
   }
@@ -149,8 +156,8 @@ class CRM_Mautic_Contact_FieldMapping {
    *
    * @return array
    */
-  protected static function convertContact($contactData, $civiToMautic = TRUE) {
-    $mapping = static::getMapping();
+  protected static function convertContact($contactData, $civiToMautic = TRUE, $api4 = TRUE) {
+    $mapping = static::getMapping($api4);
     CRM_Mautic_Utils::checkDebug(__FUNCTION__, ['contactData' => $contactData, 'fieldMapping' => $mapping]);
     if (!$civiToMautic) {
       $mapping = array_flip($mapping);
@@ -174,11 +181,13 @@ class CRM_Mautic_Contact_FieldMapping {
    * @param array $contact
    *   CiviCRM contact
    * @param bool $includeTags
+   * @param bool $api4
+   *   Whether to return custom fields in API4 format
    *
    * @return array
    */
-  public static function convertToMauticContact($contact, $includeTags = FALSE) {
-    $mauticContact = static::convertContact($contact, TRUE);
+  public static function convertToMauticContact($contact, $includeTags = FALSE, $api = TRUE) {
+    $mauticContact = static::convertContact($contact, TRUE, TRUE);
     if ($includeTags) {
       $tagHelper = new CRM_Mautic_Tag();
       if ($tagHelper->isSync()) {
@@ -195,11 +204,13 @@ class CRM_Mautic_Contact_FieldMapping {
    *
    * @param array $mauticContact
    * @param bool $includeTags
+   * @param bool $api4
+   *   Whether to return custom fields in API4 format
    *
    * @return array
    */
-  public static function convertToCiviContact($mauticContact, $includeTags = FALSE) {
-    $contact = static::convertContact($mauticContact, FALSE);
+  public static function convertToCiviContact($mauticContact, $includeTags = FALSE, $api4 = TRUE) {
+    $contact = static::convertContact($mauticContact, FALSE, $api4);
     $contact = self::commsPrefsMauticToCivi($mauticContact, $contact);
     unset($contact['civicrm_contact_id']);
     return $contact;

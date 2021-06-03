@@ -90,7 +90,7 @@ class CRM_Mautic_Contact_ContactMatch {
       U::checkDebug("No dedupe rule selected. Skipping.");
       return;
     }
-    $contactData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact);
+    $contactData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact, FALSE, FALSE);
     $ruleType = 'Unsupervised';
     $contactType = 'Individual';
 

@@ -63,8 +63,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     $isPartialContact = empty($mauticContact['fields']);
 
     // Convert from Mautic to Civi contact fields.
-    $convertedData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact);
-
+    $convertedData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact, FALSE, TRUE);
     if ($convertedData) {
       $contactParams += $convertedData;
     }
