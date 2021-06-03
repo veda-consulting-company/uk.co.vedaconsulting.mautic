@@ -138,9 +138,8 @@ class CRM_Mautic_Contact_ContactMatch {
     if (empty($contact['id'])) {
       return NULL;
     }
-    // Use custom field value.
-    U::checkDebug("Looking for mautic contact reference in contact.");
 
+    // Use custom field value.
     if ($api4) {
       $key = 'Mautic_Contact.Mautic_Contact_ID';
     }
@@ -148,7 +147,9 @@ class CRM_Mautic_Contact_ContactMatch {
       $key = 'custom_' . CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID')['id'];
     }
 
-    return $contact[$key] ?? NULL;
+    $mauticContactID = $contact[$key] ?? NULL;
+    U::checkDebug("Looking for mautic contact reference in contact.", $mauticContactID);
+    return $mauticContactID;
   }
 
 }
