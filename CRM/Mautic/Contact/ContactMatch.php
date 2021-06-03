@@ -35,14 +35,6 @@ class CRM_Mautic_Contact_ContactMatch {
   }
 
   /**
-   * @return int|null
-   */
-  public static function getMauticContactReferenceFieldId() {
-    $mautic_field_info = CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID');
-    return $mautic_field_info['id'] ?? NULL;
-  }
-
-  /**
    * Find a contact with a reference to a Mautic Contact.
    *
    * @param int $mauticContactId
@@ -115,7 +107,7 @@ class CRM_Mautic_Contact_ContactMatch {
    * @return int|NULL
    *  Id of a CiviCRM contact.
    */
-  public static function getCiviFromMauticContact($mauticContact) {
+  public static function getCiviContactIDFromMauticContact($mauticContact) {
     U::checkDebug('get civi from mautic contact');
     // Look for contact reference in the Mautic Contact.
     $contactId = self::getContactReferenceFromMautic($mauticContact);
@@ -137,20 +129,26 @@ class CRM_Mautic_Contact_ContactMatch {
    * Attempt to find a Mautic Contact Id for a CiviCRM Contact.
    *
    * @param array $contact
+   * @param bool $api4
+   *   Whether to return custom fields in API4 format
    *
    * @return int|NULL
    */
-  public static function getMauticFromCiviContact($contact) {
+  public static function getMauticContactIDFromCiviContact($contact, $api4 = TRUE) {
     if (empty($contact['id'])) {
       return NULL;
     }
     // Use custom field value.
     U::checkDebug("Looking for mautic contact reference in contact.");
-    $key = 'custom_' . self::getMauticContactReferenceFieldId();
-    $mauticContactId = $contact[$key] ?? NULL;
-    if ($mauticContactId) {
-      return $mauticContactId;
+
+    if ($api4) {
+      $key = 'Mautic_Contact.Mautic_Contact_ID';
     }
+    else {
+      $key = 'custom_' . CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID')['id'];
+    }
+
+    return $contact[$key] ?? NULL;
   }
 
 }

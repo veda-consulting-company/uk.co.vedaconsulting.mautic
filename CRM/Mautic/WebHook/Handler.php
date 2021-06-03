@@ -18,7 +18,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
    * @return int|NULL
    */
   public function identifyContact($mauticContact) {
-    return CRM_Mautic_Contact_ContactMatch::getCiviFromMauticContact($mauticContact);
+    return CRM_Mautic_Contact_ContactMatch::getCiviContactIDFromMauticContact($mauticContact);
   }
 
   /**
