@@ -53,6 +53,13 @@ class CRM_Mautic_Contact_FieldMapping {
   }
 
   /**
+   * @return string[]
+   */
+  public static function getCommsPrefsFields() {
+    return self::$commsPrefFields;
+  }
+
+  /**
    * @param $data
    * @param string $civiFieldName
    * @param string $default
@@ -214,36 +221,64 @@ class CRM_Mautic_Contact_FieldMapping {
   /**
    * Have any of the core contact communication preferences changed?
    *
-   * @param array $contact
+   * @param array $newContact
+   * @param array $existingContact
    *
    * @return bool
    */
-  public static function hasCiviContactCommunicationPreferencesChanged($contact) {
+  public static function hasCiviContactCommunicationPreferencesChanged($newContact, $existingContact) {
     foreach (self::$commsPrefFields as $key) {
-      if (array_key_exists($key, $contact)) {
+      if (array_key_exists($key, $newContact)) {
         $hasCommsPrefs = TRUE;
         break;
       }
     }
 
-    if ($hasCommsPrefs && empty($contact['id'])) {
+    if ($hasCommsPrefs && empty($newContact['id'])) {
       // We're creating a new contact which has comms preferences set.
       return TRUE;
     }
 
-    // Get the existing contact and check if any of the fields will change
-    $existingContact = Contact::get(FALSE)
-      ->addSelect(...self::$commsPrefFields)
-      ->addWhere('id', '=', $contact['id'])
-      ->execute()
-      ->first();
+    // Check if any of the fields have changed from the existing contact
     foreach (self::$commsPrefFields as $key) {
-      if (isset($contact[$key]) && ((bool) $existingContact[$key] !== (bool) $contact[$key])) {
+      if (isset($newContact[$key]) && ((bool) $existingContact[$key] !== (bool) $newContact[$key])) {
         return TRUE;
       }
     }
 
     return FALSE;
+  }
+
+  /**
+   * Push the comms preferences ("Do not Contact" channels) from CiviCRM to Mautic
+   * This is written to support additional channels in the future.
+   *
+   * @param \Mautic\Api\Contacts $api
+   * @param int $mauticContactID
+   * @param array $civicrmContact
+   */
+  public static function pushCommsPrefsToMautic($api, $mauticContactID, $civicrmContact) {
+    if ((bool)$civicrmContact['do_not_email'] === TRUE) {
+      $civicrmContact['is_opt_out'] = TRUE;
+    }
+    foreach (CRM_Mautic_Contact_FieldMapping::getCommsPrefsFields() as $field) {
+      if (isset($civicrmContact[$field])) {
+        switch ($field) {
+          case 'is_opt_out':
+            $channel = 'email';
+            if ((bool) $civicrmContact[$field] === TRUE) {
+              // We don't need to "add" because that happens automatically via contact push..
+              // $api->addDnc($mauticContactID, $channel, \Mautic\Api\Contacts::MANUAL, NULL, 'via CiviCRM');
+            }
+            else {
+              // ..but we can't remove a "do not contact" via standard API push
+              // so have to call removeDnc explicitly
+              $api->removeDnc($mauticContactID, $channel);
+            }
+            break;
+        }
+      }
+    }
   }
 
   /**

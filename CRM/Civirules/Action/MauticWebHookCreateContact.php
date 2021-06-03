@@ -75,7 +75,12 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       $contactParams = array_filter($contactParams, function($val) { return !is_null($val);});
 
       if (!empty($contactParams['id'])) {
-        $commsPrefsChanged = CRM_Mautic_Contact_FieldMapping::hasCiviContactCommunicationPreferencesChanged($contactParams);
+        $existingContact = Contact::get(FALSE)
+          ->addSelect(...CRM_Mautic_Contact_FieldMapping::getCommsPrefsFields())
+          ->addWhere('id', '=', $contactParams['id'])
+          ->execute()
+          ->first();
+        $commsPrefsChanged = CRM_Mautic_Contact_FieldMapping::hasCiviContactCommunicationPreferencesChanged($contactParams, $existingContact);
         $updatedContact = Contact::update(FALSE)
           ->setValues($contactParams)
           ->execute()

@@ -3,14 +3,16 @@
  *
  * CiviRules action to create contact from Mautic Webhook.
  */
+
+use Civi\Api4\Contact;
 use CRM_Mautic_Utils as U;
 use CRM_Mautic_Connection as MC;
 
 class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
 
-  protected $ruleAction = array();
+  protected $ruleAction = [];
 
-  protected $action = array();
+  protected $action = [];
 
   /**
    * Process the action
@@ -24,36 +26,49 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
       return;
     }
     // The civi api gives more data compared to $triggerData::getEntityData().
-    $contact_id = $triggerData->getContactId();
+    $civicrmContactID = $triggerData->getContactId();
+    if (empty($civicrmContactID)) {
+      return;
+    }
+
     $fields = CRM_Mautic_Contact_FieldMapping::getMapping();
     unset($fields['civicrm_contact_id']);
-    $commsPrefs = ['is_opt_out', 'do_not_email', 'do_not_phone', 'do_not_sms', 'do_not_mail'];
-    $fields = array_merge(array_keys($fields), $commsPrefs);
-    $contact = civicrm_api3('Contact', 'getsingle', ['id' => $contact_id, 'return' => $fields]);
-    if ($contact) {
-      $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($contact, TRUE);
-      $mauticContactId = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact($contact);
+    $fields = array_merge(array_keys($fields), CRM_Mautic_Contact_FieldMapping::getCommsPrefsFields());
+    $civicrmContact = Contact::get(FALSE)
+      ->addSelect(...$fields)
+      ->addWhere('id', '=', $civicrmContactID)
+      ->execute()
+      ->first();
 
-      if ($mauticContact) {
-        $api = MC::singleton()->newApi('contacts');
-        if ($mauticContactId) {
-          U::checkDebug("Updating mautic contact.", $mauticContact);
-          $response = $api->edit($mauticContactId, $mauticContact);
+    $commsPrefsChanged = CRM_Mautic_Contact_FieldMapping::hasCiviContactCommunicationPreferencesChanged(
+      $civicrmContact, $triggerData->getOriginalData()
+    );
+    $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($civicrmContact, TRUE);
+    $mauticContactId = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact($civicrmContact);
+
+    if ($mauticContact) {
+      /** @var \Mautic\Api\Contacts $api */
+      $api = MC::singleton()->newApi('contacts');
+      if ($mauticContactId) {
+        U::checkDebug("Updating mautic contact.", $mauticContact);
+        $response = $api->edit($mauticContactId, $mauticContact);
+        if ($commsPrefsChanged) {
+          CRM_Mautic_Contact_FieldMapping::pushCommsPrefsToMautic($api, $mauticContactId, $civicrmContact);
         }
-        else {
-          U::checkDebug("Creating mautic contact.", $mauticContact);
-          $response = $api->create($mauticContact);
-        }
-        if (!$mauticContactId && !empty($response['contact']['id'])) {
-          $mauticContactId = $response['contact']['id'];
-        }
-        // Save mautic id to custom field if it is not stored already.
-        U::saveMauticIDCustomField($contact, $mauticContactId);
-        // Sync segments from Civi Groups.
-        // For this to be effective with smart groups the rule should have a delay
-        // greater than smartgroup cache timeout.
-        U::syncContactSegmentsFromGroups($contact_id, $mauticContactId);
       }
+      else {
+        U::checkDebug("Creating mautic contact.", $mauticContact);
+        $response = $api->create($mauticContact);
+      }
+      if (!$mauticContactId && !empty($response['contact']['id'])) {
+        $mauticContactId = $response['contact']['id'];
+      }
+      // Save mautic id to custom field if it is not stored already.
+      U::saveMauticIDCustomField($civicrmContact, $mauticContactId);
+      // Sync segments from Civi Groups.
+      // For this to be effective with smart groups the rule should have a delay
+      // greater than smartgroup cache timeout.
+      U::syncContactSegmentsFromGroups($civicrmContactID, $mauticContactId);
     }
   }
 
