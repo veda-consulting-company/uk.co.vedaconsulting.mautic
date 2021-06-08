@@ -10,9 +10,10 @@ class CRM_Mautic_Page_WebHook extends CRM_Core_Page {
    */
   public function run() {
     $civi_key = CRM_Mautic_WebHook::getkey();
-    $request_key = CRM_Utils_Request::retrieve('key', 'String', CRM_Core_DAO::$_nullObject, TRUE, NULL, 'GET');
+    $request_key = CRM_Utils_Request::retrieveValue('key', 'String', NULL, FALSE, 'GET');
     if (!$civi_key || $request_key != $civi_key) {
-       throw new Exception("Invalid Mautic Webhook key.");
+      http_response_code(400);
+      exit(1);
     }
     // Process.
     $rawData = file_get_contents("php://input");
