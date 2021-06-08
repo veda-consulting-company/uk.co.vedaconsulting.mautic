@@ -138,6 +138,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       ->addValue('subject', E::ts('Webhook: %1', [1 => static::getTriggerLabel($trigger)]))
       ->addValue('source_contact_id', $contactID)
       ->addValue('target_contact_id', $contactID)
+      ->addValue('status_id:name', 'Completed')
       ->addValue('Mautic_Webhook_Data.Trigger_Event', str_replace('mautic.', '', $trigger))
       ->addValue('Mautic_Webhook_Data.Data', "MauticWebHook Entity ID: {$mauticWebHookEntityID}")
       ->execute()
