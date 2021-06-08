@@ -101,7 +101,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
           ->addValue('is_primary', TRUE)
           ->execute()
           ->first();
-        if (!$email) {
+        if (!$email || ($email['email'] === $contactParams['email'])) {
           Email::create(FALSE)
             ->addValue('contact_id', $contactParams['id'])
             ->addValue('email', $contactParams['email'])
