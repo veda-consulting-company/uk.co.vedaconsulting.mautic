@@ -98,7 +98,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       if (!empty($contactParams['email'])) {
         $email = Email::get(FALSE)
           ->addWhere('contact_id', '=', $contactParams['id'])
-          ->addWhere('email', '=', $contactParams['email'])
+          ->addValue('is_primary', TRUE)
           ->execute()
           ->first();
         if (!$email) {
