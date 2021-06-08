@@ -82,6 +82,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
           ->first();
         $commsPrefsChanged = CRM_Mautic_Contact_FieldMapping::hasCiviContactCommunicationPreferencesChanged($contactParams, $existingContact);
         $updatedContact = Contact::update(FALSE)
+          ->addWhere('id', '=', $contactParams['id'])
           ->setValues($contactParams)
           ->execute()
           ->first();
@@ -89,7 +90,6 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       else {
         $commsPrefsChanged = TRUE;
         $updatedContact = Contact::create(FALSE)
-          ->addWhere('id', '=', $contactParams['id'])
           ->setValues($contactParams)
           ->execute()
           ->first();
@@ -98,13 +98,13 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       // Add contact email
       if (!empty($contactParams['email'])) {
         $email = Email::get(FALSE)
-          ->addWhere('contact_id', '=', $contactParams['id'])
+          ->addWhere('contact_id', '=', $updatedContact['id'])
           ->addWhere('is_primary', '=', TRUE)
           ->execute()
           ->first();
         if (!$email) {
           Email::create(FALSE)
-            ->addValue('contact_id', $contactParams['id'])
+            ->addValue('contact_id', $updatedContact['id'])
             ->addValue('email', $contactParams['email'])
             ->addValue('is_primary', TRUE)
             ->execute()
