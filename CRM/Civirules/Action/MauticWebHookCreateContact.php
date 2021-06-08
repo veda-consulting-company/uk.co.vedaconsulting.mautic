@@ -89,6 +89,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       else {
         $commsPrefsChanged = TRUE;
         $updatedContact = Contact::create(FALSE)
+          ->addWhere('id', '=', $contactParams['id'])
           ->setValues($contactParams)
           ->execute()
           ->first();
@@ -98,16 +99,22 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       if (!empty($contactParams['email'])) {
         $email = Email::get(FALSE)
           ->addWhere('contact_id', '=', $contactParams['id'])
-          ->addValue('is_primary', TRUE)
+          ->addWhere('is_primary', '=', TRUE)
           ->execute()
           ->first();
-        if (!$email || ($email['email'] === $contactParams['email'])) {
+        if (!$email) {
           Email::create(FALSE)
             ->addValue('contact_id', $contactParams['id'])
             ->addValue('email', $contactParams['email'])
             ->addValue('is_primary', TRUE)
             ->execute()
             ->first();
+        }
+        else {
+          Email::update(FALSE)
+            ->addWhere('id', '=', $email['id'])
+            ->addValue('email', $contactParams['email'])
+            ->execute();
         }
       }
 
