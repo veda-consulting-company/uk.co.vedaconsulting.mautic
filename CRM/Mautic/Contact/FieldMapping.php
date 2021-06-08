@@ -239,6 +239,7 @@ class CRM_Mautic_Contact_FieldMapping {
    */
   public static function hasCiviContactCommunicationPreferencesChanged($newContact, $existingContact) {
     foreach (self::$commsPrefFields as $key) {
+      $hasCommsPrefs = FALSE;
       if (array_key_exists($key, $newContact)) {
         $hasCommsPrefs = TRUE;
         break;

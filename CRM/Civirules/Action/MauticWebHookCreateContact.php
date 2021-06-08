@@ -1,6 +1,7 @@
 <?php
 
 use Civi\Api4\Contact;
+use Civi\Api4\Email;
 use CRM_Mautic_Utils as U;
 use CRM_Mautic_ExtensionUtil as E;
 
@@ -91,6 +92,23 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
           ->setValues($contactParams)
           ->execute()
           ->first();
+      }
+
+      // Add contact email
+      if (!empty($contactParams['email'])) {
+        $email = Email::get(FALSE)
+          ->addWhere('contact_id', '=', $contactParams['id'])
+          ->addWhere('email', '=', $contactParams['email'])
+          ->execute()
+          ->first();
+        if (!$email) {
+          Email::create(FALSE)
+            ->addValue('contact_id', $contactParams['id'])
+            ->addValue('email', $contactParams['email'])
+            ->addValue('is_primary', TRUE)
+            ->execute()
+            ->first();
+        }
       }
 
       U::checkDebug($contactParams['id'] ? 'Update contact' : 'Create contact', $contactParams);
