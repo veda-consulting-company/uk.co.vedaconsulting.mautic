@@ -94,7 +94,6 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
           ->addValue('source', 'Mautic')
           ->execute()
           ->first();
-        $contactParams['id'] = $updatedContact['id'];
       }
 
       // Add contact email
@@ -123,7 +122,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       U::checkDebug($contactParams['id'] ? 'Update contact' : 'Create contact', $contactParams);
       // Create "Update Communication Preferences" activity if they changed
       if ($commsPrefsChanged) {
-        CRM_Mautic_Contact_FieldMapping::createCommsPrefsActivity($contactParams, $mauticContact);
+        CRM_Mautic_Contact_FieldMapping::createCommsPrefsActivity($updatedContact, $mauticContact);
       }
 
       $contactId = $updatedContact['id'];
