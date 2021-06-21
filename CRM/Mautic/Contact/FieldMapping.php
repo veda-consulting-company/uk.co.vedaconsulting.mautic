@@ -146,6 +146,7 @@ class CRM_Mautic_Contact_FieldMapping {
     if (isset($data['fields']['core'][$key]['value'])) {
       return $data['fields']['core'][$key]['value'];
     }
+    return NULL;
   }
 
   /**
@@ -214,6 +215,52 @@ class CRM_Mautic_Contact_FieldMapping {
     $contact = self::commsPrefsMauticToCivi($mauticContact, $contact);
     unset($contact['civicrm_contact_id']);
     return $contact;
+  }
+
+  /**
+   * @param array $mauticContact
+   * @param integer $contactID
+   */
+  public static function saveMauticAddressToCiviContact($mauticContact, $contactID) {
+    $civiCRMToMauticMapping = [
+      'street_address' => 'address1',
+      'supplemental_address_1' => 'address2',
+      'city' => 'city',
+      'state_province_id:name' => 'state',
+      'postal_code' => 'zipcode',
+      'country_id:name' => 'country',
+    ];
+
+    foreach ($civiCRMToMauticMapping as $civiCRMKey => $mauticKey) {
+      $address[$civiCRMKey] = static::lookupMauticValue($mauticKey, $mauticContact) ?? NULL;
+    }
+
+    try {
+      if (!empty($address)) {
+        $address = \Civi\Api4\Address::get(FALSE)
+          ->addWhere('contact_id', '=', $contactID)
+          ->addWhere('is_primary', '=', TRUE)
+          ->execute()
+          ->first();
+        if (!$address) {
+          \Civi\Api4\Address::create(FALSE)
+            ->setValues($address)
+            ->addValue('contact_id', $contactID)
+            ->addValue('is_primary', TRUE)
+            ->execute()
+            ->first();
+        }
+        else {
+          \Civi\Api4\Address::update(FALSE)
+            ->addWhere('id', '=', $address['id'])
+            ->setValues($address)
+            ->execute();
+        }
+      }
+    }
+    catch (Exception $e) {
+      \Civi::log()->error('Mautic error updating contact address. ' . $e->getMessage());
+    }
   }
 
   /**

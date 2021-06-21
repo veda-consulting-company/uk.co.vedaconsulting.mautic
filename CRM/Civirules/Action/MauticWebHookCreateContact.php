@@ -119,6 +119,9 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
         }
       }
 
+      // Add contact address
+      CRM_Mautic_Contact_FieldMapping::saveMauticAddressToCiviContact($mauticContact, $updatedContact['id']);
+
       U::checkDebug($contactParams['id'] ? 'Update contact' : 'Create contact', $contactParams);
       // Create "Update Communication Preferences" activity if they changed
       if ($commsPrefsChanged) {
