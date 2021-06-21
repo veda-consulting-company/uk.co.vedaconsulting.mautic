@@ -2,6 +2,7 @@
 
 use Civi\Api4\Activity;
 use Civi\Api4\Contact;
+use Civi\Api4\Address;
 use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Utils as U;
 
@@ -218,6 +219,8 @@ class CRM_Mautic_Contact_FieldMapping {
   }
 
   /**
+   * Save the Mautic contact address to the CiviCRM Contact primary address
+   *
    * @param array $mauticContact
    * @param integer $contactID
    */
@@ -228,22 +231,36 @@ class CRM_Mautic_Contact_FieldMapping {
       'city' => 'city',
       'state_province_id:name' => 'state',
       'postal_code' => 'zipcode',
-      'country_id:name' => 'country',
+      'country_id' => 'country',
     ];
 
     foreach ($civiCRMToMauticMapping as $civiCRMKey => $mauticKey) {
-      $address[$civiCRMKey] = static::lookupMauticValue($mauticKey, $mauticContact) ?? NULL;
+      $addressValue = static::lookupMauticValue($mauticKey, $mauticContact);
+      if (!empty($addressValue)) {
+        switch ($mauticKey) {
+          case 'country':
+            $addressValue = \Civi\Api4\Country::get(FALSE)
+              ->addSelect('id')
+              ->addWhere('name', '=', $addressValue)
+              ->execute()
+              ->first()['id'] ?? NULL;
+            break;
+        }
+        if (!empty($addressValue)) {
+          $address[$civiCRMKey] = $addressValue;
+        }
+      }
     }
 
     try {
       if (!empty($address)) {
-        $address = \Civi\Api4\Address::get(FALSE)
+        $existingAddress = Address::get(FALSE)
           ->addWhere('contact_id', '=', $contactID)
           ->addWhere('is_primary', '=', TRUE)
           ->execute()
           ->first();
-        if (!$address) {
-          \Civi\Api4\Address::create(FALSE)
+        if (!$existingAddress) {
+          Address::create(FALSE)
             ->setValues($address)
             ->addValue('contact_id', $contactID)
             ->addValue('is_primary', TRUE)
@@ -251,8 +268,8 @@ class CRM_Mautic_Contact_FieldMapping {
             ->first();
         }
         else {
-          \Civi\Api4\Address::update(FALSE)
-            ->addWhere('id', '=', $address['id'])
+          Address::update(FALSE)
+            ->addWhere('id', '=', $existingAddress['id'])
             ->setValues($address)
             ->execute();
         }

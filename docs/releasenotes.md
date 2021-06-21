@@ -13,7 +13,7 @@ Releases use the following numbering system:
 
 * Add Upgrader to change the operation for existing MauticWebHook Trigger from create to edit.
 * Fix case when accessing CiviRules trigger data.
-* Fix various PHP warnings. 
+* Fix various PHP warnings.
 
 ## Release 1.2
 

@@ -21,6 +21,18 @@ It currently provides:
 
 Compatible with Mautic version 3.
 
+### What is synchronised?
+
+* Contact First/Last name.
+* Contact email (synced with primary email for contact, default location type).
+* Address (synced with primary address for contact, default location type). Currently only synced from Mautic to CiviCRM.
+* Tags.
+* CiviCRM Groups can be mapped to Mautic "Segments".
+* Contact Communication Preferences fields. CiviCRM is_opt_out (and do_not_email) maps to Mautic "Contact Preferences Centre" Email channel.
+Other fields are not currently synced.
+* If the [GDPR extension](https://civicrm.org/extensions/gdpr) is installed an "Update Communication Preferences" activity is created
+each time the Contact communication preferences are updated via Mautic.
+
 ## Prerequisites
 
 You will need full system access to a running Mautic installation.
@@ -162,7 +174,7 @@ The action to create contacts from Mautic can add or update contacts accordingly
 When matching contacts, the extension checks for reference to the contact id on a custom field (2-way).
 If a valid reference isn't found, it falls back to a dedupe rule (configured in the main extensions settings).
 
-### Other Condtions
+### Other Conditions
 The other conditions are based on various properties of the incoming Mautic contact.
 - Mautic Contact has a tag
 - Mautic Contact field has a particular value
