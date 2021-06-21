@@ -9,6 +9,17 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.4 (not yet released)
+
+* Sync contact address from Mautic to CiviCRM.
+* Set Contact Source to "Mautic" when created via Mautic.
+* Create webhook activity in Completed status.
+* Fixes to email/contact update/create on Mautic -> CiviCRM sync.
+* Allow changing an existing email when syncing mautic -> CiviCRM.
+* Fix error on processing mautic.lead_post_delete (which we don't do anything with).
+* Add support for pushing communication preferences to Mautic (removing 'Do Not Contact' from Mautic contact).
+* Create 'Update Communication Preferences' activity when updated via Mautic.
+
 ## Release 1.3
 
 * Add Upgrader to change the operation for existing MauticWebHook Trigger from create to edit.
