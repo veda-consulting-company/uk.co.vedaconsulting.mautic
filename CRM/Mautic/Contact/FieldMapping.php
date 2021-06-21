@@ -330,6 +330,7 @@ class CRM_Mautic_Contact_FieldMapping {
     catch (Exception $e) {
       // Do nothing. If it fails we probably don't have GDPR extension installed so no "Update Communication
       // Preferences" activity.
+      \Civi::log()->warning('Mautic unable to create "Update Communication Preferences" activity. ' . $e->getMessage());
     }
 
     U::checkDebug('Created "Update Communication Preferences" activity ' . $activity['id']);

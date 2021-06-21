@@ -218,7 +218,7 @@ class CRM_Mautic_Connection {
         'settingsValues' => $settings,
         'missingSettings' => $missing,
       ]);
-      return;
+      throw new CRM_Mautic_Exception_APIException('Missing settings for Mautic Connection');
     }
     $this->settings = $settings;
     $this->baseUrl = $settings['mautic_connection_url'];

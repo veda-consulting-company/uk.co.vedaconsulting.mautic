@@ -22,7 +22,7 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     if (U::$skipUpdatesToMautic) {
-      U::checkDebug('Skipping update to Mautic because contact has just been synched.');
+      U::checkDebug('Skipping update to Mautic because contact has just been synced.');
       return;
     }
     // The civi api gives more data compared to $triggerData::getEntityData().
