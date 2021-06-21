@@ -91,8 +91,10 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
         $commsPrefsChanged = TRUE;
         $updatedContact = Contact::create(FALSE)
           ->setValues($contactParams)
+          ->addValue('source', 'Mautic')
           ->execute()
           ->first();
+        $contactParams['id'] = $updatedContact['id'];
       }
 
       // Add contact email
