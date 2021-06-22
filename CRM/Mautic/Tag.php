@@ -71,7 +71,7 @@ class CRM_Mautic_Tag {
       if ($property && empty($return[$property])) {
         return;
       }
-      else {
+      elseif ($property) {
         $return = $return[$property];
       }
     }
