@@ -33,6 +33,9 @@ function civicrm_api3_mautic_Pushsync($params) {
     $stats = \Civi::settings()->get('mautic_push_stats');
     foreach ($stats as $sid => $info) {
       $log .= "\n\n Segment: $sid; \n";
+      if (!$info) {
+        continue;
+      }
       foreach ($info as $k => $v) {
         $log .= "$k: $v;\n";
       }
