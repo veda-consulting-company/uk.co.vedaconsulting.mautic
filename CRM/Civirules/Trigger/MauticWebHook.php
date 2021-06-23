@@ -58,7 +58,7 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
    */
   public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
     $triggerData = $this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
-    if (isset($triggerData->getEntityData('mauticwebhook')['civirules_do_not_process'])) {
+    if (isset($triggerData->getEntityData('MauticWebHook')['civirules_do_not_process'])) {
       return;
     }
     CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
