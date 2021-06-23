@@ -37,6 +37,9 @@ function civicrm_api3_mautic_Pushsync($params) {
         continue;
       }
       foreach ($info as $k => $v) {
+        if (!isset($v) || !is_string($v)) {
+          continue;
+        }
         $log .= "$k: $v;\n";
       }
     }
