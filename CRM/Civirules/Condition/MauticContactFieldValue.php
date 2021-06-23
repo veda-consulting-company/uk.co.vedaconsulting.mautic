@@ -36,7 +36,7 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     $field_name = $this->conditionParams['field_name'];
     $searchValue = $this->conditionParams[$field_name];
-    $webhook = $triggerData->getEntityData('mauticwebhook');
+    $webhook = $triggerData->getEntityData('MauticWebHook');
     if ($searchValue && $webhook) {
       $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook['data']);
       if (!empty($contact['fields']['core'][$field_name])) {

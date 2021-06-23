@@ -34,7 +34,7 @@ class CRM_Civirules_Condition_MauticContactHasTag extends CRM_Civirules_Conditio
    * @access public
    */
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    $webhook = $triggerData->getEntityData('mauticwebhook');
+    $webhook = $triggerData->getEntityData('MauticWebHook');
     $mauticContact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook['data']);
     if (empty($mauticContact['tags'])) {
       return FALSE;

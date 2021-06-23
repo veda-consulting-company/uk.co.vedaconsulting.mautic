@@ -104,8 +104,14 @@ function mautic_civicrm_buildForm($formName, &$form) {
   if ($form->isSubmitted()) {
     return;
   }
+  // Add Settings Template.
+  // For Editing a group, then adding to regions other than html-header
+  // results in duplicate elements.
+  // For Adding a group, the html-header region inserts the template before
+  // CRM.$ is loaded.
+  $region = $form->getAction() == CRM_Core_Action::ADD ? 'page-footer' : 'html-header';
 
-  CRM_Core_Region::instance('html-header')->add(
+  CRM_Core_Region::instance($region)->add(
     ['template' => 'CRM/Group/MauticSettings.tpl']);
 
   if (($form->getAction() == CRM_Core_Action::ADD) || ($form->getAction() == CRM_Core_Action::UPDATE)) {

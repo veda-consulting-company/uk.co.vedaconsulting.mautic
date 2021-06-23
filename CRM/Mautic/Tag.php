@@ -38,6 +38,7 @@ class CRM_Mautic_Tag {
   }
 
   public function __construct($params = []) {
+    $params = $params? $params: [];
     $this->syncTagMethod = CRM_Utils_Array::value('sync_tag_method', $params, Civi::settings()->get('mautic_sync_tag_method'));
     $this->tagParent = CRM_Utils_Array::value('sync_tag_parent', $params, Civi::settings()->get('mautic_sync_tag_parent'));
   }
@@ -71,7 +72,7 @@ class CRM_Mautic_Tag {
       if ($property && empty($return[$property])) {
         return;
       }
-      else {
+      elseif ($property) {
         $return = $return[$property];
       }
     }
@@ -159,6 +160,7 @@ class CRM_Mautic_Tag {
   private function getMauticContactTags($contactId) {
     $tags = $this->getData($contactId, 'mautic_contact', 'tags');
     if (!$tags) {
+      $tags = [];
       $contact = $this->getData($contactId, 'civicrm_contact');
       $contact = $contact ? $contact : ['id' => $contactId];
       $mauticId = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact($contact);

@@ -35,9 +35,14 @@ class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition 
    * @access public
    */
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    $webhook = $triggerData->getEntityData('mauticwebhook');
+    $webhook = $triggerData->getEntityData('MauticWebHook');
     $negate = $this->conditionParams['operator'];
-    $type = str_replace('mautic.', '', $webhook['webhook_trigger_type']);
+    $type = str_replace('mautic.', '', CRM_Utils_Array::value('webhook_trigger_type', $webhook, ''));
+    // If no type can be found, return early.
+    if (!$type) {
+      CRM_Mautic_Utils::checkDebug("Cannot find Type in MauticWebHook trigger data.", $webhook);
+      return FALSE;
+    }
     CRM_Mautic_Utils::checkDebug("Checking for {$type} against", $this->getSelectedTypes());
     $isType = $type && in_array($type, $this->getSelectedTypes());
     return $negate ? !$isType : $isType;
