@@ -21,4 +21,4 @@ It currently provides:
 
 Compatible with Mautic version 3.
 
-Documentation: (https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic/blob/master/docs/index.md)
+Documentation: https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic/blob/master/docs/index.md
