@@ -119,15 +119,24 @@ By default the job is set to run daily. If you are setting this to run more freq
 to run.
 Alternatively, you can keep the scheduled job disabled and set up a separate system cron job to run the api command *mautic.pushsync* by itself.
 
+
 ## Processing Webhook events with CiviRules
 
+### Creating the Webhook on Mautic
 When the extension is initially configured with a connection, it creates a webhook on the Mautic installation.
 Webhooks allow CiviCRM to act on changes on Mautic.
 You can check the status of the webhook from the CiviCRM installation at: *Administer -> Mautic -> Connection*.
 You should see the webhook from the Mautic installation at: *Settings -> Webhooks*.
 
+### Process Mautic Webhooks Scheduled Job
+Incoming events from Mautic are initially stored without further action to reduce the time that Mautic needs to wait for a response. 
+
+If you intend to act on events from Mautic, you should ensure the *Process Mautic Webhooks* Scheduled Job is enabled.
+The job can be scheduled to run on every time cron is run.
+
+### CiviRules Trigger 
 A [CiviRules](https://docs.civicrm.org/civirules/en/latest) trigger is available to process these events.
-Typically, you'd create one or more rules with the *Mautic WebHook processed* trigger and the *Create Contact from Mautic WebHook Data* to sync contacts into CiviCRM from Mautic, using conditions according to your case.
+Typically, you'd create one or more rules with the *Mautic WebHook processed* trigger and the *Create Contact from Mautic WebHook Data* action to sync contacts into CiviCRM from Mautic, using conditions according to your case.
 
 Note, if you install CiviRules after the Mautic extension, go to *Administer > Mautic -> Connection* where you'll be able to register the Trigger, Condition and Action types.
 
