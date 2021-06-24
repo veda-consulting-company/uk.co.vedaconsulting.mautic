@@ -40,25 +40,34 @@ For development/testing, a [Mautic Docker image](https://hub.docker.com/r/mautic
 ## Getting started
 
 ### Create a dedicated user on Mautic
-On the Mautic installation, create a user with full API, Webhook and Contact permissions.
-This will be a dedicated user for the extension.
+On the Mautic installation, go to *Settings -> Users* and click the *New* button. 
+Create a user with full API, Webhook and Contact permissions. (If you have not created any roles, give it the *Administrator* role).
+Give it a username like 'CiviCRM' so it is clearly distinguished from normal users.
+Keep a note of the password. You will need it when authenticating the extension.
+
 
 ### Enable Mautic's API
-On the Mautic installation, navigate to *Settings -> Configuration -> API Settings*. Toggle 'API enabled'.
+On the Mautic installation, navigate to *Settings -> Configuration -> API Settings*. 
+Toggle 'API enabled'.
 
-### Configure authentication
+### Configure authentication methods on Mautic
 Mautic provides authentication by HTTP basic auth, OAuth1a and OAuth2.
+OAuth2 is recommended for production installations. 
+HTTP Basic authentication can be used if you are testing locally or otherwise do not have https set up.
 
-If you intend to use HTTP basic auth, navigate to  *Settings -> Configuration -> API Settings* and set 'Enable HTTP auth' to 'Yes'.
+#### HTTP Basic Auth
+On the Mautic installation, navigate to  *Settings -> Configuration -> API Settings* and set 'Enable HTTP auth' to 'Yes'.
 
+#### OAuth
 If you intend to use OAuth, go to *Settings -> API Credentials*.
 Click *New*, select whether the credentials are for OAuth 1 or OAuth 2 and give it a name.
 You will also need to provide a redirect URI. Use https://my-civicrm-installation/civicrm/admin/mautic/connection.
+(The redirect URI is printed at the top of the CiviCRM Mautic Settings page.)
 
-Once the credentials are created, a pair of public/secret keys will be available. You'll need these to configure the extension to use that protocol.
+Once the credentials are created, a pair of public/secret keys will be available. You'll need these when configuring the extension.
 
-
-After these changes, clear the Mautic cache. The easiest way to do this is to go to the  app/cache directory from Mautic filesystem root and delete its content.
+After these changes, clear the Mautic cache. You will need access to the Mautic files on the  Mautic host. 
+Go to the app/cache directory from Mautic filesystem root and delete its content.
 
 ### Create Segments
 On Mautic, [create one or more segments](https://docs.mautic.org/en/contacts/manage-segments).
