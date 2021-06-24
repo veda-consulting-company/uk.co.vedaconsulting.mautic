@@ -67,7 +67,7 @@ You will also need to provide a redirect URI. Use https://my-civicrm-installatio
 Once the credentials are created, a pair of public/secret keys will be available. You'll need these when configuring the extension.
 
 After these changes, clear the Mautic cache. You will need access to the Mautic files on the  Mautic host. 
-Go to the app/cache directory from Mautic filesystem root and delete its content.
+Go to the var/cache directory from Mautic filesystem root and delete its content.
 
 ### Create Segments
 On Mautic, [create one or more segments](https://docs.mautic.org/en/contacts/manage-segments).
