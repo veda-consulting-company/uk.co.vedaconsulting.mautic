@@ -30,7 +30,7 @@ You may also need filesystem access on the Mautic installation to clear the Maut
 
 ## Installing the extension
 
-1. Download extension from https://github.com/veda-consulting/uk.co.vedaconsulting.mautic/releases/latest.
+1. Download extension from https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic/releases/latest.
 2. Unzip / untar the package and place it in your configured extensions directory.
 3. When you reload the Manage Extensions page the “Mautic Integration” extension should be listed with an Install link.
 4. Proceed with install.
