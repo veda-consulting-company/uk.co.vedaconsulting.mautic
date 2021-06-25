@@ -56,7 +56,7 @@ OAuth2 is recommended for production installations.
 HTTP Basic authentication can be used if you are testing locally or otherwise do not have https set up.
 
 #### HTTP Basic Auth
-On the Mautic installation, navigate to  *Settings -> Configuration -> API Settings* and set 'Enable HTTP auth' to 'Yes'.
+On the Mautic installation, navigate to  *Settings -> Configuration -> API Settings* and set 'Enable HTTP basic auth?' to 'Yes'.
 
 #### OAuth
 If you intend to use OAuth, go to *Settings -> API Credentials*.
