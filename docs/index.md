@@ -30,7 +30,7 @@ You may also need filesystem access on the Mautic installation to clear the Maut
 
 ## Installing the extension
 
-1. Download extension from https://github.com/veda-consulting/uk.co.vedaconsulting.mautic/releases/latest.
+1. Download extension from https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic/releases/latest.
 2. Unzip / untar the package and place it in your configured extensions directory.
 3. When you reload the Manage Extensions page the “Mautic Integration” extension should be listed with an Install link.
 4. Proceed with install.
@@ -40,25 +40,34 @@ For development/testing, a [Mautic Docker image](https://hub.docker.com/r/mautic
 ## Getting started
 
 ### Create a dedicated user on Mautic
-On the Mautic installation, create a user with full API, Webhook and Contact permissions.
-This will be a dedicated user for the extension.
+On the Mautic installation, go to *Settings -> Users* and click the *New* button. 
+Create a user with full API, Webhook and Contact permissions. (If you have not created any roles, give it the *Administrator* role).
+Give it a username like 'CiviCRM' so it is clearly distinguished from normal users.
+Keep a note of the password. You will need it when authenticating the extension.
+
 
 ### Enable Mautic's API
-On the Mautic installation, navigate to *Settings -> Configuration -> API Settings*. Toggle 'API enabled'.
+On the Mautic installation, navigate to *Settings -> Configuration -> API Settings*. 
+Toggle 'API enabled'.
 
-### Configure authentication
+### Configure authentication methods on Mautic
 Mautic provides authentication by HTTP basic auth, OAuth1a and OAuth2.
+OAuth2 is recommended for production installations. 
+HTTP Basic authentication can be used if you are testing locally or otherwise do not have https set up.
 
-If you intend to use HTTP basic auth, navigate to  *Settings -> Configuration -> API Settings* and set 'Enable HTTP auth' to 'Yes'.
+#### HTTP Basic Auth
+On the Mautic installation, navigate to  *Settings -> Configuration -> API Settings* and set 'Enable HTTP basic auth?' to 'Yes'.
 
+#### OAuth
 If you intend to use OAuth, go to *Settings -> API Credentials*.
 Click *New*, select whether the credentials are for OAuth 1 or OAuth 2 and give it a name.
 You will also need to provide a redirect URI. Use https://my-civicrm-installation/civicrm/admin/mautic/connection.
+(The redirect URI is printed at the top of the CiviCRM Mautic Settings page.)
 
-Once the credentials are created, a pair of public/secret keys will be available. You'll need these to configure the extension to use that protocol.
+Once the credentials are created, a pair of public/secret keys will be available. You'll need these when configuring the extension.
 
-
-After these changes, clear the Mautic cache. The easiest way to do this is to go to the  app/cache directory from Mautic filesystem root and delete its content.
+After these changes, clear the Mautic cache. You will need access to the Mautic files on the  Mautic host. 
+Go to the var/cache directory from Mautic filesystem root and delete its content.
 
 ### Create Segments
 On Mautic, [create one or more segments](https://docs.mautic.org/en/contacts/manage-segments).
@@ -119,15 +128,24 @@ By default the job is set to run daily. If you are setting this to run more freq
 to run.
 Alternatively, you can keep the scheduled job disabled and set up a separate system cron job to run the api command *mautic.pushsync* by itself.
 
+
 ## Processing Webhook events with CiviRules
 
+### Creating the Webhook on Mautic
 When the extension is initially configured with a connection, it creates a webhook on the Mautic installation.
 Webhooks allow CiviCRM to act on changes on Mautic.
 You can check the status of the webhook from the CiviCRM installation at: *Administer -> Mautic -> Connection*.
 You should see the webhook from the Mautic installation at: *Settings -> Webhooks*.
 
+### Process Mautic Webhooks Scheduled Job
+Incoming events from Mautic are initially stored without further action to reduce the time that Mautic needs to wait for a response. 
+
+If you intend to act on events from Mautic, you should ensure the *Process Mautic Webhooks* Scheduled Job is enabled.
+The job can be scheduled to run on every time cron is run.
+
+### CiviRules Trigger 
 A [CiviRules](https://docs.civicrm.org/civirules/en/latest) trigger is available to process these events.
-Typically, you'd create one or more rules with the *Mautic WebHook processed* trigger and the *Create Contact from Mautic WebHook Data* to sync contacts into CiviCRM from Mautic, using conditions according to your case.
+Typically, you'd create one or more rules with the *Mautic WebHook processed* trigger and the *Create Contact from Mautic WebHook Data* action to sync contacts into CiviCRM from Mautic, using conditions according to your case.
 
 Note, if you install CiviRules after the Mautic extension, go to *Administer > Mautic -> Connection* where you'll be able to register the Trigger, Condition and Action types.
 

@@ -9,6 +9,12 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
+## Release 1.3
+
+* Add Upgrader to change the operation for existing MauticWebHook Trigger from create to edit.
+* Fix case when accessing CiviRules trigger data.
+* Fix various PHP warnings. 
+
 ## Release 1.2
 
 * Display missing CiviCRM contacts on manual sync summary.
