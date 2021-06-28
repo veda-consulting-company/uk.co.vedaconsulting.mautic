@@ -85,7 +85,7 @@ return [
     'is_domain' => 1,
     'is_contact' => 0,
     'description' => 'Mautic Consumer Key',
-    'title' => 'Consumer Key',
+    'title' => 'Public Key',
     'help_text' => '',
     'html_type' => 'text',
     'html_attributes' => [
@@ -102,7 +102,7 @@ return [
     'is_domain' => 1,
     'is_contact' => 0,
     'description' => 'The OAuth 1.0 Consumer Secret from your Mautic installation',
-    'title' => 'Consumer Secret',
+    'title' => 'Secret Key',
     'help_text' => '',
     'html_type' => 'password',
     'html_attributes' => [
@@ -120,7 +120,7 @@ return [
     'is_domain' => 1,
     'is_contact' => 0,
     'description' => 'Mautic Client ID',
-    'title' => 'Client ID',
+    'title' => 'Public Key',
     'help_text' => '',
     'html_type' => 'text',
     'html_attributes' => [
@@ -137,7 +137,7 @@ return [
     'is_domain' => 1,
     'is_contact' => 0,
     'description' => 'The OAuth 2.0 Client Secret from your Mautic installation',
-    'title' => 'Client Secret',
+    'title' => 'Secret Key',
     'help_text' => '',
     'html_type' => 'password',
     'html_attributes' => [

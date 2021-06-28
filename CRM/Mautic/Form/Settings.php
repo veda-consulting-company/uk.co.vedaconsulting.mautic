@@ -18,6 +18,7 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
     // Assign settings before calling parent.
     $this->_settings = $this->getExtensionSettings();
     parent::buildQuickForm();
+    $this->applyFilter('mautic_connection_url', 'CRM_Mautic_Form_Settings::filterTrailingSlash');
     CRM_Core_Session::singleton()->pushUserContext(CRM_Utils_System::url('civicrm/admin/mautic/connection', 'reset=1'));
 
     $sections = $this->getFormSections();
@@ -32,6 +33,7 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
   public function postProcess() {
     parent::postProcess();
     $values = $this->exportValues();
+
     if ($values['mautic_sync_tag_method'] == 'sync_tag_children' && empty($values['mautic_sync_tag_parent'])) {
       $tid = CRM_Mautic_Tag::createParentTag();
       if ($tid) {
@@ -39,6 +41,18 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
         CRM_Core_Session::setStatus("Created new tag: 'Mautic'. $tid");
       }
     }
+  }
+
+  /**
+   * Strip trailing slash from URL.
+   * 
+   * @param string $value
+   * 
+   * @return string
+   */
+  public static function filterTrailingSlash($value) {
+    $end_pos = strlen($value) - 1;
+    return strrpos($value, '/') === $end_pos ? substr($value, 0, $end_pos) : $value;
   }
 
   protected function getExtensionSettings() {

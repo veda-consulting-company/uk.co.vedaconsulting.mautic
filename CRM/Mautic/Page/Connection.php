@@ -317,7 +317,7 @@ EOF;
       // Retrieve the connected user as a test.
       $this->apiUser = $testApi->getSelf();
       $responseInfo = $auth->getResponseInfo();
-      $this->mauticVersion = $testApi->getResponseHeaders()['mautic-version'] ?? 'Unknown';
+      $this->mauticVersion = $testApi->getResponseHeaders()['Mautic-Version'] ?? 'Unknown';
       return 200 == $responseInfo['http_code'];
     }
     return FALSE;
