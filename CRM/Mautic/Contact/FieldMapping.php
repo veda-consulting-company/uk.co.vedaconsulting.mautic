@@ -3,6 +3,7 @@
 use Civi\Api4\Activity;
 use Civi\Api4\Contact;
 use Civi\Api4\Address;
+use Civi\Api4\Country;
 use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Utils as U;
 
@@ -239,7 +240,7 @@ class CRM_Mautic_Contact_FieldMapping {
       if (!empty($addressValue)) {
         switch ($mauticKey) {
           case 'country':
-            $addressValue = \Civi\Api4\Country::get(FALSE)
+            $addressValue = Country::get(FALSE)
               ->addSelect('id')
               ->addWhere('name', '=', $addressValue)
               ->execute()
