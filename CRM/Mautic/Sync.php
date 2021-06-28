@@ -1,5 +1,6 @@
 <?php
 
+use Civi\Api4\Contact;
 use CRM_Mautic_Connection as MC;
 use CRM_Mautic_Utils as U;
 
@@ -155,12 +156,20 @@ class CRM_Mautic_Sync {
     // All mautic contacts are in the current segment.
     while ($members = $batchAPI->fetchBatch()) {
       foreach ($members as $member) {
+        $civicrm_contact_id = CRM_Mautic_Contact_FieldMapping::getValue($member, 'civicrm_contact_id', 0);
+        // Check if contact exists in CiviCRM and is not deleted
+        $contacts = Contact::get(FALSE)
+          ->addWhere('id', '=', $civicrm_contact_id)
+          ->addWhere('is_deleted', '=', FALSE)
+          ->execute();
+        if (!$contacts->count()) {
+          continue;
+        }
         $first_name = CRM_Mautic_Contact_FieldMapping::getValue($member, 'first_name');
         $last_name = CRM_Mautic_Contact_FieldMapping::getValue($member, 'last_name');
         $email = CRM_Mautic_Contact_FieldMapping::getValue($member, 'email');
         // Serialize the grouping array for SQL storage - this is the fastest way.
         $groupInfo = serialize($this->singleGroupMapping());
-        $civicrm_contact_id = CRM_Mautic_Contact_FieldMapping::getValue($member, 'civicrm_contact_id', 0);
         $mautic_contact_id = $member['id'];
         // for comparison with the hash created from the CiviCRM data (elsewhere).
         $hash = md5($first_name . $last_name . $email . $groupInfo);
