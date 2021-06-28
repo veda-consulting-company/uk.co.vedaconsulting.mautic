@@ -9,7 +9,7 @@ Releases use the following numbering system:
 
 * **[BC]**: Items marked with [BC] indicate a breaking change that will require updates to your code if you are using that code in your extension.
 
-## Release 1.4 (not yet released)
+## Release 1.4
 
 * Sync contact address from Mautic to CiviCRM.
 * Set Contact Source to "Mautic" when created via Mautic.
@@ -19,6 +19,7 @@ Releases use the following numbering system:
 * Fix error on processing mautic.lead_post_delete (which we don't do anything with).
 * Add support for pushing communication preferences to Mautic (removing 'Do Not Contact' from Mautic contact).
 * Create 'Update Communication Preferences' activity when updated via Mautic.
+* If a contact is deleted in CiviCRM and "Anonymous" in Mautic don't try to sync.
 
 ## Release 1.3
 
