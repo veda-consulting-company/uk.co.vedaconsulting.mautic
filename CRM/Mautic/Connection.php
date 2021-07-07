@@ -92,9 +92,11 @@ class CRM_Mautic_Connection {
   public function getConnectedUser() {
     if (!$this->connectedUser) {
       $userApi = $this->newApi('users');
-      $this->connectedUser = $userApi->getSelf();
+      if ($userApi) {
+        $this->connectedUser = $userApi->getSelf();
+      }
     }
-    return $this->connectedUser;
+    return $this->connectedUser ?? NULL;
   }
 
   /**
@@ -216,7 +218,7 @@ class CRM_Mautic_Connection {
         'settingsValues' => $settings,
         'missingSettings' => $missing,
       ]);
-      return;
+      throw new CRM_Mautic_Exception_APIException('Missing settings for Mautic Connection');
     }
     $this->settings = $settings;
     $this->baseUrl = $settings['mautic_connection_url'];

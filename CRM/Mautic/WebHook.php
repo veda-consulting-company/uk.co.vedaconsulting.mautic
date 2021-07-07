@@ -72,7 +72,7 @@ class CRM_Mautic_WebHook {
    *
    * @return array
    */
-  public static function getMauticWebhooks() {
+  public static function getMauticWebHooks() {
     $webhooksApi = MC::singleton()->newApi('webhooks');
     // Get webhooks registered from this URL.
     // Match on host and path, without schema or key.
@@ -112,7 +112,7 @@ class CRM_Mautic_WebHook {
    *   - invalid: Array of invalid hooks, including excess hooks.
    *   - valid: Array of valid hooks. Should not contain more than one element.
    **/
-  public static function validateWebhook() {
+  public static function validateWebHook() {
     $hooks = self::getMauticWebhooks();
     // We are only interested in particular properties.
     $compareKeys = array_flip(['isPublished', 'webhookUrl']);
@@ -140,7 +140,7 @@ class CRM_Mautic_WebHook {
    * Creates new webhooks and removes invalid hooks from the Mautic installation.
    *
    */
-  public static function fixMauticWebhooks() {
+  public static function fixMauticWebHooks() {
     $hooks = self::validateWebhook();
     $api = MC::singleton()->newApi('webhooks');
     if (empty($hooks['valid']) && !empty(self::getEnabledTriggers())) {

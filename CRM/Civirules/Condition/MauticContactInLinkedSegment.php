@@ -37,7 +37,7 @@ class CRM_Civirules_Condition_MauticContactInLinkedSegment extends CRM_Civirules
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     return false;
   }
-  
+
   /**
    * Returns a user friendly text explaining the condition params
    *
@@ -47,7 +47,7 @@ class CRM_Civirules_Condition_MauticContactInLinkedSegment extends CRM_Civirules
   public function userFriendlyConditionParams() {
     return "Is in linked segment.";
   }
-  
+
   protected function getSelectedTags() {
     return explode(',', $this->conditionParams['mautic_tags']);
   }

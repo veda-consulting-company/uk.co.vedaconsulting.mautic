@@ -99,9 +99,6 @@ class CRM_Mautic_Utils {
    */
   public static function syncContactSegmentsFromGroups($contactID, $mauticContactID = NULL) {
     if (!$mauticContactID) {
-      $mauticContactID = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact(['id' => $contactID]);
-    }
-    if (!$mauticContactID) {
       return;
     }
     // Contact's current groups.

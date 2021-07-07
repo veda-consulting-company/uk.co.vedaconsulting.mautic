@@ -1,4 +1,7 @@
 <?php
+
+use Civi\Api4\Activity;
+use Civi\Api4\Contact;
 use CRM_Mautic_Connection as MC;
 use CRM_Mautic_ExtensionUtil as E;
 use CRM_Mautic_Utils as U;
@@ -18,7 +21,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
    * @return int|NULL
    */
   public function identifyContact($mauticContact) {
-    return CRM_Mautic_Contact_ContactMatch::getCiviFromMauticContact($mauticContact);
+    return CRM_Mautic_Contact_ContactMatch::getCiviContactIDFromMauticContact($mauticContact);
   }
 
   /**
@@ -69,9 +72,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     // We have extracted enough information for an action.
     if ($civicrmContactID) {
       // Create an activity for this contact.
-      // @todo Should this be a setting?
-      // Then we let users choose whether to create one by default or in a civi rule.
-      $activityID = $this->createActivity($webhook['webhook_trigger_type'], $civicrmContactID);
+      $activityID = $this->createActivity($webhook['webhook_trigger_type'], $civicrmContactID, $webhook['id']);
     }
     else {
       U::checkDebug("Webhook: no matching contact found for trigger: " . $webhook['webhook_trigger_type']);
@@ -83,7 +84,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       'processed_date' => date('YmdHis'),
     ];
     // Update the WebHook entity to store the data.
-    // This will trigger the MauticWebhook in CiviRules.
+    // This will trigger the MauticWebHook in CiviRules.
     civicrm_api3('MauticWebHook', 'create', $params);
   }
 
@@ -119,29 +120,29 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
 
   /**
    * @param string $trigger
-   * @param int $cid
+   * @param int $contactID
+   * @param int $mauticWebHookEntityID
    *
    * @return int|null
    * @throws \CiviCRM_API3_Exception
    */
-  public function createActivity($trigger, $cid) {
-    // We expect this to be called only om WebHook url.
-    $fieldInfo = [];
-    $fieldResult = civicrm_api3('CustomField', 'get', [
-      'custom_group_id' => "Mautic_Webhook_Data",
-    ]);
-    foreach ($fieldResult['values'] as $field) {
-      $fieldInfo[$field['name']] = $field['id'];
+  public function createActivity($trigger, $contactID, $mauticWebHookEntityID) {
+    // Source contact must exist. For a post_delete webhook that contact ID might not so we use the logged in user.
+    if (Contact::get(FALSE)
+      ->addWhere('id', '=', $contactID)
+      ->execute()->rowCount == 0) {
+      $contactID = CRM_Core_Session::getLoggedInContactID();
     }
-    $params = [
-      'activity_type_id' => static::activityType,
-      'subject' => E::ts('Webhook: %1', [1 => static::getTriggerLabel($trigger)]),
-      'source_contact_id' => $cid,
-      'custom_' . $fieldInfo['Trigger_Event'] => str_replace('mautic.', '', $trigger),
-      // No need to store Payload data, it's saved to MauticWebhook entity.
-      'custom_' . $fieldInfo['Data'] => '', //json_encode($mauticContact),
-    ];
-    $result = civicrm_api3('Activity', 'create', $params);
+    $result = Activity::create(FALSE)
+      ->addValue('activity_type_id:name', 'Mautic_Webhook_Triggered')
+      ->addValue('subject', E::ts('Webhook: %1', [1 => static::getTriggerLabel($trigger)]))
+      ->addValue('source_contact_id', $contactID)
+      ->addValue('target_contact_id', $contactID)
+      ->addValue('status_id:name', 'Completed')
+      ->addValue('Mautic_Webhook_Data.Trigger_Event', str_replace('mautic.', '', $trigger))
+      ->addValue('Mautic_Webhook_Data.Data', "MauticWebHook Entity ID: {$mauticWebHookEntityID}")
+      ->execute()
+      ->first();
     U::checkDebug('Created mautic webhook activity');
     return $result['id'] ?? NULL;
   }

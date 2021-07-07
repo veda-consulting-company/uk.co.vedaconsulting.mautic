@@ -1,4 +1,7 @@
 <?php
+
+use Civi\Api4\Contact;
+use Civi\Api4\Email;
 use CRM_Mautic_Utils as U;
 use CRM_Mautic_ExtensionUtil as E;
 
@@ -23,11 +26,12 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     U::checkDebug(__CLASS__ . '::' . __FUNCTION__);
     $webhook = $triggerData->getEntityData('MauticWebHook');
     $params = $this->getActionParameters();
-    $updateContact = $params['if_matching_civicrm_contact'] == 'update';
+    $updateContact = ($params['if_matching_civicrm_contact'] === 'update');
     $contactParams = [
       'contact_type' => 'Individual',
     ];
     if (!empty($triggerData->getContactId())) {
+      // This is an existing contact.
       if ($updateContact) {
         // Update with the ID.
         $contactParams['id'] = $triggerData->getContactId();
@@ -36,9 +40,6 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
         // Skip. Do nothing.
         return;
       }
-    }
-    else {
-      // This is a new contact.
     }
 
     // Get the contact data from the webhook.
@@ -63,8 +64,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     $isPartialContact = empty($mauticContact['fields']);
 
     // Convert from Mautic to Civi contact fields.
-    $convertedData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact);
-
+    $convertedData = CRM_Mautic_Contact_FieldMapping::convertToCiviContact($mauticContact, FALSE, TRUE);
     if ($convertedData) {
       $contactParams += $convertedData;
     }
@@ -73,10 +73,62 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     }
     try {
       $contactParams = array_filter($contactParams, function($val) { return !is_null($val);});
-      $result = civicrm_api3('Contact', 'create', $contactParams);
-      U::checkDebug($contactParams['id'] ? 'Update contact' : 'Create contact', $contactParams);
 
-      $contactId = $result['id'];
+      if (!empty($contactParams['id'])) {
+        $existingContact = Contact::get(FALSE)
+          ->addSelect(...CRM_Mautic_Contact_FieldMapping::getCommsPrefsFields())
+          ->addWhere('id', '=', $contactParams['id'])
+          ->execute()
+          ->first();
+        $commsPrefsChanged = CRM_Mautic_Contact_FieldMapping::hasCiviContactCommunicationPreferencesChanged($contactParams, $existingContact);
+        $updatedContact = Contact::update(FALSE)
+          ->addWhere('id', '=', $contactParams['id'])
+          ->setValues($contactParams)
+          ->execute()
+          ->first();
+      }
+      else {
+        $commsPrefsChanged = TRUE;
+        $updatedContact = Contact::create(FALSE)
+          ->setValues($contactParams)
+          ->addValue('source', 'Mautic')
+          ->execute()
+          ->first();
+      }
+
+      // Add contact email
+      if (!empty($contactParams['email'])) {
+        $email = Email::get(FALSE)
+          ->addWhere('contact_id', '=', $updatedContact['id'])
+          ->addWhere('is_primary', '=', TRUE)
+          ->execute()
+          ->first();
+        if (!$email) {
+          Email::create(FALSE)
+            ->addValue('contact_id', $updatedContact['id'])
+            ->addValue('email', $contactParams['email'])
+            ->addValue('is_primary', TRUE)
+            ->execute()
+            ->first();
+        }
+        else {
+          Email::update(FALSE)
+            ->addWhere('id', '=', $email['id'])
+            ->addValue('email', $contactParams['email'])
+            ->execute();
+        }
+      }
+
+      // Add contact address
+      CRM_Mautic_Contact_FieldMapping::saveMauticAddressToCiviContact($mauticContact, $updatedContact['id']);
+
+      U::checkDebug($contactParams['id'] ? 'Update contact' : 'Create contact', $contactParams);
+      // Create "Update Communication Preferences" activity if they changed
+      if ($commsPrefsChanged) {
+        CRM_Mautic_Contact_FieldMapping::createCommsPrefsActivity($updatedContact, $mauticContact);
+      }
+
+      $contactId = $updatedContact['id'];
       // Set the contact id for other rule actions.
       if (!empty($contactId) && !$triggerData->getContactId()) {
         $triggerData->setContactId($contactId);

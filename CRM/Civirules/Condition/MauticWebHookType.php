@@ -18,7 +18,7 @@ class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition 
    * @param array $ruleCondition
    * @access public
    */
-  public function setRuleConditionData($ruleCondition) {
+  public function setRuleConditionData(array $ruleCondition) {
     parent::setRuleConditionData($ruleCondition);
     $this->conditionParams = array();
     if (!empty($this->ruleCondition['condition_params'])) {

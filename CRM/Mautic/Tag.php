@@ -34,13 +34,12 @@ class CRM_Mautic_Tag {
       U::checkDebug("Create Parent Tag", $result);
     }
     U::checkDebug('create parent tag results', $result);
-    return CRM_Utils_Array::value('id', $result);
+    return $result['id'] ?? NULL;
   }
 
   public function __construct($params = []) {
-    $params = $params? $params: [];
-    $this->syncTagMethod = CRM_Utils_Array::value('sync_tag_method', $params, Civi::settings()->get('mautic_sync_tag_method'));
-    $this->tagParent = CRM_Utils_Array::value('sync_tag_parent', $params, Civi::settings()->get('mautic_sync_tag_parent'));
+    $this->syncTagMethod = $params['sync_tag_method'] ?? Civi::settings()->get('mautic_sync_tag_method');
+    $this->tagParent = $params['sync_tag_parent'] ?? Civi::settings()->get('mautic_sync_tag_parent');
   }
 
   public function isSync() {
@@ -62,15 +61,18 @@ class CRM_Mautic_Tag {
   /**
    * Get some cached contact data.
    *
-   * @param unknown $contactId
-   * @
+   * @param int $contactId
+   * @param string $from
+   * @param string $property
+   *
+   * @return array|NULL
    */
   protected function getData($contactId, $from = 'civicrm_contact', $property = NULL) {
     $return = [];
     if ($contactId && !empty($this->contactData[$contactId][$from])) {
       $return = $this->contactData[$contactId][$from];
       if ($property && empty($return[$property])) {
-        return;
+        return NULL;
       }
       elseif ($property) {
         $return = $return[$property];
@@ -155,25 +157,24 @@ class CRM_Mautic_Tag {
    * Get tags for the mautic contact.
    *
    * @param int $contactId
-   * @return void|unknown|mixed
+   * @return array|NULL
    */
   private function getMauticContactTags($contactId) {
     $tags = $this->getData($contactId, 'mautic_contact', 'tags');
     if (!$tags) {
-      $tags = [];
-      $contact = $this->getData($contactId, 'civicrm_contact');
-      $contact = $contact ? $contact : ['id' => $contactId];
-      $mauticId = CRM_Mautic_Contact_ContactMatch::getMauticFromCiviContact($contact);
+      $contact = $this->getData($contactId);
+      $contact = $contact ?: ['id' => $contactId];
+      $mauticId = CRM_Mautic_Contact_ContactMatch::getMauticContactIDFromCiviContact($contact, FALSE);
       if ($mauticId) {
         $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
         $mauticContactResult = $api->get($mauticId);
-        $mauticContact = CRM_Utils_Array::value('contact', $mauticContactResult, []);
+        $mauticContact = $mauticContactResult['contact'] ?? [];
         U::checkDebug(__FUNCTION__ . 'mauticContactResult', $mauticContactResult);
         $this->setData(NULL, $mauticContact);
-        $tags = CRM_Utils_Array::value('tags', $mauticContact);
+        $tags = $mauticContact['tags'] ?? NULL;
       }
     }
-    return $tags;
+    return $tags ?? [];
   }
 
   /**
