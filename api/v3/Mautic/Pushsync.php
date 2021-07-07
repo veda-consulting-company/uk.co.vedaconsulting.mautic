@@ -29,18 +29,24 @@ function civicrm_api3_mautic_Pushsync($params) {
     $result = $runner->runAll();
   }
   if (empty($result['is_error'])) {
+    $segmentNames = CRM_Mautic_Utils::getMauticSegmentOptions();
     $log = '';
     $stats = \Civi::settings()->get('mautic_push_stats') ?? [];
     foreach ($stats as $sid => $info) {
-      $log .= "\n\n Segment: $sid; \n";
+      if ($sid === 'dry_run') {
+        $log .= $dry_run ? "\n\n Dry Run: TRUE \n" : "";
+      }
+      else {
+        $log .= "\n\n Segment: {$segmentNames[$sid]}; \n";
+      }
       if (!$info) {
         continue;
       }
       foreach ($info as $k => $v) {
-        if (!isset($v) || !is_string($v)) {
+        if (!isset($v) || is_array($v)) {
           continue;
         }
-        $log .= "$k: $v;\n";
+        $log .= "  $k: $v;\n";
       }
     }
     return civicrm_api3_create_success($log);
