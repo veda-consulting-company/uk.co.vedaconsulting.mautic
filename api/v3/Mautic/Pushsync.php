@@ -30,7 +30,7 @@ function civicrm_api3_mautic_Pushsync($params) {
   }
   if (empty($result['is_error'])) {
     $log = '';
-    $stats = \Civi::settings()->get('mautic_push_stats');
+    $stats = \Civi::settings()->get('mautic_push_stats') ?? [];
     foreach ($stats as $sid => $info) {
       $log .= "\n\n Segment: $sid; \n";
       if (!$info) {
