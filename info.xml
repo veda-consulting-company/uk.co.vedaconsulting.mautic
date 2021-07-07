@@ -10,7 +10,7 @@
   </maintainer>
   <urls>
     <url desc="Main Extension Page">https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic</url>
-    <url desc="Documentation">https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic/README.md</url>
+    <url desc="Documentation">https://github.com/veda-consulting-company/uk.co.vedaconsulting.mautic/blob/master/docs/index.md</url>
     <url desc="Support">https://vedaconsulting.co.uk</url>
     <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
   </urls>
