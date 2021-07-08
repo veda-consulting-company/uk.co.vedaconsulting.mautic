@@ -43,12 +43,6 @@
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
-    <path>civicrm/admin/mautic/civirules/condition/mautic_contact_in_linked_segment</path>
-    <page_callback>CRM_Mautic_Form_Civirules_Condition_MauticContactInLinkedSegment</page_callback>
-    <title>Mautic Condition: Contact In Linked Segment</title>
-    <access_arguments>administer CiviCRM</access_arguments>
-  </item>
-  <item>
     <path>civicrm/admin/mautic/civirules/condition/mautic_contact_field_value</path>
     <page_callback>CRM_Mautic_Form_Civirules_Condition_MauticContactFieldValue</page_callback>
     <title>Mautic Condition: Contact has field value</title>
