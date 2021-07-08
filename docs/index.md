@@ -1,9 +1,5 @@
 # uk.co.vedaconsulting.mautic
 
-Development co-funded by:
-- [The Vitiligo Society](https://vitiligosociety.org)
-- [The British Geriatrics Society](https://bgs.org.uk)
-
 ## Introduction
 
 This extension integrates CiviCRM with [Mautic](https://www.mautic.org), the Open-Source Marketing Automation software.

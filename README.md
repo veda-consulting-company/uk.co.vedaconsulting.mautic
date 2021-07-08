@@ -1,6 +1,8 @@
 # uk.co.vedaconsulting.mautic
 
-Development co-funded by [The Vitiligo Society](https://vitiligosociety.org)
+Development co-funded by:
+- [The Vitiligo Society](https://vitiligosociety.org)
+- [The British Geriatrics Society](https://bgs.org.uk)
 
 ## Description
 
