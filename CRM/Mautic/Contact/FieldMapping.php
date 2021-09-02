@@ -189,7 +189,7 @@ class CRM_Mautic_Contact_FieldMapping {
    *
    * @return array
    */
-  public static function convertToMauticContact($contact, $includeTags = FALSE, $api = TRUE) {
+  public static function convertToMauticContact($contact, $includeTags = FALSE) {
     $mauticContact = static::convertContact($contact, TRUE, TRUE);
     if ($includeTags) {
       $tagHelper = new CRM_Mautic_Tag();

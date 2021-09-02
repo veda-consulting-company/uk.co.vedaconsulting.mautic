@@ -41,7 +41,6 @@ class CRM_Mautic_Utils {
    * @param [] $mauticId
    */
   public static function saveMauticIDCustomField($contact, $mauticId) {
-
     $contactId = CRM_Utils_Array::value('id', $contact);
     $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Contact_ID', 'Mautic_Contact');
     $key = 'custom_' . $fid;

@@ -43,21 +43,21 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
     $commsPrefsChanged = CRM_Mautic_Contact_FieldMapping::hasCiviContactCommunicationPreferencesChanged(
       $civicrmContact, $triggerData->getOriginalData()
     );
-    $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($civicrmContact, TRUE, TRUE);
-    $mauticContactId = CRM_Mautic_Contact_ContactMatch::getMauticContactIDFromCiviContact($civicrmContact, TRUE);
+    $mauticContact = CRM_Mautic_Contact_FieldMapping::convertToMauticContact($civicrmContact, TRUE);
+    $mauticContactId = CRM_Mautic_Contact_ContactMatch::getMauticContactIDFromCiviContact($civicrmContact);
 
     if ($mauticContact) {
       /** @var \Mautic\Api\Contacts $api */
       $api = MC::singleton()->newApi('contacts');
       if ($mauticContactId) {
-        U::checkDebug("Updating mautic contact.", $mauticContact);
+        U::checkDebug('Updating mautic contact: ', $mauticContact);
         $response = $api->edit($mauticContactId, $mauticContact);
         if ($commsPrefsChanged) {
           CRM_Mautic_Contact_FieldMapping::pushCommsPrefsToMautic($api, $mauticContactId, $civicrmContact);
         }
       }
       else {
-        U::checkDebug("Creating mautic contact.", $mauticContact);
+        U::checkDebug('Creating mautic contact: ', $mauticContact);
         $response = $api->create($mauticContact);
       }
       if (!$mauticContactId && !empty($response['contact']['id'])) {

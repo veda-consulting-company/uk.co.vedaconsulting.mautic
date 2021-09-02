@@ -164,7 +164,7 @@ class CRM_Mautic_Tag {
     if (!$tags) {
       $contact = $this->getData($contactId);
       $contact = $contact ?: ['id' => $contactId];
-      $mauticId = CRM_Mautic_Contact_ContactMatch::getMauticContactIDFromCiviContact($contact, FALSE);
+      $mauticId = CRM_Mautic_Contact_ContactMatch::getMauticContactIDFromCiviContact($contact);
       if ($mauticId) {
         $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
         $mauticContactResult = $api->get($mauticId);
