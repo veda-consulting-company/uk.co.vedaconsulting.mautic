@@ -1,6 +1,5 @@
 <?php
 /**
- *
  * CiviRules action to create contact from Mautic Webhook.
  */
 
@@ -18,7 +17,6 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
    * Process the action
    *
    * @param CRM_Civirules_TriggerData_TriggerData $triggerData
-   * @access public
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     if (U::$skipUpdatesToMautic) {
@@ -63,8 +61,14 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
       if (!$mauticContactId && !empty($response['contact']['id'])) {
         $mauticContactId = $response['contact']['id'];
       }
+
+      // We just created/updated a Mautic Contact.
+      // So make sure we don't trigger this action again otherwise we can get stuck in an infinite loop.
+      U::$skipUpdatesToMautic = TRUE;
+
       // Save mautic id to custom field if it is not stored already.
       U::saveMauticIDCustomField($civicrmContact, $mauticContactId);
+
       // Sync segments from Civi Groups.
       // For this to be effective with smart groups the rule should have a delay
       // greater than smartgroup cache timeout.
@@ -73,11 +77,12 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
   }
 
   /**
-   *
-   * {@inheritDoc}
    * @see CRM_Civirules_Action::getExtraDataInputUrl()
+   * @param int $ruleActionId
+   *
+   * @return bool|string
    */
   public function getExtraDataInputUrl($ruleActionId) {
-    return NULL;
+    return FALSE;
   }
 }
