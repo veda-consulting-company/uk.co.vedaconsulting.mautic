@@ -107,7 +107,7 @@ class CRM_Mautic_Tag {
         break;
     }
     $mauticTags = $this->getMauticContactTags($contactId);
-    U::checkDebug('mautictags', $mauticTags);
+    U::checkDebug('mauticTags: ', $mauticTags);
     $removeTags = array_filter(
         array_map(function($tag) use ($tags)  {
           return !empty($tag['tag']) && !in_array($tag['tag'], $tags) ? '-' . $tag['tag'] : NULL;
@@ -169,7 +169,6 @@ class CRM_Mautic_Tag {
         $api = CRM_Mautic_Connection::singleton()->newApi('contacts');
         $mauticContactResult = $api->get($mauticId);
         $mauticContact = $mauticContactResult['contact'] ?? [];
-        U::checkDebug(__FUNCTION__ . 'mauticContactResult', $mauticContactResult);
         $this->setData(NULL, $mauticContact);
         $tags = $mauticContact['tags'] ?? NULL;
       }
