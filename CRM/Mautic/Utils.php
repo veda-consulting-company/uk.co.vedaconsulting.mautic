@@ -57,6 +57,23 @@ class CRM_Mautic_Utils {
     }
   }
 
+  /**
+   * Create a segment in Mautic.
+   *
+   * @param [] $params
+   *  Params to pass to Mautic API.
+   *  Must include:
+   *   - name : string
+   * @return int
+   *  Segment ID.
+   */
+  public static function createSegment($params) {
+    $segmentsApi = MC::singleton()->newApi('segments');
+    CRM_Core_Error::debug_var(__CLASS__ . __FUNCTION__, $params);
+    $result = $segmentsApi->create($params);
+    return $result['list']['id'] ?? NULL;
+  }
+
 
   /**
    * Gets Mautic Segments in [id] => label format.
