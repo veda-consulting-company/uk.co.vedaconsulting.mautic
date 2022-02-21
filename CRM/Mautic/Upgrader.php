@@ -136,4 +136,11 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     $this->enableCiviRules();
     return TRUE;
   }
+
+  public function upgrade_4206() {
+    $this->ctx->log->info('Add Custom fields mapping Event to Mautic Segment');
+    $file = $this->extensionDir . '/xml/event_data.xml';
+    $this->executeCustomDataFileByAbsPath($file);
+    return TRUE;
+  }
 }

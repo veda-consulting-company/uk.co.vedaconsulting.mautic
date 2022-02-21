@@ -97,6 +97,9 @@ function mautic_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  * @param CRM_Core_Form $form
  */
 function mautic_civicrm_buildForm($formName, &$form) {
+  if ($formName == 'CRM_Event_Form_ManageEvent_EventInfo') {
+    
+  }
   if ($formName != 'CRM_Group_Form_Edit') {
     return;
   }
@@ -275,3 +278,19 @@ function mautic_civicrm_entityTypes(&$entityTypes) {
 function mautic_civicrm_alterLogTables(&$logTableSpec) {
   unset($logTableSpec['civicrm_mauticwebhook']);
 }
+
+/**
+ * Implements hook_civicrm_fieldOptions().
+ */
+function mautic_civicrm_fieldOptions($entity, $field, &$options, $params) {
+  // Add options for 
+  if ($entity == 'Event' && 0 === strpos($field, 'custom_')) {
+    $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Segment', 'Mautic_Event');
+    if ('custom_' . $fid == $field) {
+      $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
+      $options = $segments ? $segments : $options;
+    }
+
+  }
+}
+
