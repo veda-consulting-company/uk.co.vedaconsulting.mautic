@@ -65,7 +65,7 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
   }
 
   private function getSectionHelp() {
-    $callback = CRM_Mautic_Connection::singleton()->getCallbackUrl();
+    $callback = CRM_Mautic_Connection::singleton(['skip_validation' => TRUE])->getCallbackUrl();
     $txt = [];
     $txt[] = ts('You will need to enable the API in your Mautic installation.');
     $txt[] = ts('For OAuth use the following callback URL: <br /> <emphasis>%1</emphasis>', [1 => $callback]);

@@ -213,7 +213,7 @@ class CRM_Mautic_Connection {
       $settings = $params;
     }
     $missing = [];
-    if (!CRM_Mautic_Setting::validate($settings, $missing)) {
+    if (empty($params['skip_validation']) && !CRM_Mautic_Setting::validate($settings, $missing)) {
       $this->logError('Missing settings for Mautic Connection', [
         'settingsValues' => $settings,
         'missingSettings' => $missing,
