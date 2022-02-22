@@ -126,21 +126,22 @@ class CRM_Mautic_Utils {
     $groups = !empty($contact['values'][$contactID]['groups'])
       ? array_filter(explode(',', $contact['values'][$contactID]['groups']))
       : [];
-    $segmentsToSync = array_map(function($val) {
+    $extractSegs = function ($val) {
        return $val['segment_id'];
-     },
-     self::getGroupsToSync($groups));
+     };
+    $segmentsToSync = array_map($extractSegs, self::getGroupsToSync($groups));
+    $allGroupSegments = array_map($extractSegs, self::getGroupsToSync());
     $contactApi = MC::singleton()->newApi('contacts');
     // Contact's current segments.
-    $segments = $contactApi->getContactSegments($mauticContactID);
-    $segments = !empty($segments['lists']) ? $segments['lists'] : [];
-    $currentSegments = $segments ? array_map(function($val) {
+    $contactSegments = $contactApi->getContactSegments($mauticContactID);
+    $contactSegments = !empty($segments['lists']) ? $segments['lists'] : [];
+    $currentSegments = $contactSegments ? array_map(function($val) {
         return $val['id'];
-      }, $segments)
+      }, $contactSegments)
       : [];
-
-    // Contacts synched groups.
-    $toRemove = array_diff($currentSegments, $segmentsToSync);
+    $currentGroupSegments = array_intersect($allGroupSegments, $currentSegments);
+    // Contact's synced groups.
+    $toRemove = array_diff($currentGroupSegments, $segmentsToSync);
     $toAdd = array_diff($segmentsToSync, $currentSegments);
     if ($toRemove || $toAdd) {
       $segmentApi = MC::singleton()->newApi('segments');
