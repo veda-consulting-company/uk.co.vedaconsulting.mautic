@@ -143,4 +143,12 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     $this->executeCustomDataFileByAbsPath($file);
     return TRUE;
   }
+  
+  public function upgrade_4207() {
+    $this->ctx->log->info('Action to add contact to Event/Segment.');
+    $this->enableCiviRules();
+    return TRUE;
+  }
+  
+
 }

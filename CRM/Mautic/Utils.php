@@ -245,6 +245,30 @@ class CRM_Mautic_Utils {
   }
 
   /**
+   * Get the Mautic Segment ID for an Event, if one is set.
+   * 
+   * @param int $eventId
+   * 
+   * @return int
+   */
+  public static function getSegmentIDForEvent($eventId) {
+    static $segmentFid = NULL;
+    if (!$segmentFid) {
+      $segmentFid = CRM_Core_BAO_CustomField::getCustomFieldID(
+        'Mautic_Segment',
+        'Mautic_Event'
+      );
+    }
+    if ($segmentFid) {
+      $event = self::civiApi('Event', 'getsingle', [
+        'id' => $eventId,
+        'return' => ['custom_' . $segmentFid],
+      ]);
+      return $event['custom_' . $segmentFid] ?? NULL;
+    }
+  }
+
+  /**
    * Wraps civiCRM api.
    *
    * @param string $entity
