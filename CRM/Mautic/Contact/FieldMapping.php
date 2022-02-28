@@ -318,7 +318,8 @@ class CRM_Mautic_Contact_FieldMapping {
 
     // Check if any of the fields have changed from the existing contact
     foreach (self::$commsPrefFields as $key) {
-      if (isset($newContact[$key]) && ((bool) $existingContact[$key] !== (bool) $newContact[$key])) {
+      if (isset($newContact[$key]) && isset($existingContact[$key])
+        && ((bool)$existingContact[$key] !== (bool)$newContact[$key])) {
         return TRUE;
       }
     }
