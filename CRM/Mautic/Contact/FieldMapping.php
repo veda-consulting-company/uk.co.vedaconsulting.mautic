@@ -188,7 +188,7 @@ class CRM_Mautic_Contact_FieldMapping {
    * @return array
    */
   public static function convertToMauticContact($contact, $includeTags = FALSE) {
-    // Add email, using primary email as default.
+    // Api4 Contact does not include email by default. We add it if it is missing.
     if (empty($contact['email']) && !empty($contact['id'])) {
       $email = \Civi\Api4\Email::get()
         ->addSelect('email')

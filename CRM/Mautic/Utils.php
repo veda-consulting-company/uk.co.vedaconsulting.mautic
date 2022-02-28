@@ -69,7 +69,7 @@ class CRM_Mautic_Utils {
    */
   public static function createSegment($params) {
     $segmentsApi = MC::singleton()->newApi('segments');
-    CRM_Core_Error::debug_var(__CLASS__ . __FUNCTION__, $params);
+    U::checkDebug(__CLASS__ . ' creating segment', $params);
     $result = $segmentsApi->create($params);
     return $result['list']['id'] ?? NULL;
   }
@@ -128,14 +128,14 @@ class CRM_Mautic_Utils {
       : [];
     $extractSegs = function ($val) {
        return $val['segment_id'];
-     };
+    };
     $segmentsToSync = $groups ? array_map($extractSegs, self::getGroupsToSync($groups)) : [];
     $allGroupSegments = array_map($extractSegs, self::getGroupsToSync());
     $contactApi = MC::singleton()->newApi('contacts');
     // Contact's current segments.
     $contactSegments = $contactApi->getContactSegments($mauticContactID);
     $contactSegments = !empty($segments['lists']) ? $segments['lists'] : [];
-    $currentSegments = $contactSegments ? array_map(function($val) {
+    $currentSegments = $contactSegments ? array_map(function ($val) {
         return $val['id'];
       }, $contactSegments)
       : [];
@@ -181,7 +181,7 @@ class CRM_Mautic_Utils {
    */
   public static function getGroupsToSync($groupIDs = [], $mauticSegmentId = NULL) {
     $params = $groups = $temp = [];
-    $groupIDs = array_filter(array_map('intval',$groupIDs));
+    $groupIDs = array_filter(array_map('intval', $groupIDs));
 
     if (!empty($groupIDs)) {
       $groupIDs = implode(',', $groupIDs);

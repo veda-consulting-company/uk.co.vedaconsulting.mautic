@@ -21,11 +21,7 @@ class CRM_Civirules_Action_MauticAddToEventSegment extends CRM_Civirules_Action 
    * @access public
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    if (U::$skipUpdatesToMautic) {
-      U::checkDebug('Skipping update to Mautic because contact has just been synced.');
-      return;
-    }
-    CRM_Core_Error::debug_var(__CLASS__ . __FUNCTION__, ['START']);
+    U::checkDebug(__CLASS__ . ' action triggerred', $this->ruleAction);
     // The civi api gives more data compared to $triggerData::getEntityData().
     $civicrmContactID = $triggerData->getContactId();
     if (empty($civicrmContactID)) {
@@ -41,6 +37,7 @@ class CRM_Civirules_Action_MauticAddToEventSegment extends CRM_Civirules_Action 
       );
       if ($registrationActivityTypeId != $activity['activity_type_id']) {
         // Not a registration activity.
+        U::checkDebug(__CLASS__ . 'Activity is not for an event registration. Consider adding a condition to the rule.');
         return;
       }
       $participantId = $activity['source_record_id'];
@@ -53,7 +50,6 @@ class CRM_Civirules_Action_MauticAddToEventSegment extends CRM_Civirules_Action 
     elseif ($participant = $triggerData->getEntityData('Participant')) {
       $eventId = $participant['event_id'];
     }
-     
     if (!$eventId) {
       // Nothing to do.
       return;
