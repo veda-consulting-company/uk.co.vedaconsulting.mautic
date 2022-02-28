@@ -129,7 +129,7 @@ class CRM_Mautic_Utils {
     $extractSegs = function ($val) {
        return $val['segment_id'];
      };
-    $segmentsToSync = array_map($extractSegs, self::getGroupsToSync($groups));
+    $segmentsToSync = $groups ? array_map($extractSegs, self::getGroupsToSync($groups)) : [];
     $allGroupSegments = array_map($extractSegs, self::getGroupsToSync());
     $contactApi = MC::singleton()->newApi('contacts');
     // Contact's current segments.
