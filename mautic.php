@@ -210,8 +210,8 @@ function mautic_civicrm_customPre(string $op, int $groupID, int $entityID, array
       );
       if ($title) {
         try {
-          $prefix = 'EventREG ';
-          $segmentName = $prefix . $title;
+          $suffix = 'EventREG';
+          $segmentName = $title . ' ' . $suffix;
           // Possibly segment with the name already exists.
           $segmentParams = [
             'name' => $segmentName,
