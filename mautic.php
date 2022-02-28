@@ -275,3 +275,13 @@ function mautic_civicrm_entityTypes(&$entityTypes) {
 function mautic_civicrm_alterLogTables(&$logTableSpec) {
   unset($logTableSpec['civicrm_mauticwebhook']);
 }
+
+/**
+ * Implementation of hook_civicrm_alterCustomFieldDisplayValue
+ */
+function mautic_civicrm_alterCustomFieldDisplayValue(&$displayValue, $value, $entityId, $fieldInfo) {
+  if ($fieldInfo['name'] == 'Mautic_Contact_ID') {
+    $mauticURL = \Civi::settings()->get('mautic_connection_url');
+    $displayValue = "<a href='{$mauticURL}/s/contacts/view/{$value}' target='_blank'>$value</a>";
+  }
+}
