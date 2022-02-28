@@ -189,7 +189,7 @@ class CRM_Mautic_Contact_FieldMapping {
    *
    * @return array
    */
-  public static function convertToMauticContact($contact, $includeTags = FALSE, $api = TRUE) {
+  public static function convertToMauticContact($contact, $includeTags = FALSE) {
     $mauticContact = static::convertContact($contact, TRUE, TRUE);
     if ($includeTags) {
       $tagHelper = new CRM_Mautic_Tag();
@@ -318,7 +318,8 @@ class CRM_Mautic_Contact_FieldMapping {
 
     // Check if any of the fields have changed from the existing contact
     foreach (self::$commsPrefFields as $key) {
-      if (isset($newContact[$key]) && ((bool) $existingContact[$key] !== (bool) $newContact[$key])) {
+      if (isset($newContact[$key]) && isset($existingContact[$key])
+        && ((bool)$existingContact[$key] !== (bool)$newContact[$key])) {
         return TRUE;
       }
     }

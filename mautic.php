@@ -97,9 +97,6 @@ function mautic_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
  * @param CRM_Core_Form $form
  */
 function mautic_civicrm_buildForm($formName, &$form) {
-  if ($formName == 'CRM_Event_Form_ManageEvent_EventInfo') {
-    
-  }
   if ($formName != 'CRM_Group_Form_Edit') {
     return;
   }
@@ -335,10 +332,11 @@ function mautic_civicrm_alterLogTables(&$logTableSpec) {
 }
 
 /**
+ *
  * Implements hook_civicrm_fieldOptions().
  */
 function mautic_civicrm_fieldOptions($entity, $field, &$options, $params) {
-  // Add options for 
+  // Add options for field linking Event to Mautic Segment.
   if ($entity == 'Event' && 0 === strpos($field, 'custom_')) {
     $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Segment', 'Mautic_Event');
     if ('custom_' . $fid == $field) {
@@ -348,3 +346,13 @@ function mautic_civicrm_fieldOptions($entity, $field, &$options, $params) {
   }
 }
 
+/*
+ * Implementation of hook_civicrm_alterCustomFieldDisplayValue
+ *
+ */
+function mautic_civicrm_alterCustomFieldDisplayValue(&$displayValue, $value, $entityId, $fieldInfo) {
+  if ($fieldInfo['name'] == 'Mautic_Contact_ID') {
+    $mauticURL = \Civi::settings()->get('mautic_connection_url');
+    $displayValue = "<a href='{$mauticURL}/s/contacts/view/{$value}' target='_blank'>$value</a>";
+  }
+}

@@ -129,26 +129,20 @@ class CRM_Mautic_Contact_ContactMatch {
    * Attempt to find a Mautic Contact Id for a CiviCRM Contact.
    *
    * @param array $contact
-   * @param bool $api4
-   *   Whether to return custom fields in API4 format
    *
    * @return int|NULL
    */
-  public static function getMauticContactIDFromCiviContact($contact, $api4 = TRUE) {
+  public static function getMauticContactIDFromCiviContact($contact) {
     if (empty($contact['id'])) {
       return NULL;
     }
 
     // Use custom field value.
-    if ($api4) {
-      $key = 'Mautic_Contact.Mautic_Contact_ID';
-    }
-    else {
-      $key = 'custom_' . CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID')['id'];
-    }
+    $api4Key = 'Mautic_Contact.Mautic_Contact_ID';
+    $api3Key = 'custom_' . CRM_Mautic_Utils::getContactCustomFieldInfo('Mautic_Contact_ID')['id'];
 
-    $mauticContactID = $contact[$key] ?? NULL;
-    U::checkDebug("Looking for mautic contact reference in contact.", $mauticContactID);
+    $mauticContactID = $contact[$api4Key] ?? $contact[$api3Key] ?? NULL;
+    U::checkDebug('Looking for mautic contact reference in contact: ' . $mauticContactID);
     return $mauticContactID;
   }
 
