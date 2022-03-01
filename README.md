@@ -17,9 +17,12 @@ It currently provides:
    - Mautic Contact matches a CiviCRM Contact
    - Mautic Contact has a tag
    - Mautic Contact field has a particular value
+   - Event is linked to a Mautic Segment
  - CiviRules Actions:
    - Sync contact to Mautic
    - Create Contact from Mautic webhook data
+   - Add contact to Segment mapped to an Event
+
 
 Compatible with Mautic version 3.
 

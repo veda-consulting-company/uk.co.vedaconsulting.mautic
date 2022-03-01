@@ -13,9 +13,11 @@ It currently provides:
   - Mautic Contact matches a CiviCRM Contact
   - Mautic Contact has a tag
   - Mautic Contact field has a particular value
+  - Event is linked to a Mautic Segment
 - CiviRules Actions:
   - Sync contact to Mautic
   - Create Contact from Mautic webhook data
+  - Add contact to Segment mapped to an Event
 
 Compatible with Mautic version 3.
 
@@ -25,7 +27,7 @@ Compatible with Mautic version 3.
 * Contact email (synced with primary email for contact, default location type).
 * Address (synced with primary address for contact, default location type). Currently only synced from Mautic to CiviCRM.
 * Tags.
-* CiviCRM Groups can be mapped to Mautic "Segments".
+* CiviCRM Groups and Events can be mapped to Mautic "Segments".
 * Contact Communication Preferences fields. CiviCRM is_opt_out (and do_not_email) maps to Mautic "Contact Preferences Centre" Email channel.
 Other fields are not currently synced.
 * If the [GDPR extension](https://civicrm.org/extensions/gdpr) is installed an "Update Communication Preferences" activity is created
@@ -98,6 +100,7 @@ Webhook: Select the types of webhook to process. We suggest all the Contact rela
 Tag Synchronization: You can enable synchronization of tags between Mautic and CiviCRM contacts.
 The option *Restrict tag synchronization to a specific tag-set* will only synchronize a sub-set of CiviCRM tags. Alternatively tags will be pushed and pulled but will not be removed.
 
+Event Segment link: Allows you to add a prefix or suffix to Mautic segments created to be linked to an Event. 
 
 After you save the settings, the connection status page will confirm successful connection and check whether CiviCRM has been able to create items on Mautic.
 
@@ -115,6 +118,31 @@ Select a Mautic Segment to associate with the group.
 
 ![Group](images/civicrm_group.png)
 
+## Link CiviCRM Event to a Segment
+
+You can set up a link between an Event and a Mautic Segment from the Event settings form.
+Participants for Events can be added to the linked Segment through a Civirules rule.
+
+### Linking Event to a Segment
+From the Event settings form, find the fields grouped under *Mautic Event*. You can select an existing Segment or create a new one for the Event.
+To  create a new segment, don't select a segment for *Mautic Segment*, select *Yes* for *Create Segment If Empty*. The Segment will be created in Mautic when the Event is saved.
+
+### Set up Civirules Rule to add participants to linked Event.
+An example rule *Add registered contact to Mautic Segment* would have the following components:
+
+#### Trigger
+- Activity is added
+#### Conditions
+- Activity is one of Type: Event Registration
+- AND Activity Status is one of: Completed
+- AND Event is linked to a Mautic Segment
+#### Actions
+- Sync contact to Mautic
+- Add contact to Segment mapped to an Event
+
+The Condition *Event is linked to a Mautic Segment* and Action *Add contact to Segment mapped to an Event* work with Triggers involving Event Registration Activities, Participants or Events. 
+The *Add contact to Segment mapped to an Event* will do nothing if the CiviRules trigger does not involve a record that can be linked to a Mautic Segment via an Event. If it can get a segment, the Mautic Contact linked to the CiviCRM contact is added to the Segment. It should be preceeded by the *Sync contact to Mautic* action to ensure the Contact exists in Mautic before the attempt to add it to the segment.  
+ 
 ## Manual Push Sync
 
 To perform a manual push go to *Administer -> Mautic -> Push to Mautic*.
