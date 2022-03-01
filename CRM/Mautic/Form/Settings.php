@@ -109,6 +109,10 @@ class CRM_Mautic_Form_Settings extends CRM_Admin_Form_Setting {
         'title' => E::ts('Tag Synchronization'),
         'help' => '',
       ],
+      'mautic_event_segment' => [
+        'title' => E::ts('Event Segment link'),
+        'help' => '',
+      ],
       'mautic_enable_debugging' => [
         'title' => 'Logging',
         'help' => '',
