@@ -141,7 +141,7 @@ An example rule *Add registered contact to Mautic Segment* would have the follow
 - Add contact to Segment mapped to an Event
 
 The Condition *Event is linked to a Mautic Segment* and Action *Add contact to Segment mapped to an Event* work with Triggers involving Event Registration Activities, Participants or Events. 
-The *Add contact to Segment mapped to an Event* will do nothing if the CiviRules trigger does not involve a record that can be linked to a Mautic Segment via an Event. If it can get a segment, the Mautic Contact linked to the CiviCRM contact is added to the Segment. It should be preceeded by the Sync contact to Mautic action to ensure the Contact exists in Mautic before the attempt to add it to the segment.  
+The *Add contact to Segment mapped to an Event* will do nothing if the CiviRules trigger does not involve a record that can be linked to a Mautic Segment via an Event. If it can get a segment, the Mautic Contact linked to the CiviCRM contact is added to the Segment. It should be preceeded by the *Sync contact to Mautic* action to ensure the Contact exists in Mautic before the attempt to add it to the segment.  
  
 ## Manual Push Sync
 
