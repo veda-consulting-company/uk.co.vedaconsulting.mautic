@@ -210,8 +210,10 @@ function mautic_civicrm_customPre(string $op, int $groupID, int $entityID, array
       );
       if ($title) {
         try {
-          $suffix = 'EventREG';
-          $segmentName = $title . ' ' . $suffix;
+          $suffix = Civi::settings()->get('mautic_event_segment_text');
+          $position = Civi::settings()->get('mautic_event_segment_text_position');
+          $segmentName = $position == 'before' ? "$suffix $title" : "$title $suffix";
+          $segmentName = trim($segmentName);
           // Possibly segment with the name already exists.
           $segmentParams = [
             'name' => $segmentName,
