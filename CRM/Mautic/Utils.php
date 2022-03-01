@@ -57,6 +57,23 @@ class CRM_Mautic_Utils {
     }
   }
 
+  /**
+   * Create a segment in Mautic.
+   *
+   * @param [] $params
+   *  Params to pass to Mautic API.
+   *  Must include:
+   *   - name : string
+   * @return int
+   *  Segment ID.
+   */
+  public static function createSegment($params) {
+    $segmentsApi = MC::singleton()->newApi('segments');
+    self::checkDebug(__CLASS__ . ' creating segment', $params);
+    $result = $segmentsApi->create($params);
+    return $result['list']['id'] ?? NULL;
+  }
+
 
   /**
    * Gets Mautic Segments in [id] => label format.
@@ -109,21 +126,22 @@ class CRM_Mautic_Utils {
     $groups = !empty($contact['values'][$contactID]['groups'])
       ? array_filter(explode(',', $contact['values'][$contactID]['groups']))
       : [];
-    $segmentsToSync = array_map(function($val) {
+    $extractSegs = function ($val) {
        return $val['segment_id'];
-     },
-     self::getGroupsToSync($groups));
+    };
+    $segmentsToSync = $groups ? array_map($extractSegs, self::getGroupsToSync($groups)) : [];
+    $allGroupSegments = array_map($extractSegs, self::getGroupsToSync());
     $contactApi = MC::singleton()->newApi('contacts');
     // Contact's current segments.
-    $segments = $contactApi->getContactSegments($mauticContactID);
-    $segments = !empty($segments['lists']) ? $segments['lists'] : [];
-    $currentSegments = $segments ? array_map(function($val) {
+    $contactSegments = $contactApi->getContactSegments($mauticContactID);
+    $contactSegments = !empty($segments['lists']) ? $segments['lists'] : [];
+    $currentSegments = $contactSegments ? array_map(function ($val) {
         return $val['id'];
-      }, $segments)
+      }, $contactSegments)
       : [];
-
-    // Contacts synched groups.
-    $toRemove = array_diff($currentSegments, $segmentsToSync);
+    $currentGroupSegments = array_intersect($allGroupSegments, $currentSegments);
+    // Contact's synced groups.
+    $toRemove = array_diff($currentGroupSegments, $segmentsToSync);
     $toAdd = array_diff($segmentsToSync, $currentSegments);
     if ($toRemove || $toAdd) {
       $segmentApi = MC::singleton()->newApi('segments');
@@ -163,7 +181,7 @@ class CRM_Mautic_Utils {
    */
   public static function getGroupsToSync($groupIDs = [], $mauticSegmentId = NULL) {
     $params = $groups = $temp = [];
-    $groupIDs = array_filter(array_map('intval',$groupIDs));
+    $groupIDs = array_filter(array_map('intval', $groupIDs));
 
     if (!empty($groupIDs)) {
       $groupIDs = implode(',', $groupIDs);
@@ -224,6 +242,30 @@ class CRM_Mautic_Utils {
             $description . "\n" . var_export($variable,1)
             , FALSE, 'mautic', PEAR_LOG_DEBUG);
       }
+    }
+  }
+
+  /**
+   * Get the Mautic Segment ID for an Event, if one is set.
+   * 
+   * @param int $eventId
+   * 
+   * @return int
+   */
+  public static function getSegmentIDForEvent($eventId) {
+    static $segmentFid = NULL;
+    if (!$segmentFid) {
+      $segmentFid = CRM_Core_BAO_CustomField::getCustomFieldID(
+        'Mautic_Segment',
+        'Mautic_Event'
+      );
+    }
+    if ($segmentFid) {
+      $event = self::civiApi('Event', 'getsingle', [
+        'id' => $eventId,
+        'return' => ['custom_' . $segmentFid],
+      ]);
+      return $event['custom_' . $segmentFid] ?? NULL;
     }
   }
 

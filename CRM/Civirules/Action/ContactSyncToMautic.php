@@ -73,6 +73,9 @@ class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
       // For this to be effective with smart groups the rule should have a delay
       // greater than smartgroup cache timeout.
       U::syncContactSegmentsFromGroups($civicrmContactID, $mauticContactId);
+      // Action completed, allow mautic updates.
+      U::$skipUpdatesToMautic = FALSE;
+
     }
   }
 

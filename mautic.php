@@ -177,6 +177,63 @@ function mautic_civicrm_validateForm($formName, &$fields, &$files, &$form, &$err
     }
   }
 }
+/**
+ * Implements hook_civicrm_customPre()
+ */
+function mautic_civicrm_customPre(string $op, int $groupID, int $entityID, array &$params): void {
+  // Create a Mautic Segment for an Event if it is so configured.
+  static $mauticEventGid = NULL;
+  if (!$mauticEventGid) {
+    $mauticEventGid = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup',
+    'Mautic_Event',
+    'id',
+    'name'
+    );
+  }
+  if (in_array($op, ['create', 'edit']) &&  $groupID == $mauticEventGid) {
+    $createSegmentField = NULL;
+    $segmentIdField = NULL;
+    foreach ($params as $idx => &$field) {
+      if ($field['column_name'] == 'create_segment') {
+        $createSegmentField = $field;
+      }
+      elseif ($field['column_name'] == 'mautic_segment_id') {
+        $segmentIdField =& $field;
+      }
+    }
+
+    if (empty($segmentIdField['value']) && !empty($createSegmentField['value'])) {
+      $title = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_Event',
+        $entityID,
+        'title',
+        'id'
+      );
+      if ($title) {
+        try {
+          $suffix = Civi::settings()->get('mautic_event_segment_text');
+          $position = Civi::settings()->get('mautic_event_segment_text_position');
+          $segmentName = $position == 'before' ? "$suffix $title" : "$title $suffix";
+          $segmentName = trim($segmentName);
+          // Possibly segment with the name already exists.
+          $segmentParams = [
+            'name' => $segmentName,
+          ];
+          $segmentId = CRM_Mautic_Utils::createSegment($segmentParams);
+          // Add Segment.
+          $segmentIdField['value'] = $segmentId;
+        }
+        catch (Exception $e) {
+          CRM_Core_Error::debug_var(__FUNCTION__, [
+            'Error Creating Mautic segment.',
+            $e->getMessage(),
+            $segmentParams,
+          ]);
+        }
+      }
+    }
+  }
+}
+
 
  /**
  * Implements hook_civicrm_pageRun().
@@ -277,7 +334,23 @@ function mautic_civicrm_alterLogTables(&$logTableSpec) {
 }
 
 /**
+ *
+ * Implements hook_civicrm_fieldOptions().
+ */
+function mautic_civicrm_fieldOptions($entity, $field, &$options, $params) {
+  // Add options for field linking Event to Mautic Segment.
+  if ($entity == 'Event' && 0 === strpos($field, 'custom_')) {
+    $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Segment', 'Mautic_Event');
+    if ('custom_' . $fid == $field) {
+      $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
+      $options = $segments ? $segments : $options;
+    }
+  }
+}
+
+/*
  * Implementation of hook_civicrm_alterCustomFieldDisplayValue
+ *
  */
 function mautic_civicrm_alterCustomFieldDisplayValue(&$displayValue, $value, $entityId, $fieldInfo) {
   if ($fieldInfo['name'] == 'Mautic_Contact_ID') {

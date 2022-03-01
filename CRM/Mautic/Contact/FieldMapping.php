@@ -184,12 +184,20 @@ class CRM_Mautic_Contact_FieldMapping {
    * @param array $contact
    *   CiviCRM contact
    * @param bool $includeTags
-   * @param bool $api4
-   *   Whether to return custom fields in API4 format
    *
    * @return array
    */
   public static function convertToMauticContact($contact, $includeTags = FALSE) {
+    // Api4 Contact does not include email by default. We add it if it is missing.
+    if (empty($contact['email']) && !empty($contact['id'])) {
+      $email = \Civi\Api4\Email::get()
+        ->addSelect('email')
+        ->addWhere('contact_id', '=', $contact['id'])
+        ->addWhere('is_primary', '=', TRUE)
+        ->execute()
+        ->first();
+      $contact['email'] = $email['email'] ?? '';
+    }
     $mauticContact = static::convertContact($contact, TRUE, TRUE);
     if ($includeTags) {
       $tagHelper = new CRM_Mautic_Tag();
