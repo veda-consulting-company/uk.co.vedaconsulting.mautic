@@ -20,6 +20,7 @@ Releases use the following numbering system:
 * Add support for pushing communication preferences to Mautic (removing 'Do Not Contact' from Mautic contact).
 * Create 'Update Communication Preferences' activity when updated via Mautic.
 * If a contact is deleted in CiviCRM and "Anonymous" in Mautic don't try to sync.
+* Allow CiviCRM Events to be linked to a Segment so that participants can be added to the Segment.
 
 ## Release 1.3
 
