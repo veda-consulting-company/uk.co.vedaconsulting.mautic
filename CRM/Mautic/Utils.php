@@ -69,7 +69,7 @@ class CRM_Mautic_Utils {
    */
   public static function createSegment($params) {
     $segmentsApi = MC::singleton()->newApi('segments');
-    U::checkDebug(__CLASS__ . ' creating segment', $params);
+    self::checkDebug(__CLASS__ . ' creating segment', $params);
     $result = $segmentsApi->create($params);
     return $result['list']['id'] ?? NULL;
   }

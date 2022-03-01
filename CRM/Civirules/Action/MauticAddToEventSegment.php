@@ -10,6 +10,8 @@ use CRM_Mautic_Connection as MC;
 
 class CRM_Civirules_Action_MauticAddToEventSegment extends CRM_Civirules_Action {
 
+  use CRM_Civirules_EventMauticTrait;
+
   protected $ruleAction = [];
 
   protected $action = [];
@@ -27,29 +29,7 @@ class CRM_Civirules_Action_MauticAddToEventSegment extends CRM_Civirules_Action 
     if (empty($civicrmContactID)) {
       return;
     }
-    $activity = $triggerData->getEntityData('Activity');
-    if (!empty($activity['id']) && !empty($activity['source_record_id'])) {
-      // Activity Type should be Event Registration. I
-      $registrationActivityTypeId = CRM_Core_Pseudoconstant::getKey(
-        'CRM_Activity_BAO_Activity',
-        'activity_type_id',
-        'Event Registration'
-      );
-      if ($registrationActivityTypeId != $activity['activity_type_id']) {
-        // Not a registration activity.
-        U::checkDebug(__CLASS__ . 'Activity is not for an event registration. Consider adding a condition to the rule.');
-        return;
-      }
-      $participantId = $activity['source_record_id'];
-      $eventId = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_Participant',
-        $participantId,
-        'event_id',
-        'id'
-      );
-    }
-    elseif ($participant = $triggerData->getEntityData('Participant')) {
-      $eventId = $participant['event_id'];
-    }
+    $eventId = $this->getEventIdFromTriggerData($triggerData);
     if (!$eventId) {
       // Nothing to do.
       return;
@@ -74,15 +54,14 @@ class CRM_Civirules_Action_MauticAddToEventSegment extends CRM_Civirules_Action 
       }
     }
     else {
-      U::checkDebug(__CLASS__ . ' Trigger data does not map to segment and contact.', [
+      U::checkDebug(__CLASS__ . ' Event does not map to a Mautic Segment.
+      Consider adding a Condition to the rule.', [
         'mauticContactId' => $mauticContactId,
-        'activityType' => $registrationActivityTypeId,
         'contactId' => $civicrmContactID,
-        'participantId' => $participantId,
         'eventId' => $eventId,
         'segmentId' => $segmentId,
-        'activityId' => $activity,
-      ]); 
+        'rule_id' => $this->ruleAction['rule_id'],
+      ]);
     }
   }
 
@@ -92,6 +71,6 @@ class CRM_Civirules_Action_MauticAddToEventSegment extends CRM_Civirules_Action 
    * @see CRM_Civirules_Action::getExtraDataInputUrl()
    */
   public function getExtraDataInputUrl($ruleActionId) {
-    return NULL;
+    return FALSE;
   }
 }
