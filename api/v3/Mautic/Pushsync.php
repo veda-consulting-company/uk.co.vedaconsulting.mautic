@@ -35,7 +35,7 @@ function civicrm_api3_mautic_Pushsync($params) {
     foreach ($stats as $sid => $info) {
       if ($sid === 'dry_run') {
         $log .= $dry_run ? "\n\n Dry Run: TRUE \n" : "";
-        continue
+        continue;
       }
       else {
         $log .= "\n\n Segment: {$segmentNames[$sid]}; \n";
