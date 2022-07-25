@@ -10,6 +10,10 @@ use CRM_Mautic_Contact_Contact as MauticContact;
 use CRM_Mautic_Utils as U;
 
 class CRM_Civirules_Action_MauticChangeTagsSegments extends CRM_Civirules_Action {
+ /**
+  * Keep a log of items processed in this request.
+  */ 
+ private static $processedIds = [];
 
   protected $ruleAction = [];
 
@@ -22,11 +26,20 @@ class CRM_Civirules_Action_MauticChangeTagsSegments extends CRM_Civirules_Action
    * @access public
    */
   public function processAction(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    U::checkDebug(__CLASS__ . ' action triggerred', $this->ruleAction);
-    $civicrmContactID = $triggerData->getContactId();
-    if (empty($civicrmContactID)) {
+    if (U::$skipUpdatesToMautic) {
+      U::checkDebug('Skipping update to Mautic because contact has just been synced.');
       return;
     }
+    $ruleId = $this->ruleAction['rule_id'] ?? 0;
+    U::checkDebug(__CLASS__ . ' action triggerred', $this->ruleAction);
+    $civicrmContactID = $triggerData->getContactId();
+
+    // Skip if contact has already been processed for this rule in the current request.
+    if (empty($civicrmContactID) || !empty(self::$processedIds[$ruleId][$civicrmContactID])) {
+      return;
+    }
+    self::$processedIds[$ruleId][$civicrmContactID] = TRUE;
+
     $params = $this->getActionParameters();
 
     
@@ -36,7 +49,6 @@ class CRM_Civirules_Action_MauticChangeTagsSegments extends CRM_Civirules_Action
     $removeTags = $params['remove_tags'];
     $contact = new MauticContact($civicrmContactID);
     $mauticContactId = $contact->pushToMautic(TRUE);
-    CRM_Core_Error::debug_var(__FUNCTION__, [$mauticContactId, $addTags, $addSegmentIds]);
     if ($mauticContactId) {
       try {
         $segmentApi = MC::singleton()->newApi('segments');
@@ -47,8 +59,7 @@ class CRM_Civirules_Action_MauticChangeTagsSegments extends CRM_Civirules_Action
           $segmentApi->addContact($segmentId, $mauticContactId);
         }
         if ($addTags || $removeTags) {
-          $tags = $addTags +  array_map(function($t) { return '-' . $t;}, $removeTags);
-          CRM_Core_Error::debug_var(__FUNCTION__, $tags);
+          $tags = array_merge($addTags, array_map(function($t) { return '-' . $t;}, $removeTags));
           $contact->pushToMautic(FALSE, ['tags' => $tags]);
         }
       }
