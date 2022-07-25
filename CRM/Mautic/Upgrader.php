@@ -149,6 +149,12 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     $this->enableCiviRules();
     return TRUE;
   }
+
+  public function upgrade_4208() {
+    $this->ctx->log->info('Action to change a Contact\'s Tags/Segments.');
+    $this->enableCiviRules();
+    return TRUE;
+  }
   
 
 }
