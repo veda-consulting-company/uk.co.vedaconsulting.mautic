@@ -48,4 +48,10 @@
     <title>Mautic Condition: Contact has field value</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/admin/mautic/civirules/action/mautic_tags_segment</path>
+    <page_callback>CRM_Mautic_Form_Civirules_Action_MauticChangeTagsSegments</page_callback>
+    <title>Mautic Action: Change Contact Tags or Segments</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
 </menu>

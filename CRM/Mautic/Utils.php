@@ -76,13 +76,21 @@ class CRM_Mautic_Utils {
 
 
   /**
-   * Gets Mautic Segments in [id] => label format.
+   * Gets Mautic Segments as a set of options.
+   *
+   * @param bool $select2Format
+   *
    * @return string[]
    */
-  public static function getMauticSegmentOptions() {
+  public static function getMauticSegmentOptions($select2Format = FALSE) {
     $options = [];
     foreach (self::getMauticSegments() as $segment) {
-      $options[$segment['id']] = $segment['name'];
+      if ($select2Format) {
+        $options[] = ['id' => $segment['id'], 'text' => $segment['name']];
+      }
+      else {
+        $options[$segment['id']] = $segment['name'];
+      }
     }
     return $options;
   }
@@ -267,6 +275,25 @@ class CRM_Mautic_Utils {
       ]);
       return $event['custom_' . $segmentFid] ?? NULL;
     }
+  }
+
+  /**
+   * Gets Mautic Tags as select2 options.
+   *
+   * @return array
+   */
+  public static function getMauticTagOptions() {
+    if (!isset(\Civi::$statics[__FUNCTION__]['tags'])) {
+      $api = MC::singleton()->newApi('tags');
+      $limit = 200;
+      $res = $api->getList('', 0, $limit, 'tag', 'asc', TRUE, TRUE);
+      \Civi::$statics[__CLASS__]['tags'] = [];
+      foreach ($res['tags'] as $id => $tag) {
+        \Civi::$statics[__CLASS__]['tags'][] = ['id' => $tag['tag'], 'text' => $tag['tag']];
+      }
+    }
+    return \Civi::$statics[__CLASS__]['tags'];
+  
   }
 
   /**
