@@ -64,6 +64,15 @@ function civicrm_api3_mautic_web_hook_process($params) {
   if (empty($params['options'])) {
     $params['options'] = ['limit' => 0];
   }
+
+  // We don't lock processing of each webhook individually.
+  // So create a lock so that we only run one instance of this process job/API
+  $lock = Civi::lockManager()->acquire('data.mautic.processwebhooks');
+  if (!$lock->isAcquired()) {
+    $errorMessage = 'Could not acquire lock to process webhooks. Is another process is already running?';
+    \Civi::log()->error($errorMessage);
+    return civicrm_api3_create_error($errorMessage);
+  }
   $webhooks = civicrm_api3('MauticWebHook', 'get', $params)['values'];
   $mauticWebhookHandler = new CRM_Mautic_WebHook_Handler();
   foreach ($webhooks as $webhook) {
@@ -76,6 +85,7 @@ function civicrm_api3_mautic_web_hook_process($params) {
       $errors[] = 'Error: WebhookID: ' . $webhook['id'] . ' - ' . $e->getMessage();
     }
   }
+  $lock->release();
   if (!empty($errors)) {
     return civicrm_api3_create_error(PHP_EOL . implode(PHP_EOL, $errors), []);
   }
