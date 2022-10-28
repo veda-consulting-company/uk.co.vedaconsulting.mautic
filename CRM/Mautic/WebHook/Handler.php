@@ -55,6 +55,11 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       if ($connectedUserId == $contact['id'] || $connectedUserId == $modifiedBy) {
         U::checkDebug("WebHook: " . $webhook['webhook_trigger_type'] . " - Mautic Contact last modified by CiviCRM - no further processing required." );
         $civicrmContactID = CRM_Mautic_Contact_FieldMapping::lookupMauticValue('civicrm_contact_id', $contact);
+        if (empty($civicrmContactID)) {
+          // This usually happens because a contact on the CiviCRM side has been deleted or merged
+          \Civi::log(E::SHORT_NAME)->warning("Mautic Webhook: no CiviCRM contact ID for Mautic contact: " . $contact['id'] . ': ' . $webhook['webhook_trigger_type']);
+          return;
+        }
         // Use a direct SQL query to bypass hooks (as we don't want to trigger civirules)
         $query = 'UPDATE civicrm_mauticwebhook SET processed_date=%1,contact_id=%3 WHERE id=%2';
         $queryParams = [
