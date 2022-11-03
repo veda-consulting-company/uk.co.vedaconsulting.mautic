@@ -14,13 +14,6 @@ function mautic_civicrm_config(&$config) {
 }
 
 /**
- * Implements hook_civicrm_xmlMenu().
- */
-function mautic_civicrm_xmlMenu(&$files) {
-  _mautic_civix_civicrm_xmlMenu($files);
-}
-
-/**
  * Implements hook_civicrm_install().
  */
 function mautic_civicrm_install() {
@@ -60,32 +53,6 @@ function mautic_civicrm_disable() {
  */
 function mautic_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
   return _mautic_civix_civicrm_upgrade($op, $queue);
-}
-
-/**
- * Implements hook_civicrm_managed().
- *
- * Generate a list of entities to create/deactivate/delete when this module
- * is installed, disabled, uninstalled.
- */
-function mautic_civicrm_managed(&$entities) {
-  _mautic_civix_civicrm_managed($entities);
-}
-
-/**
- * Implements hook_civicrm_angularModules().
- *
- * Generate a list of Angular modules.
- */
-function mautic_civicrm_angularModules(&$angularModules) {
-  _mautic_civix_civicrm_angularModules($angularModules);
-}
-
-/**
- * Implements hook_civicrm_alterSettingsFolders().
- */
-function mautic_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _mautic_civix_civicrm_alterSettingsFolders($metaDataFolders);
 }
 
 /**
@@ -149,7 +116,6 @@ function mautic_civicrm_buildForm($formName, &$form) {
     }
   }
 }
-
 
 /**
  * Implements hook_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors)
@@ -234,7 +200,6 @@ function mautic_civicrm_customPre(string $op, int $groupID, int $entityID, array
   }
 }
 
-
  /**
  * Implements hook_civicrm_pageRun().
  *
@@ -299,25 +264,6 @@ function mautic_civicrm_navigationMenu(&$menu) {
     'separator' => 0,
   ]);
   _mautic_civix_navigationMenu($menu);
-}
-
-/**
- * Implements hook_civicrm_merge().
- *
- * @see https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_merge/
- *
- * @param string $type
- * @param mixed $data
- * @param int $mainId
- * @param int $otherId
- * @param array $tables
- */
-function mautic_civicrm_merge($type, $data, $mainId, $otherId, $tables) {
-  // @todo.
-  // If there is a contact with civicrm_contact_id of $otherId,
-  // Update it to reference mainId.
-  // if ($type == 'sqls') {
-  //}
 }
 
 function mautic_civicrm_entityTypes(&$entityTypes) {
