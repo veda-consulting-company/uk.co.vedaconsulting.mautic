@@ -1,10 +1,10 @@
 <?php
 /**
- * Class for CiviRule Condition Mautic WebHook is of type.
+ * Class for CiviRule Condition Mautic Webhook is of type.
  *
  */
 
-class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition {
+class CRM_Civirules_Condition_MauticWebhookType extends CRM_Civirules_Condition {
 
   private $conditionParams = array();
 
@@ -27,7 +27,7 @@ class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition 
   }
 
   /**
-   * Method to check if the condition is valid, will check if the WebHook
+   * Method to check if the condition is valid, will check if the Webhook
    * is of the selected type
    *
    * @param object CRM_Civirules_TriggerData_TriggerData $triggerData
@@ -35,12 +35,12 @@ class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition 
    * @access public
    */
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    $webhook = $triggerData->getEntityData('MauticWebHook');
+    $webhook = $triggerData->getEntityData('MauticWebhook');
     $negate = $this->conditionParams['operator'];
     $type = str_replace('mautic.', '', CRM_Utils_Array::value('webhook_trigger_type', $webhook, ''));
     // If no type can be found, return early.
     if (!$type) {
-      CRM_Mautic_Utils::checkDebug("Cannot find Type in MauticWebHook trigger data.", $webhook);
+      CRM_Mautic_Utils::checkDebug("Cannot find Type in MauticWebhook trigger data.", $webhook);
       return FALSE;
     }
     CRM_Mautic_Utils::checkDebug("Checking for {$type} against", $this->getSelectedTypes());
@@ -62,7 +62,7 @@ class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition 
     if ($this->conditionParams['operator'] == 1) {
       $operator = 'is not one of';
     }
-    $labels = CRM_Mautic_WebHook::getAllTriggerOptions();
+    $labels = CRM_Mautic_Webhook::getAllTriggerOptions();
     $typeLabels = [];
     foreach ($this->getSelectedTypes() as $type) {
       $typeLabels[] = $labels['mautic.' . $type];
@@ -87,6 +87,6 @@ class CRM_Civirules_Condition_MauticWebHookType extends CRM_Civirules_Condition 
    * @return bool
    */
   public function doesWorkWithTrigger(CRM_Civirules_Trigger $trigger, CRM_Civirules_BAO_Rule $rule) {
-    return $trigger->doesProvideEntity('MauticWebHook');
+    return $trigger->doesProvideEntity('MauticWebhook');
   }
 }

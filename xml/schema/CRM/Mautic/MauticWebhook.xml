@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="iso-8859-1" ?>
 <table>
   <base>CRM/Mautic</base>
-  <class>MauticWebHook</class>
+  <class>MauticWebhook</class>
   <name>civicrm_mauticwebhook</name>
-  <comment>Entity representing an incoming Mautic WebHook</comment>
+  <comment>Entity representing an incoming Mautic Webhook</comment>
   <log>false</log>
 
   <field>
     <name>id</name>
     <type>int unsigned</type>
     <required>true</required>
-    <comment>Unique MauticWebHook ID</comment>
+    <comment>Unique MauticWebhook ID</comment>
   </field>
   <primaryKey>
     <name>id</name>
@@ -26,7 +26,7 @@
     <name>webhook_trigger_type</name>
     <type>varchar</type>
     <length>255</length>
-    <pseudoconstant>CRM_Mautic_WebHook::getAllTriggerOptions</pseudoconstant>
+    <pseudoconstant>CRM_Mautic_Webhook::getAllTriggerOptions</pseudoconstant>
     <comment>Mautic Webhook trigger event type.</comment>
   </field>
   <field>

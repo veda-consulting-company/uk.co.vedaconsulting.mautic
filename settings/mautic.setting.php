@@ -194,7 +194,7 @@ return [
     'html_attributes' => [
       'size' => 50,
     ],
-    'pseudoconstant' => ['callback' => 'CRM_Mautic_WebHook::getAllTriggerOptions'],
+    'pseudoconstant' => ['callback' => 'CRM_Mautic_Webhook::getAllTriggerOptions'],
     'default' => [
       'mautic.lead_post_delete',
       // Contact Identified Event.

@@ -24,7 +24,7 @@ Releases use the following numbering system:
 
 ## Release 1.3
 
-* Add Upgrader to change the operation for existing MauticWebHook Trigger from create to edit.
+* Add Upgrader to change the operation for existing MauticWebhook Trigger from create to edit.
 * Fix case when accessing CiviRules trigger data.
 * Fix various PHP warnings.
 
@@ -37,7 +37,7 @@ Releases use the following numbering system:
 
 * Catch errors and continue processing webhooks if one fails.
 * Add created_date to mauticwebhook table.
-* Remove limit of 25 on MauticWebHook.process.
+* Remove limit of 25 on MauticWebhook.process.
 * When doing a pushSync to Mautic check and log mautic contacts with CiviCRM contact IDs that do not exist (probably they have been deleted in CiviCRM but not in Mautic).
 * Remove foreign key constraints on civicrm_mauticwebhook table so we don't have issues with deleted contacts.
 * Fixes for webhook processing job and pushSync.

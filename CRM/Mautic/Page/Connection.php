@@ -259,9 +259,9 @@ EOF;
   public function webhookContent() {
     $section = $this->blankSection(E::ts('Webhook'));
     $action = 'register_webhooks';
-    $key = CRM_Mautic_WebHook::getKey();
+    $key = CRM_Mautic_Webhook::getKey();
     if (!$key) {
-      $key = CRM_Mautic_WebHook::generateKey();
+      $key = CRM_Mautic_Webhook::generateKey();
       \Civi::settings()->set('mautic_webhook_security_key', $key);
     }
     // Key info.
@@ -272,7 +272,7 @@ EOF;
        </div>';
 
     if ($this->action == $action) {
-      CRM_Mautic_Webhook::fixMauticWebHooks();
+      CRM_Mautic_Webhook::fixMauticWebhooks();
     }
     $hookData = CRM_Mautic_Webhook::validateWebhook();
     if (!empty($hookData['valid'])) {

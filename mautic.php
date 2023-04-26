@@ -1,6 +1,11 @@
 <?php
 
 require_once 'mautic.civix.php';
+$autoload = __DIR__ . '/vendor/autoload.php';
+if (file_exists($autoload)) {
+  require_once $autoload;
+}
+
 use CRM_Mautic_ExtensionUtil as E;
 
 /**
@@ -10,7 +15,6 @@ use CRM_Mautic_ExtensionUtil as E;
  */
 function mautic_civicrm_config(&$config) {
   _mautic_civix_civicrm_config($config);
-  require_once  __DIR__ . '/vendor/autoload.php';
 }
 
 /**
