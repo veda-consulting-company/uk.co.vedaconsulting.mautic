@@ -8,7 +8,7 @@ use CRM_Mautic_ExtensionUtil as E;
 /**
  * CiviRules action to create contact from Mautic Webhook.
  */
-class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Action {
+class CRM_Civirules_Action_MauticWebhookCreateContact extends CRM_Civirules_Action {
 
   protected $ruleAction = [];
 
@@ -24,7 +24,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     // Prevent triggering any syncs back to Mautic in this request.
     U::$skipUpdatesToMautic = TRUE;
     U::checkDebug(__CLASS__ . '::' . __FUNCTION__);
-    $webhook = $triggerData->getEntityData('MauticWebHook');
+    $webhook = $triggerData->getEntityData('MauticWebhook');
     $params = $this->getActionParameters();
     $updateContact = ($params['if_matching_civicrm_contact'] === 'update');
     $contactParams = [
@@ -57,7 +57,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
     }
 
     if (!$mauticContact) {
-      U::checkDebug('MauticWebHookCreateContact contact data not in payload.');
+      U::checkDebug('MauticWebhookCreateContact contact data not in payload.');
       return;
     }
     // Does the Webhook payload provide only a partial contact eg. from a subscription change trigger event?
@@ -148,7 +148,7 @@ class CRM_Civirules_Action_MauticWebHookCreateContact extends CRM_Civirules_Acti
       }
     }
     catch(Exception $e) {
-      U::checkDebug('MauticWebHookCreateContact Error::', $e->getMessage());
+      U::checkDebug('MauticWebhookCreateContact Error::', $e->getMessage());
     }
   }
 

@@ -4,7 +4,7 @@ use CRM_Mautic_ExtensionUtil as E;
 /**
  * Collection of upgrade steps.
  */
-class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
+class CRM_Mautic_Upgrader extends CRM_Extension_Upgrader_Base {
 
   // By convention, functions that look like "function upgrade_NNNN()" are
   // upgrade tasks. They are executed in order (like Drupal's hook_update_N).
@@ -95,7 +95,7 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
 
 
   /**
-   * Insert Civirules trigger for WebHook.
+   * Insert Civirules trigger for Webhook.
    *
    * @return TRUE on success
    * @throws Exception
@@ -143,7 +143,7 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     $this->executeCustomDataFileByAbsPath($file);
     return TRUE;
   }
-  
+
   public function upgrade_4207() {
     $this->ctx->log->info('Action to add contact to Event/Segment.');
     $this->enableCiviRules();
@@ -155,6 +155,6 @@ class CRM_Mautic_Upgrader extends CRM_Mautic_Upgrader_Base {
     $this->enableCiviRules();
     return TRUE;
   }
-  
+
 
 }

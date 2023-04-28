@@ -20,7 +20,7 @@ return [
       'name' => 'Process Mautic Webhooks',
       'description' => 'Process webhooks from Mautic',
       'run_frequency' => 'Always',
-      'api_entity' => 'MauticWebHook',
+      'api_entity' => 'MauticWebhook',
       'api_action' => 'process',
     ],
   ],

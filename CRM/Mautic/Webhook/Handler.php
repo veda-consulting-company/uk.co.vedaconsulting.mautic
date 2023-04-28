@@ -11,7 +11,7 @@ use CRM_Mautic_Utils as U;
  *
  * For each individual trigger event, tries to Match to a contact and creates a webhook entity and/or activity.
  */
-class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
+class CRM_Mautic_Webhook_Handler extends CRM_Mautic_Webhook {
 
   /**
    * Get corresponding CiviCRM contact from Mautic contact.
@@ -53,7 +53,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
     if (in_array($webhook['webhook_trigger_type'], $ignoreTriggersIfCiviModified)) {
       $connectedUserId = MC::singleton()->getConnectedUser()['id'] ?? NULL;
       if ($connectedUserId == $contact['id'] || $connectedUserId == $modifiedBy) {
-        U::checkDebug("WebHook: " . $webhook['webhook_trigger_type'] . " - Mautic Contact last modified by CiviCRM - no further processing required." );
+        U::checkDebug("Webhook: " . $webhook['webhook_trigger_type'] . " - Mautic Contact last modified by CiviCRM - no further processing required." );
         $civicrmContactID = CRM_Mautic_Contact_FieldMapping::lookupMauticValue('civicrm_contact_id', $contact);
         if (empty($civicrmContactID)) {
           // This usually happens because a contact on the CiviCRM side has been deleted or merged
@@ -88,9 +88,9 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       'activity_id' => $activityID,
       'processed_date' => date('YmdHis'),
     ];
-    // Update the WebHook entity to store the data.
-    // This will trigger the MauticWebHook in CiviRules.
-    civicrm_api3('MauticWebHook', 'create', $params);
+    // Update the Webhook entity to store the data.
+    // This will trigger the MauticWebhook in CiviRules.
+    civicrm_api3('MauticWebhook', 'create', $params);
   }
 
   /**
@@ -114,7 +114,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
         foreach ($data[$trigger] as $item) {
           // Don't process webhooks immediately because Mautic waits for the webhook to complete before continuing
           //   and this makes most batch actions hang quickly.
-          civicrm_api3('MauticWebHook', 'create', [
+          civicrm_api3('MauticWebhook', 'create', [
             'data' => json_encode($item),
             'webhook_trigger_type' => $trigger,
           ]);
@@ -126,12 +126,12 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
   /**
    * @param string $trigger
    * @param int $contactID
-   * @param int $mauticWebHookEntityID
+   * @param int $mauticWebhookEntityID
    *
    * @return int|null
    * @throws \CiviCRM_API3_Exception
    */
-  public function createActivity($trigger, $contactID, $mauticWebHookEntityID) {
+  public function createActivity($trigger, $contactID, $mauticWebhookEntityID) {
     // Source contact must exist. For a post_delete webhook that contact ID might not so we use the logged in user.
     if (Contact::get(FALSE)
       ->addWhere('id', '=', $contactID)
@@ -145,7 +145,7 @@ class CRM_Mautic_WebHook_Handler extends CRM_Mautic_WebHook {
       ->addValue('target_contact_id', $contactID)
       ->addValue('status_id:name', 'Completed')
       ->addValue('Mautic_Webhook_Data.Trigger_Event', str_replace('mautic.', '', $trigger))
-      ->addValue('Mautic_Webhook_Data.Data', "MauticWebHook Entity ID: {$mauticWebHookEntityID}")
+      ->addValue('Mautic_Webhook_Data.Data', "MauticWebhook Entity ID: {$mauticWebhookEntityID}")
       ->execute()
       ->first();
     U::checkDebug('Created mautic webhook activity');

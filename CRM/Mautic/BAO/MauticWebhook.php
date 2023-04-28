@@ -1,17 +1,17 @@
 <?php
 use CRM_Mautic_ExtensionUtil as E;
 
-class CRM_Mautic_BAO_MauticWebHook extends CRM_Mautic_DAO_MauticWebHook {
+class CRM_Mautic_BAO_MauticWebhook extends CRM_Mautic_DAO_MauticWebhook {
 
   /**
-   * Create a new MauticWebHook based on array-data
+   * Create a new MauticWebhook based on array-data
    *
    * @param array $params key-value pairs
-   * @return CRM_Mautic_DAO_MauticWebHook|NULL
+   * @return CRM_Mautic_DAO_MauticWebhook|NULL
    */
   public static function create($params) {
-    $className = 'CRM_Mautic_DAO_MauticWebHook';
-    $entityName = 'MauticWebHook';
+    $className = 'CRM_Mautic_DAO_MauticWebhook';
+    $entityName = 'MauticWebhook';
     $hook = empty($params['id']) ? 'create' : 'edit';
 
     CRM_Utils_Hook::pre($hook, $entityName, CRM_Utils_Array::value('id', $params), $params);
@@ -31,7 +31,7 @@ class CRM_Mautic_BAO_MauticWebHook extends CRM_Mautic_DAO_MauticWebHook {
    *
    * @param string $mauticEntityType
    * @param array[] $webhookData
-   *  API MauticWebHook data.
+   *  API MauticWebhook data.
    *
    * @return []
    */

@@ -3,10 +3,10 @@
 use CRM_Mautic_ExtensionUtil as E;
 
 /**
- * Class for CiviRules Condition Mautic WebHook Type Form
+ * Class for CiviRules Condition Mautic Webhook Type Form
  */
 
-class CRM_Mautic_Form_Civirules_Condition_MauticWebHookType extends CRM_CivirulesConditions_Form_Form {
+class CRM_Mautic_Form_Civirules_Condition_MauticWebhookType extends CRM_CivirulesConditions_Form_Form {
 
   /**
    * Overridden parent method to build form
@@ -15,13 +15,13 @@ class CRM_Mautic_Form_Civirules_Condition_MauticWebHookType extends CRM_Civirule
    */
   public function buildQuickForm() {
     $this->add('hidden', 'rule_condition_id');
-    $types = CRM_Mautic_WebHook::getAllTriggerOptions();
+    $types = CRM_Mautic_Webhook::getAllTriggerOptions();
     $options = [];
     foreach ($types as $key => $label) {
       $options[] = ['id' => str_replace('mautic.', '', $key), 'text' => $label];
     }
     // $types[0] = ts('- select -');
-    $this->add('select2', 'mautic_webhook_type', ts('WebHook Type'), $options, true, ['multiple' => TRUE]);
+    $this->add('select2', 'mautic_webhook_type', ts('Webhook Type'), $options, true, ['multiple' => TRUE]);
     $this->add('select', 'operator', ts('Operator'), array('is one of', 'is not one of'), true);
 
     $this->addButtons(array(

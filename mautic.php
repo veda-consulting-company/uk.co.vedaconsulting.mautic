@@ -1,6 +1,11 @@
 <?php
 
 require_once 'mautic.civix.php';
+$autoload = __DIR__ . '/vendor/autoload.php';
+if (file_exists($autoload)) {
+  require_once $autoload;
+}
+
 use CRM_Mautic_ExtensionUtil as E;
 
 /**
@@ -10,7 +15,6 @@ use CRM_Mautic_ExtensionUtil as E;
  */
 function mautic_civicrm_config(&$config) {
   _mautic_civix_civicrm_config($config);
-  require_once  __DIR__ . '/vendor/autoload.php';
 }
 
 /**
@@ -21,38 +25,10 @@ function mautic_civicrm_install() {
 }
 
 /**
- * Implements hook_civicrm_postInstall().
- */
-function mautic_civicrm_postInstall() {
-  _mautic_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- */
-function mautic_civicrm_uninstall() {
-  _mautic_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  */
 function mautic_civicrm_enable() {
   _mautic_civix_civicrm_enable();
-}
-
-/**
- * Implements hook_civicrm_disable().
- */
-function mautic_civicrm_disable() {
-  _mautic_civix_civicrm_disable();
-}
-
-/**
- * Implements hook_civicrm_upgrade().
- */
-function mautic_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
-  return _mautic_civix_civicrm_upgrade($op, $queue);
 }
 
 /**
@@ -267,7 +243,6 @@ function mautic_civicrm_navigationMenu(&$menu) {
 }
 
 function mautic_civicrm_entityTypes(&$entityTypes) {
-  _mautic_civix_civicrm_entityTypes($entityTypes);
 }
 
 /**

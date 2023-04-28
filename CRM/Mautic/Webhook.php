@@ -8,7 +8,7 @@ use CRM_Mautic_Utils as U;
  *
  * Contains utility functionality for Mautic Webhook.
  */
-class CRM_Mautic_WebHook {
+class CRM_Mautic_Webhook {
 
  /**
   * @var string
@@ -72,7 +72,7 @@ class CRM_Mautic_WebHook {
    *
    * @return array
    */
-  public static function getMauticWebHooks() {
+  public static function getMauticWebhooks() {
     $webhooksApi = MC::singleton()->newApi('webhooks');
     // Get webhooks registered from this URL.
     // Match on host and path, without schema or key.
@@ -112,11 +112,11 @@ class CRM_Mautic_WebHook {
    *   - invalid: Array of invalid hooks, including excess hooks.
    *   - valid: Array of valid hooks. Should not contain more than one element.
    **/
-  public static function validateWebHook() {
+  public static function validateWebhook() {
     $hooks = self::getMauticWebhooks();
     // We are only interested in particular properties.
     $compareKeys = array_flip(['isPublished', 'webhookUrl']);
-    $template = self::templateWebHook();
+    $template = self::templateWebhook();
     $compare1 = array_intersect_key($template, $compareKeys);
     $triggers = $template['triggers'];
     $return = ['valid' => [], 'invalid' => []];
@@ -140,12 +140,12 @@ class CRM_Mautic_WebHook {
    * Creates new webhooks and removes invalid hooks from the Mautic installation.
    *
    */
-  public static function fixMauticWebHooks() {
+  public static function fixMauticWebhooks() {
     $hooks = self::validateWebhook();
     $api = MC::singleton()->newApi('webhooks');
     if (empty($hooks['valid']) && !empty(self::getEnabledTriggers())) {
       // No valid webhooks. Need to create them.
-      $newHook = self::templateWebHook();
+      $newHook = self::templateWebhook();
       $created = $api->create($newHook);
     }
     if (!empty($hooks['invalid'])) {
@@ -164,7 +164,7 @@ class CRM_Mautic_WebHook {
    *
    * @return string[]|boolean[]|array[]|string[][]
    */
-  public static function templateWebHook() {
+  public static function templateWebhook() {
     return [
       'name' => self::webhookName,
       'webhookUrl' => self::getWebhookUrl(),

@@ -7,10 +7,10 @@ use CRM_Mautic_ExtensionUtil as E;
  *
  * @see https://wiki.civicrm.org/confluence/display/CRMDOC/QuickForm+Reference
  */
-class CRM_Mautic_Form_Civirules_Action_MauticWebHookCreateContact extends CRM_CivirulesActions_Form_Form {
+class CRM_Mautic_Form_Civirules_Action_MauticWebhookCreateContact extends CRM_CivirulesActions_Form_Form {
   public function buildQuickForm() {
     $this->add('hidden', 'rule_action_id');
-    
+
     // add form elements
     $this->addRadio(
       'if_matching_civicrm_contact', // field name
@@ -32,7 +32,7 @@ class CRM_Mautic_Form_Civirules_Action_MauticWebHookCreateContact extends CRM_Ci
     $this->assign('elementNames', $this->getRenderableElementNames());
     parent::buildQuickForm();
   }
-  
+
   /**
    * Overridden parent method to process form data after submitting
    *
@@ -47,19 +47,19 @@ class CRM_Mautic_Form_Civirules_Action_MauticWebHookCreateContact extends CRM_Ci
     $this->ruleAction->save();
     parent::postProcess();
   }
-  
+
   /**
-   * 
+   *
    * {@inheritDoc}
    * @see CRM_CivirulesActions_Form_Form::setDefaultValues()
    */
   public function setDefaultValues() {
     $defaultValues = parent::setDefaultValues();
-    $params = !empty($this->ruleAction->action_params) ? unserialize($this->ruleAction->action_params) : []; 
+    $params = !empty($this->ruleAction->action_params) ? unserialize($this->ruleAction->action_params) : [];
     $defaultValues += $params;
     return $defaultValues;
   }
-  
+
 
   /**
    * Get the fields/elements defined in this form.
