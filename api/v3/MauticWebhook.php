@@ -73,6 +73,13 @@ function civicrm_api3_mautic_webhook_process($params) {
     \Civi::log()->error($errorMessage);
     return civicrm_api3_create_error($errorMessage);
   }
+
+  // Clean up old entries
+  \Civi\Api4\MauticWebhook::delete(FALSE)
+    ->addWhere('created_date', '<', '-3 month')
+    ->setLimit(1000)
+    ->execute();
+
   $webhooks = civicrm_api3('MauticWebhook', 'get', $params)['values'];
   $mauticWebhookHandler = new CRM_Mautic_Webhook_Handler();
   foreach ($webhooks as $webhook) {
