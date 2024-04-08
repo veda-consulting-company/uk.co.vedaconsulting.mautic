@@ -52,19 +52,19 @@ For development/testing, a [Mautic Docker image](https://hub.docker.com/r/mautic
 ## Getting started
 
 ### Create a dedicated user on Mautic
-On the Mautic installation, go to *Settings -> Users* and click the *New* button. 
+On the Mautic installation, go to *Settings -> Users* and click the *New* button.
 Create a user with full API, Webhook and Contact permissions. (If you have not created any roles, give it the *Administrator* role).
 Give it a username like 'CiviCRM' so it is clearly distinguished from normal users.
 Keep a note of the password. You will need it when authenticating the extension.
 
 
 ### Enable Mautic's API
-On the Mautic installation, navigate to *Settings -> Configuration -> API Settings*. 
+On the Mautic installation, navigate to *Settings -> Configuration -> API Settings*.
 Toggle 'API enabled'.
 
 ### Configure authentication methods on Mautic
 Mautic provides authentication by HTTP basic auth, OAuth1a and OAuth2.
-OAuth2 is recommended for production installations. 
+OAuth2 is recommended for production installations.
 HTTP Basic authentication can be used if you are testing locally or otherwise do not have https set up.
 
 #### HTTP Basic Auth
@@ -78,7 +78,7 @@ You will also need to provide a redirect URI. Use https://my-civicrm-installatio
 
 Once the credentials are created, a pair of public/secret keys will be available. You'll need these when configuring the extension.
 
-After these changes, clear the Mautic cache. You will need access to the Mautic files on the  Mautic host. 
+After these changes, clear the Mautic cache. You will need access to the Mautic files on the  Mautic host.
 Go to the var/cache directory from Mautic filesystem root and delete its content.
 
 ### Create Segments
@@ -100,7 +100,7 @@ Webhook: Select the types of webhook to process. We suggest all the Contact rela
 Tag Synchronization: You can enable synchronization of tags between Mautic and CiviCRM contacts.
 The option *Restrict tag synchronization to a specific tag-set* will only synchronize a sub-set of CiviCRM tags. Alternatively tags will be pushed and pulled but will not be removed.
 
-Event Segment link: Allows you to add a prefix or suffix to Mautic segments created to be linked to an Event. 
+Event Segment link: Allows you to add a prefix or suffix to Mautic segments created to be linked to an Event.
 
 After you save the settings, the connection status page will confirm successful connection and check whether CiviCRM has been able to create items on Mautic.
 
@@ -140,9 +140,9 @@ An example rule *Add registered contact to Mautic Segment* would have the follow
 - Sync contact to Mautic
 - Add contact to Segment mapped to an Event
 
-The Condition *Event is linked to a Mautic Segment* and Action *Add contact to Segment mapped to an Event* work with Triggers involving Event Registration Activities, Participants or Events. 
-The *Add contact to Segment mapped to an Event* will do nothing if the CiviRules trigger does not involve a record that can be linked to a Mautic Segment via an Event. If it can get a segment, the Mautic Contact linked to the CiviCRM contact is added to the Segment. It should be preceeded by the *Sync contact to Mautic* action to ensure the Contact exists in Mautic before the attempt to add it to the segment.  
- 
+The Condition *Event is linked to a Mautic Segment* and Action *Add contact to Segment mapped to an Event* work with Triggers involving Event Registration Activities, Participants or Events.
+The *Add contact to Segment mapped to an Event* will do nothing if the CiviRules trigger does not involve a record that can be linked to a Mautic Segment via an Event. If it can get a segment, the Mautic Contact linked to the CiviCRM contact is added to the Segment. It should be preceeded by the *Sync contact to Mautic* action to ensure the Contact exists in Mautic before the attempt to add it to the segment.
+
 ## Manual Push Sync
 
 To perform a manual push go to *Administer -> Mautic -> Push to Mautic*.
@@ -176,14 +176,14 @@ You can check the status of the webhook from the CiviCRM installation at: *Admin
 You should see the webhook from the Mautic installation at: *Settings -> Webhooks*.
 
 ### Process Mautic Webhooks Scheduled Job
-Incoming events from Mautic are initially stored without further action to reduce the time that Mautic needs to wait for a response. 
+Incoming events from Mautic are initially stored without further action to reduce the time that Mautic needs to wait for a response.
 
 If you intend to act on events from Mautic, you should ensure the *Process Mautic Webhooks* Scheduled Job is enabled.
 The job can be scheduled to run on every time cron is run.
 
-### CiviRules Trigger 
+### CiviRules Trigger
 A [CiviRules](https://docs.civicrm.org/civirules/en/latest) trigger is available to process these events.
-Typically, you'd create one or more rules with the *Mautic WebHook processed* trigger and the *Create Contact from Mautic WebHook Data* action to sync contacts into CiviCRM from Mautic, using conditions according to your case.
+Typically, you'd create one or more rules with the *Mautic Webhook processed* trigger and the *Create Contact from Mautic Webhook Data* action to sync contacts into CiviCRM from Mautic, using conditions according to your case.
 
 Note, if you install CiviRules after the Mautic extension, go to *Administer > Mautic -> Connection* where you'll be able to register the Trigger, Condition and Action types.
 

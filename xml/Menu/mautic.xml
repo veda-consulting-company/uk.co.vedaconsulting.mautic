@@ -20,20 +20,20 @@
   </item>
   <item>
     <path>civicrm/mautic/webhook</path>
-    <page_callback>CRM_Mautic_Page_WebHook</page_callback>
-    <title>WebHook</title>
+    <page_callback>CRM_Mautic_Page_Webhook</page_callback>
+    <title>Webhook</title>
     <access_callback>1</access_callback>
   </item>
   <item>
     <path>civicrm/admin/mautic/civirules/condition/mauticwebhooktype</path>
-    <page_callback>CRM_Mautic_Form_Civirules_Condition_MauticWebHookType</page_callback>
-    <title>Condition: Mautic WebHook Type</title>
+    <page_callback>CRM_Mautic_Form_Civirules_Condition_MauticWebhookType</page_callback>
+    <title>Condition: Mautic Webhook Type</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>
     <path>civicrm/admin/mautic/civirules/action/mauticwebhookcreatecontact</path>
-    <page_callback>CRM_Mautic_Form_Civirules_Action_MauticWebHookCreateContact</page_callback>
-    <title>Action: Create Contact from Mautic WebHook</title>
+    <page_callback>CRM_Mautic_Form_Civirules_Action_MauticWebhookCreateContact</page_callback>
+    <title>Action: Create Contact from Mautic Webhook</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
   <item>

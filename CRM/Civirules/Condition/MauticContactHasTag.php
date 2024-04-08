@@ -1,6 +1,6 @@
 <?php
 /**
- * Class for CiviRule Condition Mautic WebHook is of type.
+ * Class for CiviRule Condition Mautic Webhook is of type.
  *
  */
 
@@ -34,8 +34,8 @@ class CRM_Civirules_Condition_MauticContactHasTag extends CRM_Civirules_Conditio
    * @access public
    */
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
-    $webhook = $triggerData->getEntityData('MauticWebHook');
-    $mauticContact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook['data']);
+    $webhook = $triggerData->getEntityData('MauticWebhook');
+    $mauticContact = CRM_Mautic_BAO_MauticWebhook::getProvidedData('contact', $webhook['data']);
     if (empty($mauticContact['tags'])) {
       return FALSE;
     }
@@ -78,6 +78,6 @@ class CRM_Civirules_Condition_MauticContactHasTag extends CRM_Civirules_Conditio
    * @return bool
    */
   public function doesWorkWithTrigger(CRM_Civirules_Trigger $trigger, CRM_Civirules_BAO_Rule $rule) {
-    return $trigger->doesProvideEntity('MauticWebHook');
+    return $trigger->doesProvideEntity('MauticWebhook');
   }
 }

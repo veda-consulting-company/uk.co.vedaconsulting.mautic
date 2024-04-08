@@ -2,12 +2,12 @@
 
 use CRM_Mautic_ExtensionUtil as E;
 
-class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
+class CRM_Civirules_Trigger_MauticWebhook extends CRM_Civirules_Trigger_Post {
   /**
    * This is a pseudo entity.
    * @var string
    */
-  protected $objectName = 'MauticWebHook';
+  protected $objectName = 'MauticWebhook';
 
   /**
    * Returns an array of entities on which the trigger reacts
@@ -15,7 +15,7 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
    * @return CRM_Civirules_TriggerData_EntityDefinition
    */
   protected function reactOnEntity() {
-    return new CRM_Civirules_TriggerData_EntityDefinition($this->objectName, $this->objectName, $this->getDaoClassName(), 'MauticWebHook');
+    return new CRM_Civirules_TriggerData_EntityDefinition($this->objectName, $this->objectName, $this->getDaoClassName(), 'MauticWebhook');
   }
 
   /**
@@ -24,7 +24,7 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
    * @return string
    */
   protected function getDaoClassName() {
-    return 'CRM_Mautic_DAO_MauticWebHook';
+    return 'CRM_Mautic_DAO_MauticWebhook';
   }
 
   /**
@@ -45,7 +45,7 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
    * @return string
    */
   public function getTriggerDescription() {
-    return E::ts('Mautic WebHook processed');
+    return E::ts('Mautic Webhook processed');
   }
 
   /**
@@ -58,7 +58,7 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
    */
   public function triggerTrigger($op, $objectName, $objectId, $objectRef, $eventID) {
     $triggerData = $this->getTriggerDataFromPost($op, $objectName, $objectId, $objectRef, $eventID);
-    if (isset($triggerData->getEntityData('MauticWebHook')['civirules_do_not_process'])) {
+    if (isset($triggerData->getEntityData('MauticWebhook')['civirules_do_not_process'])) {
       return;
     }
     CRM_Civirules_Engine::triggerRule($this, clone $triggerData);
@@ -73,17 +73,17 @@ class CRM_Civirules_Trigger_MauticWebHook extends CRM_Civirules_Trigger_Post {
     $hook_invoker = CRM_Civirules_Utils_HookInvoker::singleton();
     $hook_invoker->hook_civirules_alterTriggerData($triggerData);
 
-    // Set the trigger contact id to the WebHook data.
-    $webhook = $triggerData->getEntityData('MauticWebHook');
+    // Set the trigger contact id to the Webhook data.
+    $webhook = $triggerData->getEntityData('MauticWebhook');
     // Retrieve all data for webhook
     $originalData = $triggerData->getOriginalData();
     $webhook = array_merge($originalData, $webhook);
     // Decode webhook data
     $webhook['data'] = json_decode($webhook['data'], TRUE);
-    $triggerData->setEntityData('MauticWebHook', $webhook);
+    $triggerData->setEntityData('MauticWebhook', $webhook);
     // Set contact ID from mautic data
     if (!$triggerData->getContactId()) {
-      $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook['data']);
+      $contact = CRM_Mautic_BAO_MauticWebhook::getProvidedData('contact', $webhook['data']);
       $triggerData->setContactId(CRM_Mautic_Contact_FieldMapping::lookupMauticValue('civicrm_contact_id', $contact));
     }
   }

@@ -1,7 +1,7 @@
 <?php
 use CRM_Mautic_ExtensionUtil as E;
 /**
- * Class for CiviRule Condition Mautic WebHook is of type.
+ * Class for CiviRule Condition Mautic Webhook is of type.
  *
  */
 
@@ -36,9 +36,9 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
   public function isConditionValid(CRM_Civirules_TriggerData_TriggerData $triggerData) {
     $field_name = $this->conditionParams['field_name'];
     $searchValue = $this->conditionParams[$field_name];
-    $webhook = $triggerData->getEntityData('MauticWebHook');
+    $webhook = $triggerData->getEntityData('MauticWebhook');
     if ($searchValue && $webhook) {
-      $contact = CRM_Mautic_BAO_MauticWebHook::getProvidedData('contact', $webhook['data']);
+      $contact = CRM_Mautic_BAO_MauticWebhook::getProvidedData('contact', $webhook['data']);
       if (!empty($contact['fields']['core'][$field_name])) {
         return $contact['fields']['core'][$field_name]['value'] == $searchValue;
       }
@@ -73,6 +73,6 @@ class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Cond
    * @return bool
    */
   public function doesWorkWithTrigger(CRM_Civirules_Trigger $trigger, CRM_Civirules_BAO_Rule $rule) {
-    return $trigger->doesProvideEntity('MauticWebHook');
+    return $trigger->doesProvideEntity('MauticWebhook');
   }
 }
