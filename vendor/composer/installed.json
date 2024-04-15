@@ -1,42 +1,52 @@
-[
-    {
-        "name": "mautic/api-library",
-        "version": "3.0.0",
-        "version_normalized": "3.0.0.0",
-        "source": {
-            "type": "git",
-            "url": "https://github.com/mautic/api-library.git",
-            "reference": "557ce71ca1603324a781270f73334852fce10d0e"
-        },
-        "dist": {
-            "type": "zip",
-            "url": "https://api.github.com/repos/mautic/api-library/zipball/557ce71ca1603324a781270f73334852fce10d0e",
-            "reference": "557ce71ca1603324a781270f73334852fce10d0e",
-            "shasum": ""
-        },
-        "require": {
-            "ext-curl": "*",
-            "ext-json": "*",
-            "php": ">=7.2.0",
-            "psr/log": "~1.0"
-        },
-        "require-dev": {
-            "friendsofphp/php-cs-fixer": "~2.16.1",
-            "phpunit/phpunit": "~9.4.0",
-            "raveren/kint": "~0.9"
-        },
-        "time": "2020-10-17T14:04:17+00:00",
-        "type": "library",
-        "installation-source": "dist",
-        "autoload": {
-            "psr-4": {
-                "Mautic\\": "lib/"
-            }
-        },
-        "notification-url": "https://packagist.org/downloads/",
-        "license": [
-            "MIT"
-        ],
-        "description": "Mautic API Connector Library"
-    }
-]
+{
+    "packages": [
+        {
+            "name": "mautic/api-library",
+            "version": "3.1.0",
+            "version_normalized": "3.1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mautic/api-library.git",
+                "reference": "5b0d9051a3a42eea132fa6da35b712e947804d2c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mautic/api-library/zipball/5b0d9051a3a42eea132fa6da35b712e947804d2c",
+                "reference": "5b0d9051a3a42eea132fa6da35b712e947804d2c",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=7.2.0",
+                "psr/log": "~1.0 || ~2.0 || ~3.0"
+            },
+            "require-dev": {
+                "brianium/paratest": "^6.2",
+                "friendsofphp/php-cs-fixer": "~2.16.1",
+                "kint-php/kint": "^4.1",
+                "phpunit/phpunit": "~9.5.0"
+            },
+            "time": "2022-05-04T13:59:18+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Mautic\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Mautic API Connector Library",
+            "support": {
+                "issues": "https://github.com/mautic/api-library/issues",
+                "source": "https://github.com/mautic/api-library/tree/3.1.0"
+            },
+            "install-path": "../mautic/api-library"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}
