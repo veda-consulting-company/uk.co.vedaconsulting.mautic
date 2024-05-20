@@ -10,14 +10,11 @@ use CRM_Mautic_Contact_Contact as MauticContact;
 use CRM_Mautic_Utils as U;
 
 class CRM_Civirules_Action_MauticChangeTagsSegments extends CRM_Civirules_Action {
- /**
-  * Keep a log of items processed in this request.
-  */ 
- private static $processedIds = [];
 
-  protected $ruleAction = [];
-
-  protected $action = [];
+  /**
+   * Keep a log of items processed in this request.
+   */
+  private static $processedIds = [];
 
   /**
    * Process the action
@@ -42,7 +39,7 @@ class CRM_Civirules_Action_MauticChangeTagsSegments extends CRM_Civirules_Action
 
     $params = $this->getActionParameters();
 
-    
+
     $addSegmentIds = $params['add_segment_ids'] ?? [];
     $removeSegmentIds = $params['remove_segment_ids'] ?? [];
     $addTags = $params['add_tags'];
@@ -95,13 +92,13 @@ class CRM_Civirules_Action_MauticChangeTagsSegments extends CRM_Civirules_Action
     return $return;
   }
 
- /**
-  * @inherit
-  */ 
+  /**
+   * @inherit
+   */
   protected function getActionParameters() {
     $params = parent::getActionParameters();
     foreach (['add_segment_ids', 'remove_segment_ids', 'add_tags', 'remove_tags'] as $key) {
-      $params[$key] = $this->arrVal($params[$key]);  
+      $params[$key] = $this->arrVal($params[$key]);
     }
     return $params;
   }
