@@ -7,7 +7,7 @@ use CRM_Mautic_ExtensionUtil as E;
 
 class CRM_Civirules_Condition_MauticContactFieldValue extends CRM_Civirules_Condition {
 
-  private $conditionParams = array();
+  private $conditionParams = [];
 
   public function getExtraDataInputUrl($ruleConditionId) {
     return CRM_Utils_System::url('civicrm/admin/mautic/civirules/condition/mautic_contact_field_value', 'rule_condition_id=' . $ruleConditionId);

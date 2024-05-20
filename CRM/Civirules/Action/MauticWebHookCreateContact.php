@@ -10,10 +10,6 @@ use CRM_Mautic_ExtensionUtil as E;
  */
 class CRM_Civirules_Action_MauticWebhookCreateContact extends CRM_Civirules_Action {
 
-  protected $ruleAction = [];
-
-  protected $action = [];
-
   /**
    * Process the action
    *

@@ -6,7 +6,7 @@
 
 class CRM_Civirules_Condition_MauticWebhookType extends CRM_Civirules_Condition {
 
-  private $conditionParams = array();
+  private $conditionParams = [];
 
   public function getExtraDataInputUrl($ruleConditionId) {
     return CRM_Utils_System::url('civicrm/admin/mautic/civirules/condition/mauticwebhooktype', 'rule_condition_id=' . $ruleConditionId);
@@ -20,7 +20,7 @@ class CRM_Civirules_Condition_MauticWebhookType extends CRM_Civirules_Condition 
    */
   public function setRuleConditionData(array $ruleCondition) {
     parent::setRuleConditionData($ruleCondition);
-    $this->conditionParams = array();
+    $this->conditionParams = [];
     if (!empty($this->ruleCondition['condition_params'])) {
       $this->conditionParams = unserialize($this->ruleCondition['condition_params']);
     }
