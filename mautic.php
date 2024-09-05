@@ -260,11 +260,11 @@ function mautic_civicrm_alterLogTables(&$logTableSpec) {
  */
 function mautic_civicrm_fieldOptions($entity, $field, &$options, $params) {
   // Add options for field linking Event to Mautic Segment.
-  if ($entity == 'Event' && 0 === strpos($field, 'custom_')) {
+  if ($entity == 'Event' && str_starts_with($field, 'custom_') || str_contains($field, '.')) {
+    // TODO: Backward-compat for legacy custom field names can be removed when dropping support for CiviCRM < 5.79
     $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Segment', 'Mautic_Event');
-    if ('custom_' . $fid == $field) {
-      $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
-      $options = $segments ? $segments : $options;
+    if ('Mautic_Event.Mautic_Segment' == $field || 'custom_' . $fid == $field) {
+      $options = CRM_Mautic_Utils::getMauticSegmentOptions() ?: $options;
     }
   }
 }
