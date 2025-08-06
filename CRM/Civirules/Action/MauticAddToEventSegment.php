@@ -12,9 +12,9 @@ class CRM_Civirules_Action_MauticAddToEventSegment extends CRM_Civirules_Action 
 
   use CRM_Civirules_EventMauticTrait;
 
-  protected $ruleAction = [];
+  protected array $ruleAction = [];
 
-  protected $action = [];
+  protected array $action = [];
 
   /**
    * Process the action
