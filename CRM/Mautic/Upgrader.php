@@ -80,6 +80,10 @@ class CRM_Mautic_Upgrader extends CRM_Extension_Upgrader_Base {
     // Add Custom Data for Mautic_Webhook_Triggered activity type.
     $file = $this->extensionDir . '/xml/activity_data.xml';
     $this->executeCustomDataFileByAbsPath($file);
+    
+    // Add Custom Data for Mautic Event fields.
+    $eventFile = $this->extensionDir . '/xml/event_data.xml';
+    $this->executeCustomDataFileByAbsPath($eventFile);
   }
 
   /**
@@ -156,5 +160,66 @@ class CRM_Mautic_Upgrader extends CRM_Extension_Upgrader_Base {
     return TRUE;
   }
 
+  /**
+   * Uninstall - remove custom data and other artifacts.
+   */
+  public function onUninstall()
+  {
+    // Define custom groups to remove
+    $customGroups = [
+      'Mautic_Contact',
+      'Mautic_Settings',
+      'Mautic_Event',
+      'Mautic_Webhook_Data',
+    ];
+    
+    // Remove custom groups
+    foreach ($customGroups as $groupName) {
+      try {
+        $customGroup = civicrm_api3('CustomGroup', 'get', [
+          'name' => $groupName,
+          'sequential' => 1,
+        ]);
+        if (!empty($customGroup['values'])) {
+          civicrm_api3('CustomGroup', 'delete', ['id' => $customGroup['values'][0]['id']]);
+        }
+      } catch (Exception $e) {
+        CRM_Core_Error::debug_log_message("Failed to remove $groupName custom group: " . $e->getMessage());
+      }
+    }
+    
+    // Remove other artifacts
+    $artifacts = [
+      [
+        'entity' => 'OptionValue',
+        'params' => [
+          'name' => 'Mautic_Webhook_Triggered',
+          'option_group_id' => 'activity_type',
+        ],
+        'description' => 'Mautic activity type',
+      ],
+      [
+        'entity' => 'OptionGroup',
+        'params' => ['name' => 'mautic_trigger_event'],
+        'description' => 'Mautic trigger event option group',
+      ],
+      [
+        'entity' => 'Job',
+        'params' => ['name' => 'Mautic Push Sync'],
+        'description' => 'Mautic scheduled job',
+      ],
+    ];
+    
+    foreach ($artifacts as $artifact) {
+      try {
+        $result = civicrm_api3($artifact['entity'], 'get', $artifact['params'] + ['sequential' => 1]);
+        if (!empty($result['values'])) {
+          civicrm_api3($artifact['entity'], 'delete', ['id' => $result['values'][0]['id']]);
+        }
+      } catch (Exception $e) {
+        $this->ctx->log->err("Failed to remove {$artifact['description']}: " . $e->getMessage());
+      }
+    }
+  }
 
 }

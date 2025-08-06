@@ -48,11 +48,7 @@ function mautic_civicrm_buildForm($formName, &$form) {
     return;
   }
   // Add Settings Template.
-  // For Editing a group, then adding to regions other than html-header
-  // results in duplicate elements.
-  // For Adding a group, the html-header region inserts the template before
-  // CRM.$ is loaded.
-  $region = $form->getAction() == CRM_Core_Action::ADD ? 'page-footer' : 'html-header';
+  $region = 'page-footer';
 
   CRM_Core_Region::instance($region)->add(
     ['template' => 'CRM/Group/MauticSettings.tpl']);

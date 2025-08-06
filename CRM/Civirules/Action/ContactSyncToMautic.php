@@ -9,9 +9,9 @@ use CRM_Mautic_Connection as MC;
 
 class CRM_Civirules_Action_ContactSyncToMautic extends CRM_Civirules_Action {
 
-  protected $ruleAction = [];
+  protected array $ruleAction = [];
 
-  protected $action = [];
+  protected array $action = [];
 
   /**
    * Process the action

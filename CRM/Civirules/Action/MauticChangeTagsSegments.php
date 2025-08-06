@@ -13,11 +13,11 @@ class CRM_Civirules_Action_MauticChangeTagsSegments extends CRM_Civirules_Action
  /**
   * Keep a log of items processed in this request.
   */ 
- private static $processedIds = [];
+  private static $processedIds = [];
 
-  protected $ruleAction = [];
+  protected array $ruleAction = [];
 
-  protected $action = [];
+  protected array $action = [];
 
   /**
    * Process the action
