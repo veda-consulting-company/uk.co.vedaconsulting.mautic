@@ -139,16 +139,16 @@ class CRM_Mautic_Connection {
         case 'basic':
           $authMethod = 'BasicAuth';
           $params += [
-            'userName' => CRM_Utils_Array::value('mautic_basic_username', $this->settings),
-            'password' => CRM_Utils_Array::value('mautic_basic_password', $this->settings),
+            'userName' => $this->settings['mautic_basic_username'] ?? NULL,
+            'password' => $this->settings['mautic_basic_password'] ?? NULL,
           ];
           break;
         case 'oauth1':
           $authMethod = 'OAuth';
           $params += [
             'version' => 'OAuth1a',
-            'clientKey' => CRM_Utils_Array::value('mautic_oauth1_consumer_key', $this->settings),
-            'clientSecret' => CRM_Utils_Array::value('mautic_oauth1_consumer_secret', $this->settings),
+            'clientKey' => $this->settings['mautic_oauth1_consumer_key'] ?? NULL,
+            'clientSecret' => $this->settings['mautic_oauth1_consumer_secret'] ?? NULL,
             'callback' => $this->getCallbackUrl(),
           ];
           $checkTokenKey = 'accessTokenSecret';
@@ -157,8 +157,8 @@ class CRM_Mautic_Connection {
           $authMethod = 'OAuth';
           $params += [
             'version' => 'OAuth2',
-            'clientKey' => CRM_Utils_Array::value('mautic_oauth2_client_id', $this->settings),
-            'clientSecret' => CRM_Utils_Array::value('mautic_oauth2_client_secret', $this->settings),
+            'clientKey' => $this->settings['mautic_oauth2_client_id'] ?? NULL,
+            'clientSecret' => $this->settings['mautic_oauth2_client_secret'] ?? NULL,
             'callback' => $this->getCallbackUrl(),
           ];
           $checkTokenKey = 'refreshToken';
@@ -315,6 +315,6 @@ class CRM_Mautic_Connection {
    *  One of: basic|oauth1|oauth2
    */
   public function getAuthMethod() {
-    return CRM_Utils_Array::value('mautic_connection_authentication_method', $this->settings);
+    return $this->settings['mautic_connection_authentication_method'] ?? NULL;
   }
 }

@@ -45,7 +45,7 @@ class CRM_Mautic_Utils {
     $contactId = $contact['id'];
     $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Contact_ID', 'Mautic_Contact');
     $key = 'custom_' . $fid;
-    $savedMauticId = CRM_Utils_Array::value($key, $contact);
+    $savedMauticId = $contact[$key] ?? NULL;
     if ($contactId && $mauticId != $savedMauticId) {
       // Prefer to save customValue directly rather than update Contact.
       // This may be called from a contact update rule trigger.
@@ -221,7 +221,7 @@ class CRM_Mautic_Utils {
       $groups[$dao->entity_id] = [
           // Mautic Segment
           'segment_id' => $dao->mautic_segment_id,
-          'segment_name' => CRM_Utils_Array::value('name', $segment),
+          'segment_name' => $segment['name'] ?? NULL,
           // Details from CiviCRM
           'civigroup_title' => $dao->civigroup_title,
           'civigroup_uses_cache' => (bool) (($dao->saved_search_id > 0) || (bool) $dao->children),

@@ -55,9 +55,9 @@ class CRM_Mautic_Setting {
   public static function getLabel($name, $optionValue = NULL) {
     $meta = CRM_Utils_Array::value($name, self::getSettingMetaData(), []);
     if ($optionValue) {
-      return CRM_Utils_Array::value($optionValue, $meta['options']);
+      return $meta['options'][$optionValue] ?? NULL;
     }
-    return CRM_Utils_Array::value('title', $meta);
+    return $meta['title'] ?? NULL;
   }
 
   /**

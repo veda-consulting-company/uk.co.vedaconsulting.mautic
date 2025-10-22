@@ -14,7 +14,7 @@ class CRM_Mautic_BAO_MauticWebhook extends CRM_Mautic_DAO_MauticWebhook {
     $entityName = 'MauticWebhook';
     $hook = empty($params['id']) ? 'create' : 'edit';
 
-    CRM_Utils_Hook::pre($hook, $entityName, CRM_Utils_Array::value('id', $params), $params);
+    CRM_Utils_Hook::pre($hook, $entityName, $params['id'] ?? NULL, $params);
     // Serialize data. API calls may need to serialize beforehand.
     if (!empty($params['data']) && !is_string($params['data'])) {
       $params['data'] = json_encode($params['data']);
