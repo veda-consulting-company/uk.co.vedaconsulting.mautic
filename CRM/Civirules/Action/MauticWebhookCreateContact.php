@@ -164,6 +164,6 @@ class CRM_Civirules_Action_MauticWebhookCreateContact extends CRM_Civirules_Acti
    */
   public function userFriendlyConditionParams() {
     $params = $this->getActionParameters();
-    return E::ts("If a matching CiviCRM contact is found: {$params['if_matching_civicrm_contact']}");
+    return E::ts("If a matching CiviCRM contact is found: %1", [1 => $params['if_matching_civicrm_contact']]);
   }
 }
