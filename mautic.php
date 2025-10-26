@@ -109,8 +109,9 @@ function mautic_civicrm_validateForm($formName, &$fields, &$files, &$form, &$err
       }
       if (!empty($otherGroups)) {
         $otherGroup = reset($otherGroups);
-        $errors['mautic_segment'] = ts('There is already a CiviCRM group associated with this Segment, called "'
-          . $otherGroup['civigroup_title'].'"');
+        $errors['mautic_segment'] = ts('There is already a CiviCRM group associated with this Segment, called "%1".', [
+          1 => $otherGroup['civigroup_title'],
+        ]);
       }
     }
   }
