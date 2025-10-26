@@ -377,7 +377,7 @@ class CRM_Mautic_Contact_FieldMapping {
    *   The Mautic contact params that were sent by Mautic
    *
    * @return int|null
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public static function createCommsPrefsActivity($civicrmContact, $mauticContact) {
     foreach (self::$commsPrefFields as $key) {

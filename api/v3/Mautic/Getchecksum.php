@@ -23,7 +23,7 @@ function _civicrm_api3_mautic_Getchecksum_spec(&$spec) {
  *
  * @see civicrm_api3_create_success
  *
- * @throws API_Exception
+ * @throws CRM_Core_Exception
  */
 function civicrm_api3_mautic_Getchecksum($params) {
 
@@ -48,6 +48,6 @@ function civicrm_api3_mautic_Getchecksum($params) {
     return civicrm_api3_create_success($returnValues, $params, 'Mautic', 'Getchecksum');
   }
   else {
-    throw new API_Exception('The id parameter is required');
+    throw new CRM_Core_Exception('The id parameter is required');
   }
 }

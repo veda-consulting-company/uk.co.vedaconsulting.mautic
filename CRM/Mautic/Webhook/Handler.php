@@ -27,7 +27,7 @@ class CRM_Mautic_Webhook_Handler extends CRM_Mautic_Webhook {
   /**
    * @param array $webhook
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public function processEvent($webhook) {
     $data = json_decode($webhook['data'], TRUE);
@@ -98,7 +98,7 @@ class CRM_Mautic_Webhook_Handler extends CRM_Mautic_Webhook {
    *
    * @param string $rawData
    *
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public function process($rawData) {
     $data = json_decode($rawData, TRUE);
@@ -129,7 +129,7 @@ class CRM_Mautic_Webhook_Handler extends CRM_Mautic_Webhook {
    * @param int $mauticWebhookEntityID
    *
    * @return int|null
-   * @throws \CiviCRM_API3_Exception
+   * @throws \CRM_Core_Exception
    */
   public function createActivity($trigger, $contactID, $mauticWebhookEntityID) {
     // Source contact must exist. For a post_delete webhook that contact ID might not so we use the logged in user.
