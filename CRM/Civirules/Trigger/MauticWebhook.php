@@ -44,7 +44,7 @@ class CRM_Civirules_Trigger_MauticWebhook extends CRM_Civirules_Trigger_Post {
    *
    * @return string
    */
-  public function getTriggerDescription() {
+  public function getTriggerDescription(): string {
     return E::ts('Mautic Webhook processed');
   }
 
