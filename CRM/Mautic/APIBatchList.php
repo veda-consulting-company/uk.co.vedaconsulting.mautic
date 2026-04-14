@@ -68,7 +68,7 @@ class CRM_Mautic_APIBatchList {
         $params['orderBy'],
         $params['orderByDir'],
         $params['publishedOnly'],
-        true // $params['minimal']
+        $params['minimal']
         );
     $key = $this->api->listName();
     if (!isset($this->total)) {

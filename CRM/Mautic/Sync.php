@@ -157,6 +157,7 @@ class CRM_Mautic_Sync {
     while ($members = $batchAPI->fetchBatch()) {
       foreach ($members as $member) {
         $civicrm_contact_id = CRM_Mautic_Contact_FieldMapping::getValue($member, 'civicrm_contact_id', 0);
+        $doNotContact = (int) (isset($member['doNotContact'][0]['id']));
         // Check if contact exists in CiviCRM and is not deleted
         $contacts = Contact::get(FALSE)
           ->addWhere('id', '=', $civicrm_contact_id)
@@ -172,7 +173,7 @@ class CRM_Mautic_Sync {
         $groupInfo = serialize($this->singleGroupMapping());
         $mautic_contact_id = $member['id'];
         // for comparison with the hash created from the CiviCRM data (elsewhere).
-        $hash = md5($first_name . $last_name . $email . $groupInfo);
+        $hash = md5($first_name . $last_name . $email . $groupInfo . $doNotContact);
         $contact_serialized = serialize($member);
         $queryParams = [
           [$email, 'String'],
@@ -300,13 +301,14 @@ class CRM_Mautic_Sync {
 
       // Store the fact that the contact is a member of the current group.
       $info = serialize($this->singleGroupMapping());
+      $doNotContact = (int) (!empty($contact['is_opt_out']) || !empty($contact['do_not_email']));
 
       // we're ready to store this but we need a hash that contains all the info
       // for comparison with the hash created from the CiviCRM data (elsewhere).
       //          email,           first name,      last name,      groupings
       // See note above about why we don't include email in the hash.
       // $hash = md5($email . $contact['first_name'] . $contact['last_name'] . $info);
-      $hash = md5($contact['first_name'] . $contact['last_name'] . $email . $info);
+      $hash = md5($contact['first_name'] . $contact['last_name'] . $email . $info . $doNotContact);
 
       // Set mautic id to a numeric value.
       $mautic_contact_id = 0;
@@ -766,6 +768,22 @@ class CRM_Mautic_Sync {
     $batchResult = $api->editBatch($data, FALSE);
     if (!empty($batchResult['errors'])) {
       throw new CRM_Mautic_Exception_NetworkErrorException(__FUNCTION__ . ' ' . print_r($batchResult, TRUE));
+    }
+    self::handleDnc($data);
+  }
+
+  private static function handleDnc(array $data): void {
+    $api = MC::singleton()->newApi('contacts');
+    foreach ($data as $contact) {
+      if (!isset($contact['doNotContact']) || empty($contact['id'])) {
+        continue;
+      }
+
+      if (empty($contact['doNotContact'])) {
+        $api->removeDnc($contact['id']);
+      } else {
+        $api->addDnc($contact['id']);
+      }
     }
   }
 
