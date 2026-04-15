@@ -47,6 +47,7 @@ function mautic_civicrm_buildForm($formName, &$form) {
   if ($form->isSubmitted()) {
     return;
   }
+
   // Add Settings Template.
   $region = 'page-footer';
 
@@ -196,6 +197,13 @@ function mautic_civicrm_pageRun(&$page) {
 
       $js_safe_object['id' . $group_id] = $val;
     }
+
+    if (CRM_Utils_Request::retrieve('mautic_groups_refresh', 'Boolean')) {
+      header('Content-Type: application/json');
+      echo json_encode($js_safe_object);
+      CRM_Utils_System::civiExit();
+    }
+
     $page->assign('mautic_groups', json_encode($js_safe_object));
   }
 }

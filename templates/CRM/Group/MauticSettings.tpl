@@ -19,24 +19,23 @@
 <script>
   (function($) {
     var mauticSettingsInitialized = false;
-    debugger
-    
+
     // Function to initialize Mautic settings when the custom field is available
     function initializeMauticSettings() {
       // Prevent multiple initializations
       if (mauticSettingsInitialized) {
         return;
       }
-      
+
       var $customField = $("input[data-crm-custom='Mautic_Settings:Mautic_Segment']");
-      
+
       if ($customField.length === 0) {
         // Custom field not yet loaded, check again later
         setTimeout(initializeMauticSettings, 100);
         return;
       }
 
-      
+
       var mautic_settings = $('#mautic_settings').html();
       var mautic_segment_id = parseInt($customField.val());
 
@@ -45,7 +44,7 @@
       $customField.parent().parent().after(mautic_settings);
       $customField.parent().parent().hide();
       $("#mautic_segment_tr").hide();
-      
+
       // Mark as initialized
       mauticSettingsInitialized = true;
 
@@ -67,12 +66,12 @@
         $customField.val(segment_id);
       });
     }
-    
+
     // Start the initialization process
     CRM.$(document).ready(function() {
       initializeMauticSettings();
     });
-    
+
     // Also listen for CiviCRM's custom AJAX events in case the field is loaded later
     CRM.$(document).on('crmLoad', function(event) {
       if ($(event.target).find("input[data-crm-custom='Mautic_Settings:Mautic_Segment']").length > 0) {
