@@ -271,8 +271,36 @@ function mautic_civicrm_fieldOptions($entity, $field, &$options, $params) {
  *
  */
 function mautic_civicrm_alterCustomFieldDisplayValue(&$displayValue, $value, $entityId, $fieldInfo) {
-  if ($fieldInfo['name'] == 'Mautic_Contact_ID') {
+  if ($fieldInfo['name'] == 'Mautic_Contact_ID' && !empty($value)) {
     $mauticURL = \Civi::settings()->get('mautic_connection_url');
     $displayValue = "<a href='{$mauticURL}/s/contacts/view/{$value}' target='_blank'>$value</a>";
   }
+}
+
+/**
+ * Implements hook_civicrm_alterContent().
+ */
+function mautic_civicrm_alterContent(&$content, $context, $tplName, &$object) {
+  if (empty($content) || strpos($content, '/s/contacts/view/') === FALSE) {
+    return;
+  }
+
+  $mauticURL = \Civi::settings()->get('mautic_connection_url');
+  if (empty($mauticURL)) {
+    return;
+  }
+
+  $escapedURL = preg_quote(htmlspecialchars($mauticURL, ENT_QUOTES), '/');
+  $pattern = '/&lt;a href=(?:&#039;|&quot;)' . $escapedURL
+    . '\/s\/contacts\/view\/(\d+)(?:&#039;|&quot;) target=(?:&#039;|&quot;)_blank(?:&#039;|&quot;)&gt;\d+&lt;\/a&gt;/';
+
+  $content = preg_replace_callback(
+    $pattern,
+    function ($matches) use ($mauticURL) {
+      $id = $matches[1];
+      $href = htmlspecialchars($mauticURL . '/s/contacts/view/' . $id, ENT_QUOTES);
+      return '<a href="' . $href . '" target="_blank" rel="noopener">' . $id . '</a>';
+    },
+    $content
+  );
 }
