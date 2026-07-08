@@ -14,7 +14,6 @@ It currently provides:
  - A CiviRules Trigger to handle Mautic webhooks.
  - CiviRules Conditions:
    - Mautic Webhook type
-   - Mautic Contact matches a CiviCRM Contact
    - Mautic Contact has a tag
    - Mautic Contact field has a particular value
    - Event is linked to a Mautic Segment
