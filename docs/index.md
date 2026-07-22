@@ -10,7 +10,6 @@ It currently provides:
 - A CiviRules Trigger to handle Mautic webhooks.
 - CiviRules Conditions:
   - Mautic Webhook type
-  - Mautic Contact matches a CiviCRM Contact
   - Mautic Contact has a tag
   - Mautic Contact field has a particular value
   - Event is linked to a Mautic Segment
@@ -191,14 +190,6 @@ Note, if you install CiviRules after the Mautic extension, go to *Administer > M
 Use this condition to select which Mautic trigger event types to process in the rule.
 Currently you will probably want to respond only to contact-related events.
 For example the *Contact Identified Event* will provide data on new Mautic contacts, whereas a *Contact Updated Event* will provide data on changes to existing contacts.
-
-### Condition: Mautic Contact matches a CiviCRM Contact
-Use this condition if you want to have different set of actions if the Mautic event concerns a contact that doesn't match an existing contact in CiviCRM.
-If you just want to sync the contact and don't need to treat new contacts differently from existing ones then you don't need to use this condition.
-The action to create contacts from Mautic can add or update contacts accordingly.
-
-When matching contacts, the extension checks for reference to the contact id on a custom field (2-way).
-If a valid reference isn't found, it falls back to a dedupe rule (configured in the main extensions settings).
 
 ### Other Conditions
 The other conditions are based on various properties of the incoming Mautic contact.

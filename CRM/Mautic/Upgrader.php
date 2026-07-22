@@ -161,6 +161,46 @@ class CRM_Mautic_Upgrader extends CRM_Extension_Upgrader_Base {
   }
 
   /**
+   * Remove the mautic_contact_matches_civicrm CiviRules condition. Its class
+   * (CRM_Civirules_Condition_MauticContactMatches) was never implemented, so
+   * any use of it would be fatal.
+   *
+   * @return bool
+   */
+  public function upgrade_4209() {
+    $this->ctx->log->info('Removing orphaned CiviRules condition mautic_contact_matches_civicrm (class CRM_Civirules_Condition_MauticContactMatches does not exist).');
+    try {
+      if (CRM_Core_DAO::checkTableExists('civirule_condition')) {
+        $conditionId = CRM_Core_DAO::singleValueQuery(
+          "SELECT id FROM civirule_condition WHERE name = %1 OR class_name = %2",
+          [
+            1 => ['mautic_contact_matches_civicrm', 'String'],
+            2 => ['CRM_Civirules_Condition_MauticContactMatches', 'String'],
+          ]
+        );
+        if ($conditionId) {
+          if (CRM_Core_DAO::checkTableExists('civirule_rule_condition')) {
+            CRM_Core_DAO::executeQuery(
+              "DELETE FROM civirule_rule_condition WHERE condition_id = %1",
+              [1 => [$conditionId, 'Integer']]
+            );
+          }
+          CRM_Core_DAO::executeQuery(
+            "DELETE FROM civirule_condition WHERE id = %1",
+            [1 => [$conditionId, 'Integer']]
+          );
+        }
+      }
+
+      return TRUE;
+    }
+    catch (Throwable $e) {
+      $this->ctx->log->err('upgrade_4209 failed: ' . $e->getMessage());
+      return FALSE;
+    }
+  }
+
+  /**
    * Uninstall - remove custom data and other artifacts.
    */
   public function onUninstall()
