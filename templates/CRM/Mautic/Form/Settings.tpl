@@ -47,8 +47,10 @@
       }
     }).trigger('change');
     $('[name=mautic_sync_tag_method]').change(function() {
+      if (!$(this).is(':checked')) {
+        return;
+      }
       var show = $(this).val() == 'sync_tag_children';
-      console.log(show);
       $('.wrapper-mautic_sync_tag_parent').toggle(show);
     }).trigger('change');
 
