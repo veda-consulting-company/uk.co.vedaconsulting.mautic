@@ -1427,8 +1427,14 @@ class CRM_Mautic_Sync {
       $tagHelper->setData($civi_details['contact'], $mautic_details['contact']);
       $params['tags'] = $tagHelper->getCiviTagsForMautic($civi_details['civicrm_contact_id'], TRUE);
     }
-    // Comms Prefs.
-    $params = CRM_Mautic_Contact_FieldMapping::commsPrefsCiviToMautic($civi_details['contact'], $params);
+
+    $civiDoNotContact = (int) (!empty($civi_details['contact']['is_opt_out']) || !empty($civi_details['contact']['do_not_email']));
+    $mauticDoNotContact = (int) (isset($mautic_details['contact']['doNotContact'][0]['id']));
+
+    if ($civiDoNotContact !== $mauticDoNotContact) {
+      // Comms Prefs.
+      $params = CRM_Mautic_Contact_FieldMapping::commsPrefsCiviToMautic($civi_details['contact'], $params);
+    }
 
     // The contact exists in mautic but is not a member of the group.
     // This will just need adding to the group.
