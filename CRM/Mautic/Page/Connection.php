@@ -84,7 +84,7 @@ EOT;
 
     if ($this->isConnectedToMautic) {
       $apiUser = $this->apiUser;
-      $apiUserName = CRM_Utils_Array::value('username', $apiUser);
+      $apiUserName = $apiUser['username'] ?? NULL;
       $apiUserRole = !empty($apiUser['role']['description']) ? $apiUser['role']['description'] : '';
       $section['content'] .= '<p><strong>' . E::ts('Connection to Mautic Successful.') . '</strong></p>';
       $section['content'] .= $this->labelValue(E::ts('Mautic URL'), $mauticUrl);
