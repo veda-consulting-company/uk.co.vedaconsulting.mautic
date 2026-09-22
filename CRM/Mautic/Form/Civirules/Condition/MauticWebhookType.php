@@ -22,11 +22,11 @@ class CRM_Mautic_Form_Civirules_Condition_MauticWebhookType extends CRM_Civirule
     }
     // $types[0] = ts('- select -');
     $this->add('select2', 'mautic_webhook_type', ts('Webhook Type'), $options, true, ['multiple' => TRUE]);
-    $this->add('select', 'operator', ts('Operator'), array('is one of', 'is not one of'), true);
+    $this->add('select', 'operator', ts('Operator'), ['is one of', 'is not one of'], true);
 
-    $this->addButtons(array(
-      array('type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,),
-      array('type' => 'cancel', 'name' => ts('Cancel'))));
+    $this->addButtons([
+      ['type' => 'next', 'name' => ts('Save'), 'isDefault' => TRUE,],
+      ['type' => 'cancel', 'name' => ts('Cancel')]]);
   }
 
   /**

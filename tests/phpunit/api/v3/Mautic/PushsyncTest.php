@@ -42,7 +42,7 @@ class api_v3_Mautic_PushsyncTest extends \PHPUnit\Framework\TestCase implements 
    * Note how the function name begins with the word "test".
    */
   public function testApiExample() {
-    $result = civicrm_api3('Mautic', 'Pushsync', array('magicword' => 'sesame'));
+    $result = civicrm_api3('Mautic', 'Pushsync', ['magicword' => 'sesame']);
     $this->assertEquals('Twelve', $result['values'][12]['name']);
   }
 

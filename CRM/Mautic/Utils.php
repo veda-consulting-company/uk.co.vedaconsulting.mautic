@@ -202,7 +202,7 @@ class CRM_Mautic_Utils {
     if ($mauticSegmentId) {
       // just want results for a particular MC list.
       $whereClause .= " AND mautic_segment_id = %1 ";
-      $params[1] = array($mauticSegmentId, 'String');
+      $params[1] = [$mauticSegmentId, 'String'];
     }
 
     $query  = "

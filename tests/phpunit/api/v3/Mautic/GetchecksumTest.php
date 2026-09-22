@@ -46,7 +46,7 @@ class api_v3_Mautic_GetchecksumTest extends \PHPUnit\Framework\TestCase implemen
    * Note how the function name begins with the word "test".
    */
   public function testApiExample() {
-    $result = civicrm_api3('Mautic', 'getchecksum', array('magicword' => 'sesame'));
+    $result = civicrm_api3('Mautic', 'getchecksum', ['magicword' => 'sesame']);
     $this->assertEquals('Twelve', $result['values'][12]['name']);
   }
 

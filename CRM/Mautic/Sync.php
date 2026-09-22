@@ -1488,7 +1488,7 @@ class CRM_Mautic_Sync {
   /**
    * There's probably a better way to do this.
    */
-  public static function runSqlReturnAffectedRows($sql, $params = array()) {
+  public static function runSqlReturnAffectedRows($sql, $params = []) {
     $dao = new CRM_Core_DAO();
     $q = CRM_Core_DAO::composeQuery($sql, $params);
     $result = $dao->query($q);

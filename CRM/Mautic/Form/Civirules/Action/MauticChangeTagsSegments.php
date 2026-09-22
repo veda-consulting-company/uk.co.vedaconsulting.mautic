@@ -45,13 +45,13 @@ class CRM_Mautic_Form_Civirules_Action_MauticChangeTagsSegments extends CRM_Civi
       FALSE,
       ['multiple' => TRUE]
     );
-    $this->addButtons(array(
-      array(
+    $this->addButtons([
+      [
         'type' => 'submit',
         'name' => E::ts('Submit'),
         'isDefault' => TRUE,
-      ),
-    ));
+      ],
+    ]);
 
     // export form elements
     $this->assign('elementNames', $this->getRenderableElementNames());
@@ -125,7 +125,7 @@ class CRM_Mautic_Form_Civirules_Action_MauticChangeTagsSegments extends CRM_Civi
     // auto-rendered in the loop -- such as "qfKey" and "buttons".  These
     // items don't have labels.  We'll identify renderable by filtering on
     // the 'label'.
-    $elementNames = array();
+    $elementNames = [];
     foreach ($this->_elements as $element) {
       /** @var HTML_QuickForm_Element $element */
       $label = $element->getLabel();
