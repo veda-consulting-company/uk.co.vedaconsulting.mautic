@@ -22,7 +22,7 @@ class CRM_Mautic_Page_Connection extends CRM_Core_Page {
   public function run() {
 
     CRM_Utils_System::setTitle(E::ts('Mautic Integration'));
-    $this->action = CRM_Utils_Request::retrieve($this->actionKey, 'String',  CRM_Core_DAO::$_nullObject, FALSE, NULL, 'GET');
+    $this->action = CRM_Utils_Request::retrieve($this->actionKey, 'String',  NULL, FALSE, NULL, 'GET');
 
     $sections = [];
 
