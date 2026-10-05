@@ -265,11 +265,11 @@ function mautic_civicrm_alterLogTables(&$logTableSpec) {
  */
 function mautic_civicrm_fieldOptions($entity, $field, &$options, $params) {
   // Add options for field linking Event to Mautic Segment.
-  if ($entity == 'Event' && 0 === strpos($field, 'custom_')) {
-    $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Segment', 'Mautic_Event');
-    if ('custom_' . $fid == $field) {
+  if ($entity == 'Event' && str_starts_with($field, 'custom_')) {
+    $fieldName = CRM_Core_BAO_CustomField::getShortNameFromLongName('Mautic_Event.Mautic_Segment');
+    if ($fieldName == $field) {
       $segments = CRM_Mautic_Utils::getMauticSegmentOptions();
-      $options = $segments ? $segments : $options;
+      $options = $segments ?: $options;
     }
   }
 }

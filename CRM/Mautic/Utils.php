@@ -43,15 +43,14 @@ class CRM_Mautic_Utils {
   public static function saveMauticIDCustomField($contact, $mauticId) {
     self::checkDebug(__FUNCTION__, ['contact' => $contact, 'mauticId' => $mauticId]);
     $contactId = $contact['id'];
-    $fid = CRM_Core_BAO_CustomField::getCustomFieldID('Mautic_Contact_ID', 'Mautic_Contact');
-    $key = 'custom_' . $fid;
-    $savedMauticId = CRM_Utils_Array::value($key, $contact);
+    $key = CRM_Core_BAO_CustomField::getShortNameFromLongName('Mautic_Contact.Mautic_Contact_ID');
+    $savedMauticId = $contact[$key] ?? NULL;
     if ($contactId && $mauticId != $savedMauticId) {
       // Prefer to save customValue directly rather than update Contact.
       // This may be called from a contact update rule trigger.
       $update = self::civiApi('CustomValue', 'create', [
         'entity_id' => $contactId,
-        'custom_' . $fid => $mauticId,
+        $key => $mauticId,
       ]);
       self::checkDebug(__FUNCTION__, ['updated' => $update, 'contact' => $contact]);
     }
@@ -261,19 +260,16 @@ class CRM_Mautic_Utils {
    * @return int
    */
   public static function getSegmentIDForEvent($eventId) {
-    static $segmentFid = NULL;
-    if (!$segmentFid) {
-      $segmentFid = CRM_Core_BAO_CustomField::getCustomFieldID(
-        'Mautic_Segment',
-        'Mautic_Event'
-      );
+    static $segmentFieldName = NULL;
+    if (!$segmentFieldName) {
+      $segmentFieldName = CRM_Core_BAO_CustomField::getShortNameFromLongName('Mautic_Event.Mautic_Segment');
     }
-    if ($segmentFid) {
+    if ($segmentFieldName) {
       $event = self::civiApi('Event', 'getsingle', [
         'id' => $eventId,
-        'return' => ['custom_' . $segmentFid],
+        'return' => [$segmentFieldName],
       ]);
-      return $event['custom_' . $segmentFid] ?? NULL;
+      return $event[$segmentFieldName] ?? NULL;
     }
   }
 
